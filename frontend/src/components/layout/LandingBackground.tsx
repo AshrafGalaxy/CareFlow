@@ -1,0 +1,28 @@
+"use client"
+
+export function LandingBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+      {/* Base Light Background */}
+      <div className="absolute inset-0 bg-[#F8FAFC]" />
+      
+      {/* Mesh Gradient Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-sky-200/40 mix-blend-multiply filter blur-[100px] animate-[orbit_20s_linear_infinite]" />
+      <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-emerald-100/40 mix-blend-multiply filter blur-[120px] animate-[orbit_25s_linear_infinite_reverse]" />
+      <div className="absolute bottom-[-10%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-blue-100/40 mix-blend-multiply filter blur-[150px] animate-[orbit_30s_linear_infinite]" />
+      
+      {/* Subtle Medical Grid Pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]" 
+        style={{ backgroundImage: 'radial-gradient(#0ea5e9 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+      />
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes orbit {
+          0% { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+          100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+        }
+      `}} />
+    </div>
+  )
+}
