@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+.env
+venv/
+env/
+.next/
+*.pyc
+faiss_indexes/
+.DS_Store
+
+*.md
+.env*

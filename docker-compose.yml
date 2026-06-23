@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: careflow_db
+    restart: always
+    environment:
+      POSTGRES_USER: careflow_user
+      POSTGRES_PASSWORD: careflow_password
+      POSTGRES_DB: careflow_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:
