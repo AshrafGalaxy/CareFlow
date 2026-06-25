@@ -10,3 +10,17 @@ faiss_indexes/
 
 *.md
 .env*
+
+# Logs and Data
+backend/data/
+backend/*.log
+backend/server_*.log
+
+# Scripts and tests
+backend/test_*.py
+backend/check_reports.py
+backend/list_models.py
+backend/make_report.py
+start.bat
+.vscode/
+backend/fake_report.png
