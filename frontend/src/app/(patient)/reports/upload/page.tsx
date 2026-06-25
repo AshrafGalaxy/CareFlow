@@ -24,7 +24,7 @@ export default function ReportUploadPage() {
     if (rejectedFiles.length > 0) {
       setStatus("error")
       setShakeKey(k => k + 1)
-      const { errors } = rejectedFiles[0]
+      const { errors } = rejectedFiles[0] as any
       setErrorMessage(errors[0]?.code === "file-too-large"
         ? "File is too large. Maximum size is 10MB."
         : "Invalid file type. Please upload PDF, JPG, or PNG only.")
