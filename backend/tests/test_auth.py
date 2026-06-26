@@ -10,8 +10,8 @@ def test_register_success(client):
     assert data["email"] == "new_user@example.com"
     assert "id" in data
 
-def test_register_duplicate_email(client):
-    # Relies on setup from conftest or previous test
+def test_register_duplicate_email(client, auth_headers):
+    # Relies on setup from auth_headers fixture
     response = client.post("/api/auth/register", json={
         "email": "test_user@example.com",
         "password": "testpassword",

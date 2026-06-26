@@ -51,7 +51,8 @@ async def process_report_ai(
     """Background task: OCR → AI Analysis → FAISS embedding → Timeline event"""
     try:
         # Update status to processing
-        report = db.query(Report).filter(Report.id == report_id).first()
+        import uuid
+        report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         report.processing_status = "processing"
         db.commit()
 
@@ -85,7 +86,8 @@ async def process_report_ai(
         )
 
     except Exception as e:
-        report = db.query(Report).filter(Report.id == report_id).first()
+        import uuid
+        report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
             report.processing_status = "failed"
             db.commit()
@@ -99,7 +101,8 @@ async def reanalyze_report_ai(report_id: str, db: Session):
     Typical time: ~3 seconds vs ~30 seconds for full pipeline.
     """
     try:
-        report = db.query(Report).filter(Report.id == report_id).first()
+        import uuid
+        report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if not report or not report.ocr_text:
             print(f"Re-analyze skipped for {report_id}: no OCR text saved")
             return

@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
 import { Toaster } from "sonner"
@@ -63,7 +64,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} font-sans antialiased`}>
-        <PageTransition />
+        <Suspense fallback={null}>
+          <PageTransition />
+        </Suspense>
         {children}
         <Toaster
           position="top-right"

@@ -1,5 +1,9 @@
 from sqlalchemy import Column, String, Text, Date, DateTime, Boolean, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB as PG_JSONB
+from sqlalchemy import JSON
+
+# Cross-dialect JSON type
+JSONVariant = JSON().with_variant(PG_JSONB, "postgresql")
 from sqlalchemy.sql import func
 from app.database import Base
 import uuid
@@ -11,7 +15,7 @@ class Medication(Base):
     name = Column(String(255), nullable=False)
     dosage = Column(String(100))
     frequency = Column(String(100))
-    times_of_day = Column(JSONB, default=list)
+    times_of_day = Column(JSONVariant, default=list)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date)
     notes = Column(Text)
