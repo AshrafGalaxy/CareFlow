@@ -169,6 +169,9 @@ docker-compose up -d
 
 Built with ❤️ by passionate developers aiming to revolutionize digital health.
 
+**Core Maintainer:**
+- [Ashraf (AshrafGalaxy)](https://github.com/AshrafGalaxy)
+
 <a href="https://github.com/AshrafGalaxy/CareFlow/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=AshrafGalaxy/CareFlow" alt="Contributors list"/>
 </a>
