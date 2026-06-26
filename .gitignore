@@ -15,6 +15,7 @@ faiss_indexes/
 backend/data/
 backend/*.log
 backend/server_*.log
+backend/test.db
 
 # Scripts and tests
 backend/test_*.py
