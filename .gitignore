@@ -25,3 +25,5 @@ backend/make_report.py
 start.bat
 .vscode/
 backend/fake_report.png
+
+!README.md
