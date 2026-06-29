@@ -989,3 +989,74 @@
 .skeleton--card {
   @apply h-32 rounded-2xl;
 }
+/* ==========================================================================
+   Insurance Navigator Page
+   ========================================================================== */
+
+.insurance-page {
+  @apply max-w-3xl mx-auto space-y-8 pb-10;
+}
+
+.insurance-header h1 {
+  @apply text-3xl font-bold text-slate-800 mb-2;
+}
+
+.insurance-header p {
+  @apply text-slate-500;
+}
+
+.insurance-query-card {
+  @apply bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4;
+}
+
+.insurance-state-select {
+  @apply p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500;
+}
+
+.scheme-card {
+  @apply bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2;
+}
+
+.scheme-coverage-amount {
+  @apply text-2xl font-black text-sky-600;
+}
+
+.cost-row {
+  @apply flex justify-between text-sm py-2 border-b border-slate-100;
+}
+
+.cost-row--total {
+  @apply flex justify-between font-bold text-slate-800 pt-3;
+}
+
+.doc-checklist-item {
+  @apply flex items-start gap-3 text-sm py-2;
+}
+
+/* ==========================================================================
+   Provider Dashboard
+   ========================================================================== */
+
+.dashboard-page {
+  @apply max-w-6xl mx-auto space-y-8 pb-10;
+}
+
+.dashboard-stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+}
+
+.dashboard-stat-card {
+  @apply bg-white p-5 rounded-2xl border border-slate-200 shadow-sm;
+}
+
+.dashboard-stat-label {
+  @apply text-xs font-bold uppercase text-slate-400 tracking-wider;
+}
+
+.dashboard-stat-value {
+  @apply text-2xl font-black text-slate-800 mt-1;
+}
+
+.adherence-badge--good { @apply bg-green-50 text-green-700 border-green-200; }
+.adherence-badge--ok { @apply bg-amber-50 text-amber-700 border-amber-200; }
+.adherence-badge--low { @apply bg-red-50 text-red-700 border-red-200; }
