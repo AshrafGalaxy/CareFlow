@@ -167,7 +167,7 @@ docker-compose up -d
 
 ## 👥 Meet the Team
 
-Built with ❤️ by passionate developers aiming to revolutionize digital health.
+Built with ❤️ by passionate developers aiming to revolutionize digital health
 
 <a href="https://github.com/AshrafGalaxy/CareFlow/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=AshrafGalaxy/CareFlow" alt="Contributors list"/>
