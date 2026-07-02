@@ -99,7 +99,7 @@ export default function RegisterPage() {
       router.push(APP_ROUTES.DASHBOARD)
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to sign in. Please check your credentials and try again."
+        (err as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Failed to create account. Please try again."
       )
     } finally {
       setIsLoading(false)
