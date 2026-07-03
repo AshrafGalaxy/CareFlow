@@ -164,30 +164,30 @@ docker-compose up -d
 
 Built with ❤️ by passionate developers aiming to revolutionize digital health.
 
-<table align="center">
-  <tr>
-    <td align="center">
+<table align="center" border="0" cellspacing="0" cellpadding="20">
+  <tr border="0">
+    <td align="center" border="0">
       <a href="https://github.com/sharayu-ctrl">
         <img src="https://images.weserv.nl/?url=github.com/sharayu-ctrl.png&mask=circle" width="100" alt="Sharayu"/>
       </a>
       <br />
       <sub><b>Sharayu</b></sub>
     </td>
-    <td align="center">
+    <td align="center" border="0">
       <a href="https://github.com/Shweta-sketch52">
         <img src="https://images.weserv.nl/?url=github.com/Shweta-sketch52.png&mask=circle" width="100" alt="Shweta"/>
       </a>
       <br />
       <sub><b>Shweta</b></sub>
     </td>
-    <td align="center">
+    <td align="center" border="0">
       <a href="https://github.com/ronitjain7">
         <img src="https://images.weserv.nl/?url=github.com/ronitjain7.png&mask=circle" width="100" alt="Ronit"/>
       </a>
       <br />
       <sub><b>Ronit</b></sub>
     </td>
-    <td align="center">
+    <td align="center" border="0">
       <a href="https://github.com/AshrafGalaxy">
         <img src="https://images.weserv.nl/?url=github.com/AshrafGalaxy.png&mask=circle" width="100" alt="Ashraf"/>
       </a>
