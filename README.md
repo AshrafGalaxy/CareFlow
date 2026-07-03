@@ -22,7 +22,6 @@
   <a href="https://python.org/">
     <img src="https://img.shields.io/badge/AI-Python_3.12-3776AB?logo=python" alt="Python">
   </a>
-  <img src="https://img.shields.io/badge/Status-Hackathon_Ready-success.svg" alt="Status">
 </p>
 
 ---
@@ -64,44 +63,29 @@ CareFlow uses a decoupled, highly scalable microservice architecture. It combine
 ```mermaid
 graph TD
     %% Frontend Layer
-    subgraph Frontend [Next.js Client]
-        UI[Shadcn UI + Tailwind]
-        Zustand[Zustand State Store]
-        UI <--> Zustand
+    subgraph Frontend
+        A[Next.js UI & Zustand]
     end
 
     %% Backend Layer
-    subgraph Backend [FastAPI Server]
-        API[Router Endpoints]
-        Auth[JWT + RBAC Middleware]
-        Services[Core Services]
-        
-        API --> Auth
-        Auth --> Services
+    subgraph Backend
+        B[FastAPI & Services]
     end
 
     %% AI Layer
-    subgraph AI_Engine [AI & Document Engine]
-        OCR[Vision OCR Extraction]
-        LLM[LangChain / LLM Chat]
-        Vector[FAISS Vector Store]
-        
-        OCR --> LLM
-        LLM <--> Vector
+    subgraph AI_Engine
+        C[OCR & LangChain AI]
     end
 
     %% Data Layer
-    subgraph Database [PostgreSQL]
-        Models[SQLAlchemy Models]
-        Schema[(CareFlow DB)]
-        
-        Models --> Schema
+    subgraph Database
+        D[(PostgreSQL)]
     end
 
     %% Connections
-    Zustand <--> |REST API Calls| API
-    Services <--> AI_Engine
-    Services <--> Models
+    A <-->|REST API| B
+    B <--> C
+    B <--> D
 ```
 
 ---
@@ -167,11 +151,16 @@ docker-compose up -d
 
 ## 👥 Meet the Team
 
-Built with ❤️ by passionate developers aiming to revolutionize digital health
+Built with ❤️ by passionate developers aiming to revolutionize digital health.
 
-<a href="https://github.com/AshrafGalaxy/CareFlow/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=AshrafGalaxy/CareFlow" alt="Contributors list"/>
-</a>
+<table>
+  <tr>
+    <td align="center"><strong>Shweta</strong></td>
+    <td align="center"><strong>Sharayu</strong></td>
+    <td align="center"><strong>Ronit</strong></td>
+    <td align="center"><strong>Ashraf Galaxy</strong></td>
+  </tr>
+</table>
 
 ---
 
