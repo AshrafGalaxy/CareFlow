@@ -62,30 +62,49 @@ CareFlow uses a decoupled, highly scalable microservice architecture. It combine
 
 ```mermaid
 graph TD
-    %% Frontend Layer
-    subgraph Frontend
-        A[Next.js UI & Zustand]
+    subgraph Frontend ["Next.js (Edge-Rendered UI)"]
+        direction TB
+        PatientUI["Patient Portal<br/>(Dashboard, Insurance, Timeline)"]
+        ProviderUI["Provider Portal<br/>(Patient List, Adherence Analytics)"]
+        State["Zustand + React Query"]
+        PatientUI -.-> State
+        ProviderUI -.-> State
     end
 
-    %% Backend Layer
-    subgraph Backend
-        B[FastAPI & Services]
+    subgraph Backend ["FastAPI (Python 3.12 Core)"]
+        direction TB
+        Auth["JWT & RBAC Middleware"]
+        API_Patient["Patient & Insurance Routers"]
+        API_Provider["Dashboard & Provider Routers"]
+        Auth --> API_Patient
+        Auth --> API_Provider
     end
 
-    %% AI Layer
-    subgraph AI_Engine
-        C[OCR & LangChain AI]
+    subgraph AI_Engine ["LangChain AI Engine"]
+        direction TB
+        OCR["Vision OCR<br/>(Medical Reports)"]
+        Bot["CareBot LLM<br/>(Contextual Chat)"]
+        InsuranceAI["Insurance Chain<br/>(Coverage Analysis)"]
+        VectorDB[("FAISS Vector Store")]
+        
+        OCR --> Bot
+        Bot <--> VectorDB
+        InsuranceAI <--> VectorDB
     end
 
-    %% Data Layer
-    subgraph Database
-        D[(PostgreSQL)]
+    subgraph Database ["Persistence Layer"]
+        direction TB
+        Postgres[("PostgreSQL DB")]
+        ORM["SQLAlchemy & Alembic"]
+        ORM --> Postgres
     end
 
-    %% Connections
-    A <-->|REST API| B
-    B <--> C
-    B <--> D
+    %% Flow connections
+    State <-->|REST API| Auth
+    API_Patient <--> OCR
+    API_Patient <--> InsuranceAI
+    API_Patient <--> ORM
+    API_Provider <--> ORM
 ```
 
 ---
@@ -153,12 +172,32 @@ docker-compose up -d
 
 Built with ❤️ by passionate developers aiming to revolutionize digital health.
 
-<table>
+<table align="center">
   <tr>
-    <td align="center"><strong>Shweta</strong></td>
-    <td align="center"><strong>Sharayu</strong></td>
-    <td align="center"><strong>Ronit</strong></td>
-    <td align="center"><strong>Ashraf Galaxy</strong></td>
+    <td align="center">
+      <a href="https://github.com/sharayu-ctrl">
+        <img src="https://github.com/sharayu-ctrl.png" width="100px;" alt="Sharayu" style="border-radius:50%;"/><br />
+        <sub><b>Sharayu</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Shweta-sketch52">
+        <img src="https://github.com/Shweta-sketch52.png" width="100px;" alt="Shweta" style="border-radius:50%;"/><br />
+        <sub><b>Shweta</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/ronitjain7">
+        <img src="https://github.com/ronitjain7.png" width="100px;" alt="Ronit" style="border-radius:50%;"/><br />
+        <sub><b>Ronit</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/AshrafGalaxy">
+        <img src="https://github.com/AshrafGalaxy.png" width="100px;" alt="Ashraf" style="border-radius:50%;"/><br />
+        <sub><b>Ashraf</b></sub>
+      </a>
+    </td>
   </tr>
 </table>
 
