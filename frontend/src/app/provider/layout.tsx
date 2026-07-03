@@ -1,0 +1,96 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { Loader2, LogOut, ChevronLeft } from "lucide-react"
+import { useAuthStore } from "@/store/authStore"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
+import { Button } from "@/components/ui/button"
+
+export default function ProviderLayout({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((state) => state.user)
+  const token = useAuthStore((state) => state.token)
+  const hasHydrated = useAuthStore((state) => state._hasHydrated)
+  const logout = useAuthStore((state) => state.logout)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const isDetailPage = pathname.includes("/patients/")
+
+  useEffect(() => {
+    if (!hasHydrated) return
+    if (!token) {
+      router.replace("/login")
+    } else if (user?.role !== "doctor" && user?.role !== "admin") {
+      router.replace("/dashboard")
+    }
+  }, [user, token, hasHydrated, router])
+
+  const handleLogout = () => {
+    logout()
+    router.replace("/login")
+  }
+
+  // Show full-page spinner while Zustand rehydrates from localStorage
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 text-sky-500 animate-spin" />
+          <p className="text-sm text-slate-500">Loading CareFlow AI...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!token || (user?.role !== "doctor" && user?.role !== "admin")) return null
+
+  return (
+    <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
+      {/* Top Header */}
+      <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/provider/dashboard")}>
+            <span className="font-brand text-xl font-bold text-slate-900 tracking-tight">
+              CareFlow <span className="text-sky-500">AI</span> <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded ml-1">Provider Portal</span>
+            </span>
+          </div>
+
+          {isDetailPage && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/provider/dashboard")}
+              className="text-slate-600 hover:text-slate-900 flex items-center gap-1.5"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back to Dashboard</span>
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-semibold text-slate-800">{user?.name}</p>
+            <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-2 border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </Button>
+        </div>
+      </header>
+
+      {/* Content Area */}
+      <main className="flex-1 p-6 overflow-auto max-w-7xl w-full mx-auto">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
+    </div>
+  )
+}
