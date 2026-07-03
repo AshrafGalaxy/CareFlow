@@ -10,18 +10,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AshrafGalaxy/CareFlow/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
-  </a>
-  <a href="https://nextjs.org/">
-    <img src="https://img.shields.io/badge/Frontend-Next.js_14-black?logo=next.js" alt="Next.js">
-  </a>
-  <a href="https://fastapi.tiangolo.com/">
-    <img src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi" alt="FastAPI">
-  </a>
-  <a href="https://python.org/">
-    <img src="https://img.shields.io/badge/AI-Python_3.12-3776AB?logo=python" alt="Python">
-  </a>
+  <a href="https://github.com/AshrafGalaxy/CareFlow/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Frontend-Next.js_14-black?logo=next.js&style=for-the-badge" alt="Next.js"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&style=for-the-badge" alt="FastAPI"></a>
+  <a href="https://python.org/"><img src="https://img.shields.io/badge/AI-Python_3.12-3776AB?logo=python&style=for-the-badge" alt="Python"></a>
 </p>
 
 ---
@@ -176,27 +168,31 @@ Built with ❤️ by passionate developers aiming to revolutionize digital healt
   <tr>
     <td align="center">
       <a href="https://github.com/sharayu-ctrl">
-        <img src="https://github.com/sharayu-ctrl.png" width="100px;" alt="Sharayu" style="border-radius:50%;"/><br />
-        <sub><b>Sharayu</b></sub>
+        <img src="https://images.weserv.nl/?url=github.com/sharayu-ctrl.png&mask=circle" width="100" alt="Sharayu"/>
       </a>
+      <br />
+      <sub><b>Sharayu</b></sub>
     </td>
     <td align="center">
       <a href="https://github.com/Shweta-sketch52">
-        <img src="https://github.com/Shweta-sketch52.png" width="100px;" alt="Shweta" style="border-radius:50%;"/><br />
-        <sub><b>Shweta</b></sub>
+        <img src="https://images.weserv.nl/?url=github.com/Shweta-sketch52.png&mask=circle" width="100" alt="Shweta"/>
       </a>
+      <br />
+      <sub><b>Shweta</b></sub>
     </td>
     <td align="center">
       <a href="https://github.com/ronitjain7">
-        <img src="https://github.com/ronitjain7.png" width="100px;" alt="Ronit" style="border-radius:50%;"/><br />
-        <sub><b>Ronit</b></sub>
+        <img src="https://images.weserv.nl/?url=github.com/ronitjain7.png&mask=circle" width="100" alt="Ronit"/>
       </a>
+      <br />
+      <sub><b>Ronit</b></sub>
     </td>
     <td align="center">
       <a href="https://github.com/AshrafGalaxy">
-        <img src="https://github.com/AshrafGalaxy.png" width="100px;" alt="Ashraf" style="border-radius:50%;"/><br />
-        <sub><b>Ashraf</b></sub>
+        <img src="https://images.weserv.nl/?url=github.com/AshrafGalaxy.png&mask=circle" width="100" alt="Ashraf"/>
       </a>
+      <br />
+      <sub><b>Ashraf</b></sub>
     </td>
   </tr>
 </table>
