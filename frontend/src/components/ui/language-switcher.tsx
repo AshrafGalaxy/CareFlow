@@ -38,11 +38,9 @@ export function LanguageSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
-          <Globe className="h-5 w-5" />
-          <span className="sr-only">Toggle Language</span>
-        </Button>
+      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none">
+        <Globe className="h-5 w-5" />
+        <span className="sr-only">Toggle Language</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
         {locales.map((l) => (
