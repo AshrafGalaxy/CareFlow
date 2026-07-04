@@ -81,7 +81,7 @@ export default function LandingPage() {
     { icon: Pill, title: "Medication Tracker", desc: "Never miss a dose. Smart schedules with adherence logging." },
     { icon: Shield, title: "Insurance Navigator", desc: "Find PM-JAY schemes that cover your specific procedure effortlessly." },
     { icon: CalendarDays, title: "Health Timeline", desc: "Your complete medical journey visualized in a single chronological view." },
-    { icon: Stethoscope, title: "Doctor Dashboard", desc: "Providers monitor patient adherence and flag at-risk patients instantly." },
+    { icon: Stethoscope, title: "Doctor Dashboard", desc: "Doctors monitor patient adherence and flag at-risk patients instantly." },
   ]
 
   const testimonials = [

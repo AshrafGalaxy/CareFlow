@@ -20,7 +20,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     if (!token) {
       router.replace("/login")
     } else if (user?.role === "doctor") {
-      router.replace("/provider/dashboard")
+      router.replace("/doctor/dashboard")
     }
   }, [user, token, hasHydrated, router])
 

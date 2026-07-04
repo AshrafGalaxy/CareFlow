@@ -4,26 +4,26 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.models.user import User
-from app.models.provider import ProviderPatient
+from app.models.doctor import DoctorPatient
 from app.models.medication import Medication, MedicationLog
 from app.models.follow_up import FollowUp
 from app.models.report import Report
 
 
-async def get_patient_overview(provider: User, db: Session):
+async def get_patient_overview(doctor: User, db: Session):
     """
-    Get a summary of patients assigned to the provider (or all patients if admin).
+    Get a summary of patients assigned to the doctor (or all patients if admin).
     Includes name, email, 30-day medication adherence rate, pending follow-ups,
     and recent report ID.
     """
-    if provider.role == "admin":
+    if doctor.role == "admin":
         assigned_patients = db.query(User).filter(User.role == "patient", User.is_active == True).all()
     else:
         assigned_patients = db.query(User).join(
-            ProviderPatient, ProviderPatient.patient_id == User.id
+            DoctorPatient, DoctorPatient.patient_id == User.id
         ).filter(
-            ProviderPatient.provider_id == provider.id,
-            ProviderPatient.is_active == True
+            DoctorPatient.doctor_id == doctor.id,
+            DoctorPatient.is_active == True
         ).all()
 
     now_utc = datetime.now(timezone.utc)
@@ -71,7 +71,7 @@ async def get_patient_overview(provider: User, db: Session):
     return result
 
 
-async def get_adherence_analytics(provider: User, days: int, db: Session):
+async def get_adherence_analytics(doctor: User, days: int, db: Session):
     """
     Get adherence analytics for the last N days.
     Returns:
@@ -79,14 +79,14 @@ async def get_adherence_analytics(provider: User, days: int, db: Session):
     - overall_adherence (average of patient rates)
     - by_patient (breakdown of rate per patient)
     """
-    if provider.role == "admin":
+    if doctor.role == "admin":
         assigned_patients = db.query(User).filter(User.role == "patient", User.is_active == True).all()
     else:
         assigned_patients = db.query(User).join(
-            ProviderPatient, ProviderPatient.patient_id == User.id
+            DoctorPatient, DoctorPatient.patient_id == User.id
         ).filter(
-            ProviderPatient.provider_id == provider.id,
-            ProviderPatient.is_active == True
+            DoctorPatient.doctor_id == doctor.id,
+            DoctorPatient.is_active == True
         ).all()
 
     now_utc = datetime.now(timezone.utc)
@@ -126,18 +126,18 @@ async def get_adherence_analytics(provider: User, days: int, db: Session):
     }
 
 
-async def get_followup_stats(provider: User, db: Session):
+async def get_followup_stats(doctor: User, db: Session):
     """
     Get follow-up appointment stats for assigned patients.
     Returns the count of missed follow-ups.
     """
-    if provider.role == "admin":
+    if doctor.role == "admin":
         patient_ids = [u.id for u in db.query(User).filter(User.role == "patient", User.is_active == True).all()]
     else:
         patient_ids = [
-            p.patient_id for p in db.query(ProviderPatient).filter(
-                ProviderPatient.provider_id == provider.id,
-                ProviderPatient.is_active == True
+            p.patient_id for p in db.query(DoctorPatient).filter(
+                DoctorPatient.doctor_id == doctor.id,
+                DoctorPatient.is_active == True
             ).all()
         ]
 
@@ -157,20 +157,20 @@ async def get_followup_stats(provider: User, db: Session):
     return {"missed": missed_count}
 
 
-async def get_patient_detail(patient_id: uuid.UUID, provider: User, db: Session):
+async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
     """
     Get detailed profile of a patient including medications, recent reports, and follow-ups.
-    Verifies that the patient is assigned to this provider (unless provider is admin).
+    Verifies that the patient is assigned to this doctor (unless doctor is admin).
     """
     patient = db.query(User).filter(User.id == patient_id, User.role == "patient").first()
     if not patient:
         return None
 
-    if provider.role != "admin":
-        is_assigned = db.query(ProviderPatient).filter(
-            ProviderPatient.provider_id == provider.id,
-            ProviderPatient.patient_id == patient_id,
-            ProviderPatient.is_active == True
+    if doctor.role != "admin":
+        is_assigned = db.query(DoctorPatient).filter(
+            DoctorPatient.doctor_id == doctor.id,
+            DoctorPatient.patient_id == patient_id,
+            DoctorPatient.is_active == True
         ).first()
         if not is_assigned:
             return None

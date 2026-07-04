@@ -7,7 +7,7 @@ import { useAuthStore } from "@/store/authStore"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { Button } from "@/components/ui/button"
 
-export default function ProviderLayout({ children }: { children: React.ReactNode }) {
+export default function DoctorLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
   const hasHydrated = useAuthStore((state) => state._hasHydrated)
@@ -19,11 +19,11 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!hasHydrated) return
-    const isLoginPage = pathname.endsWith("/provider/login")
+    const isLoginPage = pathname.endsWith("/doctor/login")
     
     if (!token) {
       if (!isLoginPage) {
-        router.replace("/provider/login")
+        router.replace("/doctor/login")
       }
     } else if (user?.role !== "provider" && user?.role !== "admin") {
       router.replace("/dashboard")
@@ -32,7 +32,7 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
 
   const handleLogout = () => {
     logout()
-    router.replace("/provider/login")
+    router.replace("/doctor/login")
   }
 
   // Show full-page spinner while Zustand rehydrates from localStorage
@@ -47,7 +47,7 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
     )
   }
 
-  if (pathname.endsWith("/provider/login")) {
+  if (pathname.endsWith("/doctor/login")) {
     return (
       <div className="min-h-screen bg-slate-50 font-sans">
         <ErrorBoundary>{children}</ErrorBoundary>
@@ -62,9 +62,9 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
       {/* Top Header */}
       <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/provider/dashboard")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/doctor/dashboard")}>
             <span className="font-brand text-xl font-bold text-slate-900 tracking-tight">
-              CareFlow <span className="text-sky-500">AI</span> <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded ml-1">Provider Portal</span>
+              CareFlow <span className="text-sky-500">AI</span> <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded ml-1">Doctor Portal</span>
             </span>
           </div>
 
@@ -72,7 +72,7 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/provider/dashboard")}
+              onClick={() => router.push("/doctor/dashboard")}
               className="text-slate-600 hover:text-slate-900 flex items-center gap-1.5"
             >
               <ChevronLeft className="h-4 w-4" />

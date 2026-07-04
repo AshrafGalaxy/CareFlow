@@ -48,7 +48,7 @@ export default function PatientList({ patients }: { patients: any[] }) {
             {filtered.map((p) => (
               <div 
                 key={p.patient_id} 
-                onClick={() => router.push(`/provider/patients/${p.patient_id}`)}
+                onClick={() => router.push(`/doctor/patients/${p.patient_id}`)}
                 className="group flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
               >
                 <div className="flex items-center gap-4">

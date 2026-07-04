@@ -149,7 +149,7 @@ export default function RegisterPage() {
             }`}
           >
             <Stethoscope className="h-4 w-4" />
-            Doctor / Provider
+            Doctor
           </button>
         </div>
 

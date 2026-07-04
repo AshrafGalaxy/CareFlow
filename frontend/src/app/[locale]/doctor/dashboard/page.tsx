@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import PatientList from "@/components/provider/PatientList";
-import AdherenceAnalytics from "@/components/provider/AdherenceAnalytics";
+import PatientList from "@/components/doctor/PatientList";
+import AdherenceAnalytics from "@/components/doctor/AdherenceAnalytics";
 import { Users, Activity, AlertCircle, FileText, Loader2, ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
-export default function ProviderDashboardPage() {
+export default function DoctorDashboardPage() {
   const [patients, setPatients] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [followups, setFollowups] = useState<any>(null);
@@ -117,7 +117,7 @@ export default function ProviderDashboardPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Your Patients</h2>
-            <Link href="/provider/patients" className="text-sm font-medium text-sky-500 hover:text-sky-600 flex items-center gap-1 group">
+            <Link href="/doctor/patients" className="text-sm font-medium text-sky-500 hover:text-sky-600 flex items-center gap-1 group">
               View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

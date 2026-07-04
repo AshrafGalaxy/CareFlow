@@ -18,7 +18,7 @@ export default function AuthLayout({
   useEffect(() => {
     if (hasHydrated && user) {
       if (user.role === "doctor") {
-        router.replace("/provider/dashboard")
+        router.replace("/doctor/dashboard")
       } else {
         router.replace("/dashboard")
       }

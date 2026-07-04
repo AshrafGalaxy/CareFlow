@@ -5,4 +5,4 @@ from .medication import Medication, MedicationLog
 from .follow_up import FollowUp
 from .insurance import InsuranceQuery
 from .timeline import HealthTimelineEvent
-from .provider import ProviderPatient
+from .doctor import DoctorPatient

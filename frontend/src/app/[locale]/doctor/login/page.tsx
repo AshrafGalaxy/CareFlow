@@ -49,9 +49,9 @@ export default function ProviderLogin() {
       }
 
       setAuth(access_token, user)
-      toast.success("Successfully logged into Provider Portal!")
+      toast.success("Successfully logged into Doctor Portal!")
       
-      router.push("/provider/dashboard")
+      router.push("/doctor/dashboard")
     } catch (err: any) {
       console.error("Login error:", err)
       setError(
@@ -78,7 +78,7 @@ export default function ProviderLogin() {
               <Stethoscope className="w-8 h-8" />
             </div>
             <h1 className="text-3xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">
-              Provider Portal
+              Doctor Portal
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
               Securely access patient records, review lab reports, and manage CareFlow prescriptions.

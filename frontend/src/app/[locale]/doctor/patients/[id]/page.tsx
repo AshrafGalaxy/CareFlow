@@ -67,7 +67,7 @@ export default function PatientDetailPage() {
           <Activity className="w-8 h-8" />
         </div>
         <p className="text-lg font-medium text-slate-800 dark:text-slate-200">{error || "Patient not found"}</p>
-        <Link href="/provider/dashboard" className="text-sky-500 hover:text-sky-600 font-medium">
+        <Link href="/doctor/dashboard" className="text-sky-500 hover:text-sky-600 font-medium">
           ← Back to Dashboard
         </Link>
       </div>
