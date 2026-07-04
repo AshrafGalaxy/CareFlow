@@ -16,16 +16,12 @@ export default function ChatPage() {
   const { sessions, activeSession, messages, setSessions, setActiveSession, setMessages } = useChatStore()
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadSessions()
-  }, [])
-
   const loadSessions = async () => {
     try {
       const res = await api.get('/api/chat/sessions')
-      setSessions(res.data)
-      if (res.data.length > 0 && !activeSession) {
-        selectSession(res.data[0])
+      setSessions(res.data.sessions)
+      if (res.data.sessions.length > 0 && !activeSession) {
+        setActiveSession(res.data.sessions[0])
       }
     } catch (e) {
       console.error(e)
@@ -33,6 +29,10 @@ export default function ChatPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadSessions()
+  }, [])
 
   const selectSession = async (session: ChatSession) => {
     setActiveSession(session)

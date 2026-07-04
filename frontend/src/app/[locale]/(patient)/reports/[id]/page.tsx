@@ -80,6 +80,7 @@ export default function ReportDetailPage() {
 
   useEffect(() => {
     if (!id) return
+    // eslint-disable-next-line prefer-const
     let interval: NodeJS.Timeout
 
     const fetchReport = async () => {

@@ -14,7 +14,7 @@ export function PageTransition() {
 
   useEffect(() => {
     // Trigger animation overlay when route changes
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setIsAnimating(true)
     setIsFadingOut(false)
 

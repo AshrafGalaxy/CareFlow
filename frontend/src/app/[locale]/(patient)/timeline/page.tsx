@@ -36,11 +36,6 @@ export default function TimelinePage() {
   const [loading, setLoading] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(true)
 
-  useEffect(() => {
-    loadTimeline()
-    loadSummary()
-  }, [])
-
   const loadTimeline = async () => {
     try {
       const res = await api.get('/api/timeline/?limit=50&offset=0')
@@ -63,6 +58,11 @@ export default function TimelinePage() {
       setSummaryLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadTimeline()
+    loadSummary()
+  }, [])
 
   const getEventLink = (event: TimelineEvent): string | null => {
     if (event.reference_table === 'reports' && event.reference_id) {
