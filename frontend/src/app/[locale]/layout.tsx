@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
 import { Toaster } from "sonner"
 import { PageTransition } from "@/components/ui/page-transition"
-import "./globals.css"
+import "../globals.css"
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -57,12 +57,19 @@ export const metadata: Metadata = {
 }
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params
 }: Readonly<{
   children: React.ReactNode
+  params: { locale: string }
 }>) {
+  const { locale } = await params
+  const messages = await getMessages()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} font-sans antialiased`}>
@@ -72,24 +79,26 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Suspense fallback={null}>
-            <PageTransition />
-          </Suspense>
-          {children}
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            toastOptions={{
-              classNames: {
-                toast: "font-sans text-[15px] font-medium shadow-xl border-slate-200/60 rounded-xl px-5 py-4 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 dark:border-slate-800",
-                title: "font-heading font-bold text-slate-900 dark:text-slate-100",
-                description: "text-slate-600 font-medium text-sm leading-relaxed dark:text-slate-300",
-                actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-sm transition-colors",
-                cancelButton: "bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700",
-              },
-            }}
-          />
+          <NextIntlClientProvider messages={messages}>
+            <Suspense fallback={null}>
+              <PageTransition />
+            </Suspense>
+            {children}
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              toastOptions={{
+                classNames: {
+                  toast: "font-sans text-[15px] font-medium shadow-xl border-slate-200/60 rounded-xl px-5 py-4 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 dark:border-slate-800",
+                  title: "font-heading font-bold text-slate-900 dark:text-slate-100",
+                  description: "text-slate-600 font-medium text-sm leading-relaxed dark:text-slate-300",
+                  actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-sm transition-colors",
+                  cancelButton: "bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700",
+                },
+              }}
+            />
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

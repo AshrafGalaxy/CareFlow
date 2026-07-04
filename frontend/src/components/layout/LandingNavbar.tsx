@@ -6,6 +6,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
 export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -51,6 +52,7 @@ export function LandingNavbar() {
         
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <LanguageSwitcher />
           <Link
             href="/login"
             className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors px-4 py-2"

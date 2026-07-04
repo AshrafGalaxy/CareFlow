@@ -1,0 +1,13 @@
+{
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "reports": "My Reports",
+    "chat": "AI Health Chat",
+    "medications": "Medications",
+    "insurance": "Insurance"
+  },
+  "Auth": {
+    "signIn": "Sign In",
+    "signUp": "Start for Free"
+  }
+}

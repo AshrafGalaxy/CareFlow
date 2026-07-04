@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -76,8 +77,9 @@ export function TopNav() {
           </PopoverContent>
         </Popover>
 
-        {/* Theme Toggle */}
+        {/* Theme Toggle & Language */}
         <ThemeToggle />
+        <LanguageSwitcher />
 
         {/* Avatar */}
         <div className="h-9 w-9 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold ring-2 ring-sky-100 dark:ring-sky-900">
