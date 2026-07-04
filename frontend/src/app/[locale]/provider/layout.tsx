@@ -19,16 +19,20 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!hasHydrated) return
+    const isLoginPage = pathname.endsWith("/provider/login")
+    
     if (!token) {
-      router.replace("/login")
-    } else if (user?.role !== "doctor" && user?.role !== "admin") {
+      if (!isLoginPage) {
+        router.replace("/provider/login")
+      }
+    } else if (user?.role !== "provider" && user?.role !== "admin") {
       router.replace("/dashboard")
     }
-  }, [user, token, hasHydrated, router])
+  }, [user, token, hasHydrated, router, pathname])
 
   const handleLogout = () => {
     logout()
-    router.replace("/login")
+    router.replace("/provider/login")
   }
 
   // Show full-page spinner while Zustand rehydrates from localStorage
@@ -43,7 +47,15 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
     )
   }
 
-  if (!token || (user?.role !== "doctor" && user?.role !== "admin")) return null
+  if (pathname.endsWith("/provider/login")) {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </div>
+    )
+  }
+
+  if (!token || (user?.role !== "provider" && user?.role !== "admin")) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
