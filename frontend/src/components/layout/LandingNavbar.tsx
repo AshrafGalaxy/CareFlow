@@ -5,6 +5,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
+import { ThemeToggle } from "@/components/ui/theme-toggle"
+
 export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false)
 
@@ -22,7 +24,7 @@ export function LandingNavbar() {
         className={cn(
           "pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border",
           scrolled
-            ? "w-full max-w-[800px] bg-white/80 backdrop-blur-xl border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full px-6 py-3"
+            ? "w-full max-w-[800px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200/50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full px-6 py-3"
             : "w-full max-w-6xl bg-transparent border-transparent px-2 py-2"
         )}
       >
@@ -35,12 +37,12 @@ export function LandingNavbar() {
             className={cn("transition-all duration-300", scrolled ? "h-7 w-7" : "h-8 w-8")}
             priority
           />
-          <span className="font-brand text-xl font-bold text-slate-900 tracking-tight">
+          <span className="font-brand text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             CareFlow <span className="text-sky-500">AI</span>
           </span>
         </div>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
           <a href="#features" className="hover:text-sky-500 transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-sky-500 transition-colors">How It Works</a>
           <a href="#testimonials" className="hover:text-sky-500 transition-colors">Stories</a>
@@ -48,9 +50,10 @@ export function LandingNavbar() {
         </div>
         
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link
             href="/login"
-            className="text-sm font-medium text-slate-600 hover:text-sky-600 transition-colors px-4 py-2"
+            className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors px-4 py-2"
           >
             Sign In
           </Link>
