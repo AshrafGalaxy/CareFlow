@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { UploadCloud, FileText, X, AlertCircle, CheckCircle2, Loader2, Info } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"

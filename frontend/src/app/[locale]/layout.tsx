@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google"
 import { Toaster } from "sonner"
 import { PageTransition } from "@/components/ui/page-transition"
-import Script from "next/script"
 import "../globals.css"
 
 const manrope = Manrope({
@@ -74,9 +73,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        <Script
-          id="theme-script"
-          strategy="beforeInteractive"
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               try {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from "@/i18n/routing"
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'

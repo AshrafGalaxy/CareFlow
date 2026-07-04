@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { useAuthStore } from "@/store/authStore"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { useEffect } from "react"
 
 export default function AuthLayout({

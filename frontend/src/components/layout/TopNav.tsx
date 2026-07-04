@@ -2,7 +2,7 @@
 
 import { Bell, CheckCircle2, Info } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
-import { usePathname } from "next/navigation"
+import { usePathname } from "@/i18n/routing"
 import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ThemeToggle } from "@/components/ui/theme-toggle"

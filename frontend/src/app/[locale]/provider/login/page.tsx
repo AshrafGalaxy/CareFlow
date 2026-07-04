@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { Link } from "@/i18n/routing"
 import { Eye, EyeOff, Loader2, AlertCircle, Stethoscope, Lock } from "lucide-react"
 import { toast } from "sonner"

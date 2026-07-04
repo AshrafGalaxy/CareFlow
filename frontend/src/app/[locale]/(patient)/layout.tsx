@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/routing"
 import { Loader2 } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { PatientSidebar } from "@/components/layout/PatientSidebar"

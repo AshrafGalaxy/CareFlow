@@ -1,6 +1,7 @@
 "use client"
 
-import { usePathname, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { usePathname } from "@/i18n/routing"
 import { useEffect, useState } from "react"
 import { AnimatedLogo } from "./animated-logo"
 import { cn } from "@/lib/utils"

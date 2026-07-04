@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/routing"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname } from "@/i18n/routing"
 import {
   LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut,
 } from "lucide-react"
