@@ -6,3 +6,5 @@ from .follow_up import FollowUp
 from .insurance import InsuranceQuery
 from .timeline import HealthTimelineEvent
 from .doctor import DoctorPatient
+from .memo import PatientMemo
+from .analytics import PatientAnalytics
