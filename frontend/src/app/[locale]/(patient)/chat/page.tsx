@@ -19,12 +19,20 @@ export default function ChatPage() {
   const loadSessions = async () => {
     try {
       const res = await api.get('/api/chat/sessions')
-      setSessions(res.data.sessions)
-      if (res.data.sessions.length > 0 && !activeSession) {
-        setActiveSession(res.data.sessions[0])
+      // Backend returns a plain array — guard against all response shapes
+      const data = res.data
+      const list: ChatSession[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.sessions)
+          ? data.sessions
+          : []
+      setSessions(list)
+      if (list.length > 0 && !activeSession) {
+        setActiveSession(list[0])
       }
     } catch (e) {
-      console.error(e)
+      console.error('[Chat] Failed to load sessions:', e)
+      setSessions([])
     } finally {
       setLoading(false)
     }
@@ -32,6 +40,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     loadSessions()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const selectSession = async (session: ChatSession) => {
