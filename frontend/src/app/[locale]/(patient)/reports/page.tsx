@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { FileText, Plus, Search, Calendar, ChevronRight } from 'lucide-react'
 import api from '@/lib/api'
+import useSWR from 'swr'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Report {
   id: string
@@ -13,23 +14,14 @@ interface Report {
   ai_summary: string
 }
 
-export default function ReportsListPage() {
-  const [reports, setReports] = useState<Report[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+const fetcher = (url: string) => api.get(url).then(res => res.data)
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const res = await api.get('/api/reports')
-        setReports(res.data)
-      } catch (err) {
-        console.error('Failed to load reports', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchReports()
-  }, [])
+export default function ReportsListPage() {
+  const { data: reports, error, isLoading } = useSWR<Report[]>(
+    '/api/reports',
+    fetcher,
+    { refreshInterval: 0, revalidateOnFocus: true }
+  )
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -62,10 +54,18 @@ export default function ReportsListPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-12 flex justify-center">
-            <div className="h-8 w-8 border-4 border-sky-100 border-t-sky-500 rounded-full animate-spin" />
+          <div className="divide-y divide-slate-100">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center p-4 sm:p-5">
+                <Skeleton className="h-12 w-12 rounded-xl shrink-0 mr-4" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-1/4" />
+                </div>
+              </div>
+            ))}
           </div>
-        ) : reports.length === 0 ? (
+        ) : !reports || reports.length === 0 ? (
           <div className="p-16 text-center">
             <div className="h-16 w-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3">
               <FileText size={32} />

@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
@@ -10,9 +9,8 @@ import { getGreeting, formatRelativeTime } from "@/lib/formatters"
 import api from "@/lib/api"
 import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
 
-function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`skeleton rounded-lg ${className}`} />
-}
+import useSWR from "swr"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Report {
   id: string
@@ -21,21 +19,20 @@ interface Report {
   uploaded_at: string
 }
 
+const fetcher = (url: string) => api.get(url).then(res => res.data)
+
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user)
   const firstName = user?.name?.split(" ")[0] || "there"
   const greeting = getGreeting()
 
-  const [reports, setReports] = useState<Report[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { data, error, isLoading } = useSWR<Report[]>(
+    API_ROUTES.REPORTS.LIST, 
+    fetcher, 
+    { refreshInterval: 0, revalidateOnFocus: true }
+  )
 
-  useEffect(() => {
-    api
-      .get(API_ROUTES.REPORTS.LIST)
-      .then((res) => setReports(res.data?.slice(0, 3) ?? []))
-      .catch(() => setReports([]))
-      .finally(() => setIsLoading(false))
-  }, [])
+  const reports = data?.slice(0, 3) || []
 
   const statCards = [
     {
