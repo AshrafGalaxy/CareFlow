@@ -127,7 +127,7 @@ export default function MedicationsPage() {
 
             {inactiveMeds.length > 0 && (
               <>
-                <h2 style={{ marginTop: '2rem', opacity: 0.6 }}>Inactive ({inactiveMeds.length})</h2>
+                <h2 className="mt-8 mb-4 opacity-60 text-lg font-semibold text-gray-700">Inactive ({inactiveMeds.length})</h2>
                 <div className="medications-grid">
                   {inactiveMeds.map(med => (
                     <MedicationCard key={med.id} medication={med} />

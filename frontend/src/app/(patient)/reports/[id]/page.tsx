@@ -244,7 +244,7 @@ export default function ReportDetailPage() {
 
       {/* Nudge if nothing extra loaded yet */}
       {!hasFullAnalysis && !reanalyzing && summaryText && (
-        <div className="report-section" style={{textAlign:'center', color:'#94a3b8', paddingTop:'1rem'}}>
+        <div className="report-section text-center text-slate-400 pt-4 mt-8 border-t border-slate-100">
           <p>👆 Click <strong>Re-analyze Report</strong> above to load Key Highlights, Abnormal Values and Doctor Questions.</p>
         </div>
       )}
