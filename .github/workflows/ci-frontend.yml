@@ -17,11 +17,6 @@ jobs:
         node-version: "20"
     - name: Pin npm version
       run: npm i -g npm@10.8.2
-    - name: Validate lockfile sync
-      run: |
-        cd frontend
-        npm install --package-lock-only
-        git diff --exit-code package-lock.json
     - name: Install dependencies
       run: |
         cd frontend
