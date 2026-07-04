@@ -7,26 +7,26 @@ import { useEffect, useRef, useState } from "react"
  * Used to trigger scroll-activated animations on the landing page.
  */
 export function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [isInView, setIsInView] = useState(false)
+ const ref = useRef<HTMLDivElement>(null)
+ const [isInView, setIsInView] = useState(false)
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
+ useEffect(() => {
+  const el = ref.current
+  if (!el) return
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect() // Only fire once
-        }
-      },
-      { threshold }
-    )
+  const observer = new IntersectionObserver(
+   ([entry]) => {
+    if (entry.isIntersecting) {
+     setIsInView(true)
+     observer.disconnect() // Only fire once
+    }
+   },
+   { threshold }
+  )
 
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [threshold])
+  observer.observe(el)
+  return () => observer.disconnect()
+ }, [threshold])
 
-  return { ref, isInView }
+ return { ref, isInView }
 }
