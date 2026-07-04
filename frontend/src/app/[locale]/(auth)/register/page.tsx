@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { Eye, EyeOff, Loader2, AlertCircle, UserCircle2, Stethoscope } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"

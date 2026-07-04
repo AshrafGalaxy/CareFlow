@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { EmptyState } from "@/components/shared/EmptyState"
