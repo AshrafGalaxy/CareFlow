@@ -28,27 +28,32 @@ export function LanguageSwitcher() {
   const pathname = usePathname()
 
   const handleLanguageChange = (newLocale: string) => {
-    // Basic logic to swap locale in URL, works best with next-intl routing
-    if (pathname.startsWith(`/${locale}`)) {
-      router.replace(pathname.replace(`/${locale}`, `/${newLocale}`))
-    } else {
-      router.replace(`/${newLocale}${pathname}`)
-    }
+    // Use next-intl's built-in locale switching — correctly rewrites the locale prefix
+    router.replace(pathname, { locale: newLocale })
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none">
-        <Globe className="h-5 w-5" />
-        <span className="sr-only">Toggle Language</span>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full w-10 h-10 bg-slate-100 dark:bg-zinc-800 warm:bg-amber-100 text-slate-700 dark:text-slate-300 warm:text-amber-800 hover:bg-slate-200 dark:hover:bg-zinc-700 warm:hover:bg-amber-200 focus:outline-none"
+          aria-label="Toggle Language"
+        >
+          <Globe className="h-5 w-5" />
+          <span className="sr-only">Toggle Language</span>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
+      <DropdownMenuContent align="end" className="w-40 bg-white/95 dark:bg-zinc-900/95 warm:bg-amber-50/95 backdrop-blur-md border-slate-200 dark:border-zinc-700 warm:border-amber-200">
         {locales.map((l) => (
           <DropdownMenuItem
             key={l.code}
             onClick={() => handleLanguageChange(l.code)}
             className={`cursor-pointer font-medium ${
-              locale === l.code ? "bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400" : "text-slate-700 dark:text-slate-300"
+              locale === l.code
+                ? "bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 warm:bg-amber-100 warm:text-amber-700"
+                : "text-slate-700 dark:text-slate-300 warm:text-amber-900"
             }`}
           >
             {l.name}

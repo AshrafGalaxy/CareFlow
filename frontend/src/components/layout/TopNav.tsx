@@ -29,7 +29,7 @@ export function TopNav() {
   const greeting = getGreeting()
 
   return (
-    <header className="h-16 border-b border-slate-100 bg-white flex items-center justify-between px-6 sticky top-0 z-10">
+    <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-10">
       <div className="flex flex-col">
         <h2 className="text-base font-semibold text-slate-900 leading-tight">{title}</h2>
         <p className="text-xs text-slate-500">{greeting}, {user?.name?.split(" ")[0] || "User"}</p>

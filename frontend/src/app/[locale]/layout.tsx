@@ -71,17 +71,18 @@ export default async function RootLayout({
   const messages = await getMessages()
 
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                let theme = localStorage.getItem('theme') || 'system';
-                if (theme === 'system') {
-                  theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                }
-                document.documentElement.classList.add(theme);
+                const theme = localStorage.getItem('careflow-theme') || 'system';
+                const resolved = theme === 'system'
+                  ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                  : theme;
+                document.documentElement.classList.remove('light','dark','warm');
+                document.documentElement.classList.add(resolved);
               } catch (e) {}
             `,
           }}
