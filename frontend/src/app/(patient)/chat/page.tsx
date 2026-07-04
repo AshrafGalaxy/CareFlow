@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, MessageSquare } from 'lucide-react'
+import { Plus, MessageSquare, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { useChatStore } from '@/store/chatStore'
 import { ChatWindow } from '@/components/chat/ChatWindow'
@@ -63,6 +63,23 @@ export default function ChatPage() {
     }
   }
 
+  const deleteSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation()
+    if (!window.confirm("Are you sure you want to delete this conversation?")) return
+    
+    try {
+      await api.delete(`/api/chat/${sessionId}`)
+      setSessions(sessions.filter(s => s.id !== sessionId))
+      if (activeSession?.id === sessionId) {
+        setActiveSession(null)
+        setMessages([])
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50 overflow-hidden">
       {/* Sidebar */}
@@ -85,7 +102,7 @@ export default function ChatPage() {
           {sessions.map((session) => (
             <button
               key={session.id}
-              className={`w-full text-left p-3 rounded-xl flex items-center space-x-3 transition-all ${activeSession?.id === session.id ? 'bg-blue-50/80 border border-blue-200 shadow-sm text-blue-800' : 'hover:bg-gray-100 border border-transparent text-gray-700'}`}
+              className={`group w-full text-left p-3 rounded-xl flex items-center space-x-3 transition-all ${activeSession?.id === session.id ? 'bg-blue-50/80 border border-blue-200 shadow-sm text-blue-800' : 'hover:bg-gray-100 border border-transparent text-gray-700'}`}
               onClick={() => selectSession(session)}
             >
               <div className={`p-2 rounded-lg ${activeSession?.id === session.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -96,6 +113,12 @@ export default function ChatPage() {
                 <p className="text-xs text-gray-500 mt-0.5 font-medium">
                   {new Date(session.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                 </p>
+              </div>
+              <div 
+                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                onClick={(e) => deleteSession(e, session.id)}
+              >
+                <Trash2 size={16} />
               </div>
             </button>
           ))}

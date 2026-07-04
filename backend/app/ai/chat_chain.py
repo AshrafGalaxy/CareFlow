@@ -63,3 +63,21 @@ async def get_streaming_response(
     async for chunk in llm.astream(messages):
         if chunk.content:
             yield chunk.content
+
+async def generate_chat_title(message: str) -> str:
+    """Generate a concise 3-5 word title for the chat session based on the first message."""
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key and groq_api_key.strip() != "":
+        llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=groq_api_key, temperature=0.3, max_retries=1)
+    else:
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, max_retries=1)
+    
+    prompt = f"Create a concise 3 to 5 word title for a healthcare chat that starts with this message. Output ONLY the title, no quotes or extra text.\nMessage: '{message}'"
+    
+    try:
+        response = await llm.ainvoke(prompt)
+        # Clean up any surrounding quotes if the LLM adds them
+        return response.content.strip().strip('"').strip("'")
+    except Exception:
+        # Fallback to simple slicing if LLM fails
+        return message[:40] + ("..." if len(message) > 40 else "")

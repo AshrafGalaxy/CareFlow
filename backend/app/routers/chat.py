@@ -8,7 +8,7 @@ from app.models.user import User
 from app.models.chat import ChatSession, ChatMessage
 from app.schemas.chat import ChatSessionResponse, MessageRequest, ChatMessageResponse
 from app.middleware.auth_middleware import get_current_user
-from app.ai.chat_chain import get_streaming_response
+from app.ai.chat_chain import get_streaming_response, generate_chat_title
 
 router = APIRouter()
 
@@ -110,7 +110,7 @@ async def send_message(
                 # Update session title from first user message if it's still "New Conversation"
                 local_session = local_db.query(ChatSession).filter(ChatSession.id == uuid_lib2.UUID(session_id)).first()
                 if local_session and local_session.title == "New Conversation" and body.content:
-                    local_session.title = body.content[:50] + ("..." if len(body.content) > 50 else "")
+                    local_session.title = await generate_chat_title(body.content)
                     
                 local_db.commit()
             finally:
@@ -140,3 +140,26 @@ async def get_messages(
     return db.query(ChatMessage).filter(
         ChatMessage.session_id == uuid_lib.UUID(session_id)
     ).order_by(ChatMessage.timestamp.asc()).all()
+
+
+@router.delete("/{session_id}")
+async def delete_session(
+    session_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a chat session."""
+    import uuid as uuid_lib
+    
+    session = db.query(ChatSession).filter(
+        ChatSession.id == uuid_lib.UUID(session_id),
+        ChatSession.user_id == user.id
+    ).first()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    db.delete(session)
+    db.commit()
+    
+    return {"status": "success", "message": "Session deleted successfully"}
