@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Activity } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import PatientMemo from "@/components/doctor/PatientMemo";
 
 function SkeletonCard() {
   return (
@@ -178,6 +179,11 @@ export default function PatientDetailPage() {
             )}
           </div>
         </Card>
+
+        {/* Clinical Notes / Memos */}
+        <div className="md:col-span-2 lg:col-span-3 xl:col-span-1">
+          <PatientMemo patientId={patient.id} memos={patient.memos} />
+        </div>
       </div>
     </div>
   );

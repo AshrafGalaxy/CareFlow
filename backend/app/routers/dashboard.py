@@ -45,3 +45,19 @@ async def patient_detail(
     if not detail:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return detail
+
+from pydantic import BaseModel
+class MemoCreate(BaseModel):
+    content: str
+
+@router.post("/patients/{id}/memos")
+async def add_memo(
+    id: uuid.UUID,
+    memo_data: MemoCreate,
+    doctor: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    memo = await dashboard_service.add_patient_memo(id, doctor, memo_data.content, db)
+    if not memo:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to add memo for this patient")
+    return memo
