@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { User, Lock, AlertTriangle } from "lucide-react"
+import api from "@/lib/api"
+import { useRouter } from "@/i18n/routing"
 
 export default function ProfilePage() {
  const user = useAuthStore((state) => state.user)
@@ -19,33 +21,47 @@ export default function ProfilePage() {
  const [newPassword, setNewPassword] = useState("")
  const [confirmPassword, setConfirmPassword] = useState("")
 
- const handleUpdateProfile = (e: React.FormEvent) => {
-  e.preventDefault()
-  // Here we would typically call an API to update the profile
-  toast.success("Profile updated successfully")
- }
+  const router = useRouter()
 
- const handleChangePassword = (e: React.FormEvent) => {
-  e.preventDefault()
-  if (newPassword !== confirmPassword) {
-   toast.error("New passwords do not match")
-   return
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Here we would typically call an API to update the profile
+    toast.success("Profile updated successfully")
   }
-  // Mock API call
-  toast.success("Password changed successfully")
-  setCurrentPassword("")
-  setNewPassword("")
-  setConfirmPassword("")
- }
 
- const handleDeleteAccount = () => {
-  // In a real app, you'd show a confirmation dialog first
-  const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.")
-  if (confirmed) {
-   toast.success("Account deleted (mocked)")
-   // logout()
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match")
+      return
+    }
+    try {
+      await api.put("/api/auth/password", {
+        current_password: currentPassword,
+        new_password: newPassword
+      })
+      toast.success("Password changed successfully")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || "Failed to change password")
+    }
   }
- }
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.")
+    if (confirmed) {
+      try {
+        await api.delete("/api/auth/account")
+        toast.success("Account deleted successfully")
+        useAuthStore.getState().logout()
+        router.push("/")
+      } catch (error: any) {
+        toast.error(error.response?.data?.detail || "Failed to delete account")
+      }
+    }
+  }
 
  return (
   <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

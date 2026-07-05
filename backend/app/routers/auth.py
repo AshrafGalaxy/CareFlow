@@ -16,6 +16,10 @@ class LoginRequest(BaseModel):
 class RefreshRequest(BaseModel):
     refresh_token: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_in.email).first()
@@ -73,3 +77,20 @@ def refresh(request: RefreshRequest):
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.put("/password")
+def change_password(request: ChangePasswordRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not verify_password(request.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    current_user.password_hash = get_password_hash(request.new_password)
+    db.commit()
+    return {"status": "success", "message": "Password updated successfully"}
+
+@router.delete("/account")
+def delete_account(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Hard delete: this cascades to all related tables because of ondelete="CASCADE" in models
+    db.delete(current_user)
+    db.commit()
+    return {"status": "success", "message": "Account deleted successfully"}
+
