@@ -93,9 +93,9 @@ export function ChatWindow() {
    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-card">
     {messages.length === 0 && (
      <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto opacity-70">
-      <div className="text-5xl mb-4 p-4 bg-gray-50 rounded-full">🤖</div>
+      <div className="text-5xl mb-4 p-4 bg-muted rounded-full">🤖</div>
       <h3 className="text-xl font-bold text-foreground mb-2">CareFlow AI is ready</h3>
-      <p className="text-base text-gray-500 leading-relaxed">Ask me anything about your health reports, medications, or upcoming appointments.</p>
+      <p className="text-base text-muted-foreground leading-relaxed">Ask me anything about your health reports, medications, or upcoming appointments.</p>
      </div>
     )}
 
@@ -105,11 +105,11 @@ export function ChatWindow() {
       className={`flex items-start max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
      >
       {msg.role === 'assistant' && (
-       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
+       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
         CF
        </div>
       )}
-      <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-br-sm ml-4' : 'bg-gray-50 border border-gray-100 text-foreground rounded-bl-sm'}`}>
+      <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4' : 'bg-muted border border-border text-foreground rounded-bl-sm'}`}>
        <p className="whitespace-pre-wrap">{msg.content}</p>
       </div>
      </div>
@@ -117,13 +117,13 @@ export function ChatWindow() {
 
     {isStreaming && messages[messages.length - 1]?.role === 'user' && (
      <div className="flex items-start max-w-3xl mr-auto">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
        CF
       </div>
-      <div className="px-6 py-5 bg-gray-50 border border-gray-100 rounded-3xl rounded-bl-sm flex items-center space-x-2 shadow-sm">
-       <div className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-       <div className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-       <div className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce"></div>
+      <div className="px-6 py-5 bg-muted border border-border rounded-3xl rounded-bl-sm flex items-center space-x-2 shadow-sm">
+       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce"></div>
       </div>
      </div>
     )}
@@ -137,7 +137,7 @@ export function ChatWindow() {
     <div ref={bottomRef} className="h-4" />
    </div>
 
-   <div className="border-t border-gray-200 bg-card p-4 md:p-6">
+   <div className="border-t border-border bg-card p-4 md:p-6">
     <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} />
    </div>
   </div>

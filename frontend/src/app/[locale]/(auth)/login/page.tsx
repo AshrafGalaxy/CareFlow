@@ -52,10 +52,10 @@ export default function LoginPage() {
 
 
    {/* Card */}
-   <div className="bg-card rounded-2xl shadow-lg border border-slate-100 p-10">
+   <div className="bg-card rounded-2xl shadow-lg border border-border p-10">
     <div className="mb-8">
      <h1 className="text-2xl font-semibold text-foreground mb-1.5">Welcome back</h1>
-     <p className="text-sm text-slate-500">Enter your credentials to continue</p>
+     <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>
     </div>
 
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
@@ -63,7 +63,7 @@ export default function LoginPage() {
      <div className="space-y-1.5">
       <label
        htmlFor="email"
-       className="text-xs font-semibold text-slate-600 uppercase tracking-wide"
+       className="text-xs font-semibold text-muted-foreground uppercase tracking-wide"
       >
        Email Address
       </label>
@@ -74,8 +74,8 @@ export default function LoginPage() {
        placeholder="you@example.com"
        aria-invalid={!!errors.email}
        aria-describedby={errors.email ? "email-error" : undefined}
-       className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-        errors.email ? "border-red-400 bg-red-50" : "border-slate-200 bg-card"
+       className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
+        errors.email ? "border-red-400 bg-red-50" : "border-border bg-card"
        }`}
        {...register("email", {
         required: "Email is required",
@@ -98,20 +98,17 @@ export default function LoginPage() {
       <div className="flex items-center justify-between">
        <label
         htmlFor="password"
-        className="text-xs font-semibold text-slate-600 uppercase tracking-wide"
+        className="text-xs font-semibold text-muted-foreground uppercase tracking-wide"
        >
         Password
        </label>
        <button
         type="button"
-        onClick={() =>
-         toast.info("Password reset will be available soon.", {
-          icon: <Info className="h-4 w-4" />,
-         })
-        }
-        className="text-xs text-sky-500 hover:text-sky-600 font-medium transition-colors"
+        onClick={() => setShowPassword(!showPassword)}
+        className="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors"
+        tabIndex={-1}
        >
-        Forgot password?
+        {showPassword ? "Hide" : "Show"}
        </button>
       </div>
       <div className="relative">
@@ -122,23 +119,11 @@ export default function LoginPage() {
         placeholder="••••••••"
         aria-invalid={!!errors.password}
         aria-describedby={errors.password ? "password-error" : undefined}
-        className={`w-full h-12 px-4 pr-12 rounded-lg border text-foreground text-sm placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-         errors.password ? "border-red-400 bg-red-50" : "border-slate-200 bg-card"
+        className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
+         errors.password ? "border-red-400 bg-red-50" : "border-border bg-card"
         }`}
         {...register("password", { required: "Password is required" })}
        />
-       <button
-        type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        aria-label={showPassword ? "Hide password" : "Show password"}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-       >
-        {showPassword ? (
-         <EyeOff className="h-4 w-4" />
-        ) : (
-         <Eye className="h-4 w-4" />
-        )}
-       </button>
       </div>
       {errors.password && (
        <p id="password-error" role="alert" className="flex items-center gap-1.5 text-xs text-red-500">
@@ -148,30 +133,40 @@ export default function LoginPage() {
       )}
      </div>
 
+     {/* Forgot Password */}
+     <div className="flex justify-end pt-1">
+      <Link href="#" className="text-sm font-medium text-sky-600 hover:text-sky-700 transition-colors">
+       Forgot password?
+      </Link>
+     </div>
+
      {/* Submit */}
      <button
       type="submit"
       disabled={isLoading}
-      className="btn-glow w-full h-12 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
+      className="w-full h-12 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-semibold rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
      >
-      {isLoading ? (
-       <>
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Signing in...
-       </>
-      ) : (
-       "Log In"
-      )}
+      {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in to Dashboard"}
      </button>
     </form>
 
-    <p className="mt-6 text-center text-sm text-slate-500">
+    {/* Info box */}
+    <div className="mt-8 bg-muted rounded-xl p-4 flex items-start gap-3 border border-border">
+     <Info className="h-5 w-5 text-sky-600 shrink-0 mt-0.5" />
+     <div className="text-sm text-muted-foreground">
+      <p className="font-medium text-foreground mb-1">Demo Accounts Available</p>
+      <p>You can create a new account via the Register page to test the flow.</p>
+     </div>
+    </div>
+
+    {/* Footer Link */}
+    <p className="mt-8 text-center text-sm text-muted-foreground">
      Don&apos;t have an account?{" "}
      <Link
       href={APP_ROUTES.REGISTER}
-      className="text-sky-500 font-semibold hover:text-sky-600 transition-colors"
+      className="font-semibold text-sky-600 hover:text-sky-700 transition-colors"
      >
-      Sign up
+      Create an account
      </Link>
     </p>
    </div>
