@@ -11,6 +11,7 @@ import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
 
 import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTranslations } from "next-intl"
 
 interface Report {
  id: string
@@ -22,9 +23,10 @@ interface Report {
 const fetcher = (url: string) => api.get(url).then(res => res.data)
 
 export default function DashboardPage() {
+ const t = useTranslations("Dashboard")
  const user = useAuthStore((state) => state.user)
  const firstName = user?.name?.split(" ")[0] || "there"
- const greeting = getGreeting()
+ const greeting = t("greeting") || getGreeting()
 
  const { data, error, isLoading } = useSWR<Report[]>(
   API_ROUTES.REPORTS.LIST, 
@@ -69,14 +71,14 @@ export default function DashboardPage() {
      <h1 className="text-2xl font-bold text-foreground mb-1">
       {greeting}, {firstName}
      </h1>
-     <p className="text-muted-foreground text-sm">Here&apos;s your health overview for today.</p>
+     <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
     </div>
     <Link
      href={APP_ROUTES.REPORT_UPLOAD}
      className="btn-glow hidden sm:flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors duration-200 shrink-0"
     >
      <UploadCloud className="h-4 w-4" />
-     Upload Report
+     {t("uploadReportBtn")}
     </Link>
    </div>
 
@@ -102,7 +104,7 @@ export default function DashboardPage() {
    {/* Recent Reports */}
    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
     <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-     <h2 className="text-base font-semibold text-foreground">Recent Reports</h2>
+     <h2 className="text-base font-semibold text-foreground">{t("recentReports")}</h2>
      <Link
       href={APP_ROUTES.REPORTS}
       className="text-sm text-sky-500 hover:text-sky-600 font-medium flex items-center gap-1"
@@ -127,15 +129,15 @@ export default function DashboardPage() {
     ) : reports.length === 0 ? (
      <EmptyState
       icon={FileText}
-      title="No reports yet"
-      description="Upload your first lab report and CareFlow AI will translate it into plain language."
+      title={t("noReports")}
+      description={t("uploadYourFirstReport")}
       action={
        <Link
         href={APP_ROUTES.REPORT_UPLOAD}
         className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors duration-200"
        >
         <UploadCloud className="h-4 w-4" />
-        Upload Your First Report
+        {t("uploadReportBtn")}
        </Link>
       }
      />
@@ -172,13 +174,13 @@ export default function DashboardPage() {
      className="btn-glow flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-colors duration-200 flex-1"
     >
      <UploadCloud className="h-4 w-4" />
-     Upload New Report
+     {t("uploadReportBtn")}
     </Link>
     <Link
      href={APP_ROUTES.CHAT}
      className="flex items-center justify-center gap-2 border-2 border-border hover:border-sky-500 text-foreground hover:text-sky-600 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 flex-1"
     >
-     Chat with AI Assistant
+     {t("chatWithAIBtn")}
     </Link>
    </div>
   </div>

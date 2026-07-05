@@ -28,8 +28,11 @@ import { InteractiveBot } from "@/components/layout/InteractiveBot"
 import { TiltFeatureCard } from "@/components/ui/TiltFeatureCard"
 import { FAQAccordion } from "@/components/ui/FAQAccordion"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 export default function LandingPage() {
+ const t = useTranslations("Landing")
+
  const trustBadges = [
   { icon: ShieldCheck, label: "HIPAA-compliant" },
   { icon: MapPin, label: "Built for India" },
@@ -39,18 +42,18 @@ export default function LandingPage() {
  const painPoints = [
   {
    icon: FlaskConical,
-   title: "Jargon Barriers",
-   desc: "Lab reports filled with medical terms your doctor never has time to explain clearly.",
+   title: t("gap1Title"),
+   desc: t("gap1Desc"),
   },
   {
    icon: Pill,
-   title: "Missed Medications",
-   desc: "Critical doses forgotten with no smart reminders to keep adherence on track.",
+   title: t("gap2Title"),
+   desc: t("gap2Desc"),
   },
   {
    icon: ClipboardList,
-   title: "Insurance Chaos",
-   desc: "PM-JAY and state schemes that nobody can navigate without expert guidance.",
+   title: t("gap3Title"),
+   desc: t("gap3Desc"),
   },
  ]
 
@@ -58,30 +61,30 @@ export default function LandingPage() {
   {
    step: "01",
    icon: Upload,
-   title: "Upload Your Report",
-   desc: "Snap a photo or upload a PDF. Any lab report, X-ray, or discharge summary works.",
+   title: t("step1Title"),
+   desc: t("step1Desc"),
   },
   {
    step: "02",
    icon: Cpu,
-   title: "AI Analyzes It",
-   desc: "Our AI reads the medical jargon and translates every finding into simple language.",
+   title: t("step2Title"),
+   desc: t("step2Desc"),
   },
   {
    step: "03",
    icon: Lightbulb,
-   title: "Understand & Act",
-   desc: "Get clear summaries, questions to ask your doctor, and insurance scheme guidance.",
+   title: t("step3Title"),
+   desc: t("step3Desc"),
   },
  ]
 
  const features = [
-  { icon: FileText, title: "Report Analysis", desc: "AI explains your lab results in plain language you can actually understand." },
-  { icon: MessageSquare, title: "AI Health Chat", desc: "Ask anything about your health history. Get context-aware answers." },
-  { icon: Pill, title: "Medication Tracker", desc: "Never miss a dose. Smart schedules with adherence logging." },
-  { icon: Shield, title: "Insurance Navigator", desc: "Find PM-JAY schemes that cover your specific procedure effortlessly." },
-  { icon: CalendarDays, title: "Health Timeline", desc: "Your complete medical journey visualized in a single chronological view." },
-  { icon: Stethoscope, title: "Doctor Dashboard", desc: "Doctors monitor patient adherence and flag at-risk patients instantly." },
+  { icon: FileText, title: t("feature1Title"), desc: t("feature1Desc") },
+  { icon: MessageSquare, title: t("feature2Title"), desc: t("feature2Desc") },
+  { icon: Pill, title: t("feature3Title"), desc: t("feature3Desc") },
+  { icon: Shield, title: t("feature4Title"), desc: t("feature4Desc") },
+  { icon: CalendarDays, title: t("feature5Title"), desc: t("feature5Desc") },
+  { icon: Stethoscope, title: t("feature6Title"), desc: t("feature6Desc") },
  ]
 
  const testimonials = [
@@ -103,23 +106,22 @@ export default function LandingPage() {
     <div className="max-w-6xl mx-auto px-6 text-center">
      <div className="inline-flex items-center gap-2 bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 animate-fade-in-up">
       <MapPin className="h-3.5 w-3.5" />
-      Built for Indian Patients · Powered by AI
+      {t("badgeText")}
      </div>
 
      <h1 className="text-5xl md:text-7xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-6 animate-fade-in-up-delay-1">
-      Your Medical Reports,
+      {t("heroTitle1")}
       <br />
       <span className="text-sky-500 relative inline-block">
-       Explained Simply.
+       {t("heroTitle2")}
        <svg className="absolute -bottom-2 left-0 w-full h-3 text-sky-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
         <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
        </svg>
       </span>
      </h1>
 
-     <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up-delay-2">
-      Upload lab reports, track medications, and navigate PM-JAY insurance
-      schemes — all in plain language you can actually understand.
+     <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up-delay-2">
+      {t("heroSubtitle")}
      </p>
 
      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up-delay-3">
@@ -127,13 +129,13 @@ export default function LandingPage() {
        href="/register"
        className="btn-glow w-full sm:w-auto bg-sky-500 text-white font-semibold text-lg px-8 py-4 rounded-xl shadow-lg hover:bg-sky-600 transition-all hover:scale-105 active:scale-95"
       >
-       Start for Free
+       {t("btnStart")}
       </Link>
       <a
        href="#how-it-works"
-       className="w-full sm:w-auto bg-card/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-semibold text-lg px-8 py-4 rounded-xl hover:border-sky-400 hover:text-sky-600 transition-all hover:scale-105"
+       className="w-full sm:w-auto bg-card/80 backdrop-blur-sm border border-border text-foreground font-semibold text-lg px-8 py-4 rounded-xl hover:border-sky-400 hover:text-sky-600 transition-all hover:scale-105"
       >
-       See How It Works
+       {t("btnHowItWorks")}
       </a>
      </div>
 
@@ -142,7 +144,7 @@ export default function LandingPage() {
       {trustBadges.map((badge) => (
        <div
         key={badge.label}
-        className="flex items-center gap-2 bg-card/60 backdrop-blur-md rounded-full px-5 py-2.5 shadow-sm border border-slate-200/50 text-sm text-slate-700"
+        className="flex items-center gap-2 bg-card/60 backdrop-blur-md rounded-full px-5 py-2.5 shadow-sm border border-border text-sm text-foreground"
        >
         <badge.icon className="h-4 w-4 text-emerald-500 shrink-0" />
         <span className="font-medium">{badge.label}</span>
@@ -153,15 +155,15 @@ export default function LandingPage() {
    </section>
 
    {/* ── Pain Points ── */}
-   <section className="bg-slate-900 py-24 relative overflow-hidden">
+   <section className="bg-slate-900 dark:bg-black/80 py-24 relative overflow-hidden">
     <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-30" />
     <div className="max-w-6xl mx-auto px-6 relative z-10">
      <div className="text-center mb-16">
       <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-       The 3 Healthcare Gaps We Solve
+       {t("sectionGapsTitle")}
       </h2>
       <p className="text-slate-400 text-lg">
-       Common problems every Indian patient faces — and how we fix them.
+       {t("sectionGapsSubtitle")}
       </p>
      </div>
      <div className="grid md:grid-cols-3 gap-8">
@@ -186,13 +188,13 @@ export default function LandingPage() {
    <section id="how-it-works" className="py-32 relative overflow-hidden">
     <div className="max-w-6xl mx-auto px-6 relative z-10">
      <div className="text-center mb-24">
-      <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">How It Works</h2>
-      <p className="text-slate-500 text-xl max-w-2xl mx-auto">Three simple steps to take absolute control of your health journey.</p>
+      <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">{t("sectionStepsTitle")}</h2>
+      <p className="text-muted-foreground text-xl max-w-2xl mx-auto">{t("sectionStepsSubtitle")}</p>
      </div>
      
      <div className="relative">
       {/* Straight dashed baseline */}
-      <div className="hidden md:block absolute top-[64px] left-[15%] right-[15%] border-t-2 border-dashed border-slate-300 opacity-50 z-0" />
+      <div className="hidden md:block absolute top-[64px] left-[15%] right-[15%] border-t-2 border-dashed border-border opacity-50 z-0" />
       
       {/* Traveling glowing EKG spike */}
       <div className="hidden md:block absolute top-[28px] left-[15%] right-[15%] h-[72px] pointer-events-none overflow-hidden z-10">
@@ -224,12 +226,12 @@ export default function LandingPage() {
           <div className="relative h-32 w-32 rounded-full bg-card/60 backdrop-blur-md border border-sky-100 flex items-center justify-center mx-auto shadow-sm group-hover:shadow-sky-200 group-hover:-translate-y-2 transition-all duration-500">
            <item.icon className="h-12 w-12 text-sky-500" />
           </div>
-          <div className="absolute top-0 right-2 h-10 w-10 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shadow-lg group-hover:bg-sky-500 transition-colors duration-300 z-20">
+          <div className="absolute top-0 right-2 h-10 w-10 rounded-full bg-slate-900 dark:bg-foreground text-white dark:text-background font-bold flex items-center justify-center shadow-lg group-hover:bg-sky-500 transition-colors duration-300 z-20">
            {item.step}
           </div>
          </div>
          <h3 className="text-2xl font-semibold text-foreground mb-3">{item.title}</h3>
-         <p className="text-slate-500 leading-relaxed text-base px-4">{item.desc}</p>
+         <p className="text-muted-foreground leading-relaxed text-base px-4">{item.desc}</p>
         </div>
        ))}
       </div>
@@ -238,14 +240,14 @@ export default function LandingPage() {
    </section>
 
    {/* ── Bento Box Features ── */}
-   <section id="features" className="py-32 bg-slate-50/50">
+   <section id="features" className="py-32 bg-muted/30">
     <div className="max-w-6xl mx-auto px-6 relative z-10">
      <div className="text-center mb-20">
       <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-       Everything you need in one place
+       {t("sectionFeaturesTitle")}
       </h2>
-      <p className="text-slate-500 text-xl max-w-2xl mx-auto">
-       A comprehensive suite of tools designed specifically for the modern Indian healthcare experience.
+      <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+       {t("sectionFeaturesSubtitle")}
       </p>
      </div>
      
