@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
-import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Noto_Sans_Devanagari, Noto_Nastaliq_Urdu } from "next/font/google"
+import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Noto_Sans_Devanagari, Noto_Nastaliq_Urdu, Noto_Sans_Telugu, Noto_Sans_Gujarati, Noto_Sans_Tamil, Noto_Sans_Bengali } from "next/font/google"
 import { Toaster } from "sonner"
 import { PageTransition } from "@/components/ui/page-transition"
 import "../globals.css"
@@ -40,6 +40,30 @@ const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
  weight: ["400", "700"],
  subsets: ["arabic"],
  variable: "--font-urdu",
+ display: "swap",
+})
+
+const notoSansTelugu = Noto_Sans_Telugu({
+ subsets: ["telugu"],
+ variable: "--font-telugu",
+ display: "swap",
+})
+
+const notoSansGujarati = Noto_Sans_Gujarati({
+ subsets: ["gujarati"],
+ variable: "--font-gujarati",
+ display: "swap",
+})
+
+const notoSansTamil = Noto_Sans_Tamil({
+ subsets: ["tamil"],
+ variable: "--font-tamil",
+ display: "swap",
+})
+
+const notoSansBengali = Noto_Sans_Bengali({
+ subsets: ["bengali"],
+ variable: "--font-bengali",
  display: "swap",
 })
 
@@ -104,9 +128,13 @@ export default async function RootLayout({
      }}
     />
    </head>
-   <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} ${notoSansDevanagari.variable} ${notoNastaliqUrdu.variable} ${
+   <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} ${notoSansDevanagari.variable} ${notoNastaliqUrdu.variable} ${notoSansTelugu.variable} ${notoSansGujarati.variable} ${notoSansTamil.variable} ${notoSansBengali.variable} ${
     locale === 'hi' || locale === 'mr' ? 'font-devanagari' : 
-    locale === 'ur' ? 'font-urdu' : 'font-sans'
+    locale === 'ur' ? 'font-urdu' : 
+    locale === 'te' ? 'font-telugu' :
+    locale === 'gu' ? 'font-gujarati' :
+    locale === 'ta' ? 'font-tamil' :
+    locale === 'bn' ? 'font-bengali' : 'font-sans'
    } antialiased`} suppressHydrationWarning>
     <ThemeProvider
      attribute="class"
