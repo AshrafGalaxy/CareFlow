@@ -94,6 +94,7 @@ async def send_message(
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
         # Save assistant response to DB using a new session since the dependency one is closed
+        new_title = None
         if full_response.strip():
             from app.database import SessionLocal
             import uuid as uuid_lib2
@@ -111,11 +112,14 @@ async def send_message(
                 local_session = local_db.query(ChatSession).filter(ChatSession.id == uuid_lib2.UUID(session_id)).first()
                 if local_session and local_session.title == "New Conversation" and body.content:
                     local_session.title = await generate_chat_title(body.content)
+                    new_title = local_session.title
                     
                 local_db.commit()
             finally:
                 local_db.close()
 
+        if new_title:
+            yield f"data: {json.dumps({'title': new_title})}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")

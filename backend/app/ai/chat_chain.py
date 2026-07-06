@@ -48,14 +48,14 @@ async def get_streaming_response(
         context = "\n\n".join([doc.page_content for doc in docs])
         
         messages = [
-            ("system", f"{CHAT_SYSTEM_PROMPT}\n\nRelevant Patient Context:\n{context}"),
+            ("system", CHAT_SYSTEM_PROMPT.format(context=context)),
             *history_messages,
             ("human", message)
         ]
     else:
         # No patient data yet — direct chat with system prompt
         messages = [
-            ("system", "You are CareFlow AI, a healthcare companion. Help the patient. Never diagnose. Always suggest consulting a doctor."),
+            ("system", CHAT_SYSTEM_PROMPT.format(context="No patient records uploaded yet.")),
             *history_messages,
             ("human", message)
         ]

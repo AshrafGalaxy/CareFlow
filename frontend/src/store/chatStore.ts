@@ -25,6 +25,7 @@ interface ChatStore {
  setStreaming: (streaming: boolean) => void
  updateLastMessage: (token: string) => void
  appendSession: (session: ChatSession) => void
+ updateSessionTitle: (id: string, title: string) => void
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -60,5 +61,17 @@ export const useChatStore = create<ChatStore>((set) => ({
     })
    }
    return { messages: msgs }
+  }),
+
+ updateSessionTitle: (id, title) =>
+  set((state) => {
+   const updatedSessions = state.sessions.map((s) =>
+    s.id === id ? { ...s, title } : s
+   )
+   const updatedActiveSession =
+    state.activeSession?.id === id
+     ? { ...state.activeSession, title }
+     : state.activeSession
+   return { sessions: updatedSessions, activeSession: updatedActiveSession }
   }),
 }))

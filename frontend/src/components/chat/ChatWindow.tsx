@@ -8,7 +8,7 @@ import { ChatInput } from './ChatInput'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export function ChatWindow() {
- const { messages, isStreaming, activeSession, addMessage, setStreaming, updateLastMessage } = useChatStore()
+ const { messages, isStreaming, activeSession, addMessage, setStreaming, updateLastMessage, updateSessionTitle } = useChatStore()
  const { token } = useAuthStore()
  const bottomRef = useRef<HTMLDivElement>(null)
  const [error, setError] = useState<string | null>(null)
@@ -45,7 +45,10 @@ export function ChatWindow() {
     }
    )
 
-   if (!response.ok) throw new Error('Failed to send message')
+   if (!response.ok) {
+    const errorText = await response.text().catch(() => 'No text')
+    throw new Error(`Failed to send message: ${response.status} ${errorText}`)
+   }
    if (!response.body) throw new Error('No response body')
 
    const reader = response.body.getReader()
@@ -71,6 +74,9 @@ export function ChatWindow() {
       }
       if (parsed.token) {
        updateLastMessage(parsed.token)
+      }
+      if (parsed.title) {
+       updateSessionTitle(activeSession.id, parsed.title)
       }
      } catch (e: any) {
       if (e.message && e.message !== "Unexpected end of JSON input") {

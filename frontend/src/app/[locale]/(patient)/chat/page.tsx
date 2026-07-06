@@ -5,6 +5,7 @@ import { Plus, MessageSquare, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { useChatStore } from '@/store/chatStore'
 import { ChatWindow } from '@/components/chat/ChatWindow'
+import { toast } from 'sonner'
 
 interface ChatSession {
  id: string
@@ -73,7 +74,6 @@ export default function ChatPage() {
 
  const deleteSession = async (e: React.MouseEvent, sessionId: string) => {
   e.stopPropagation()
-  if (!window.confirm("Are you sure you want to delete this conversation?")) return
   
   try {
    await api.delete(`/api/chat/${sessionId}`)
@@ -82,14 +82,16 @@ export default function ChatPage() {
     setActiveSession(null)
     setMessages([])
    }
-  } catch (err) {
+   toast.success("Conversation deleted successfully")
+  } catch (err: any) {
    console.error(err)
+   toast.error("Failed to delete conversation")
   }
  }
 
 
  return (
-  <div className="flex-1 flex overflow-hidden bg-background rounded-2xl border border-border shadow-sm h-[calc(100vh-7.5rem)] min-h-[500px]">
+  <div className="flex-1 flex overflow-hidden bg-background rounded-2xl border border-border shadow-sm min-h-0 w-full">
    {/* Sidebar for chat sessions */}
    <aside className="w-80 border-r border-border bg-card flex flex-col hidden md:flex shrink-0">
     <div className="p-4 border-b border-border flex justify-between items-center bg-card">
