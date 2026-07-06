@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/authStore"
 import { PatientSidebar } from "@/components/layout/PatientSidebar"
 import { TopNav } from "@/components/layout/TopNav"
 import { MobileNav } from "@/components/layout/MobileNav"
+import { SupportBot } from "@/components/layout/SupportBot"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
@@ -59,15 +60,16 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
  if (!token || user?.role === "doctor") return null
 
  return (
-  <div className="flex min-h-screen bg-background">
+  <div className="flex h-screen overflow-hidden bg-background">
    <PatientSidebar />
-   <div className="flex-1 flex flex-col min-w-0">
+   <div className="flex-1 flex flex-col min-w-0 h-screen">
     <TopNav />
-    <main className="flex-1 p-6 pb-24 md:pb-6 overflow-auto">
+    <main className="flex-1 flex flex-col p-6 pb-24 md:pb-6 overflow-y-auto">
      <ErrorBoundary>{children}</ErrorBoundary>
     </main>
    </div>
    <MobileNav />
+   <SupportBot />
   </div>
  )
 }

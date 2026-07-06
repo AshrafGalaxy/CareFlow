@@ -29,7 +29,7 @@ export default function AuthLayout({
  if (hasHydrated && user) return null
 
  return (
-  <div className="min-h-screen bg-gradient-to-br from-[#F0F9FF] via-[#E0F2FE] to-[#F8FAFC] flex flex-col items-center justify-center p-4 py-12">
+  <div className="min-h-screen bg-gradient-to-br from-[#F0F9FF] via-[#E0F2FE] to-[#F8FAFC] dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 flex flex-col items-center justify-center p-4 py-12">
    <div className="w-full max-w-[440px] mb-8 flex items-center justify-center">
     <Link 
      href="/"

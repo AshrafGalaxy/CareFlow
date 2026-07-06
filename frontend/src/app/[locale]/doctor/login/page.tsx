@@ -48,7 +48,7 @@ export default function ProviderLogin() {
     return
    }
 
-   setAuth(access_token, user)
+   setAuth(user, access_token, response.data.refresh_token)
    toast.success("Successfully logged into Doctor Portal!")
    
    router.push("/doctor/dashboard")
@@ -140,7 +140,7 @@ export default function ProviderLogin() {
          <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
          >
           {showPassword ? (
            <EyeOff className="h-5 w-5" />
@@ -176,7 +176,7 @@ export default function ProviderLogin() {
      <div className="text-center">
       <Link
        href="/login"
-       className="text-sm font-semibold text-slate-500 hover:text-sky-600 transition-colors"
+       className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
       >
        ← Back to Patient Portal
       </Link>

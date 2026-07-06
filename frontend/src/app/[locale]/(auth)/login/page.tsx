@@ -27,13 +27,13 @@ export default function LoginPage() {
   try {
    const res = await api.post(API_ROUTES.AUTH.LOGIN, data)
    setAuth(res.data.user, res.data.access_token, res.data.refresh_token)
-   toast.success(
+   toast(
     <div className="flex flex-col gap-1">
      <span className="font-heading font-bold text-foreground">Login Successful</span>
-     <span className="text-sm text-slate-600">Welcome back, {res.data.user.name.split(" ")[0]}! Securing your connection...</span>
+     <span className="text-sm text-slate-600 dark:text-slate-300">Welcome back, {res.data.user.name.split(" ")[0]}! Securing your connection...</span>
     </div>,
     {
-     icon: <div className="h-8 w-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-inner"><CheckCircle className="h-4 w-4" /></div>,
+     icon: <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-inner"><CheckCircle className="h-4 w-4" /></div>,
      duration: 3000,
     }
    )
@@ -75,7 +75,7 @@ export default function LoginPage() {
        aria-invalid={!!errors.email}
        aria-describedby={errors.email ? "email-error" : undefined}
        className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-        errors.email ? "border-red-400 bg-red-50" : "border-border bg-card"
+        errors.email ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-card"
        }`}
        {...register("email", {
         required: "Email is required",
@@ -120,7 +120,7 @@ export default function LoginPage() {
         aria-invalid={!!errors.password}
         aria-describedby={errors.password ? "password-error" : undefined}
         className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-         errors.password ? "border-red-400 bg-red-50" : "border-border bg-card"
+         errors.password ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-card"
         }`}
         {...register("password", { required: "Password is required" })}
        />

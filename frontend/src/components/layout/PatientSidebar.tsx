@@ -9,6 +9,7 @@ import {
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 import { useTranslations } from "next-intl"
 
@@ -52,7 +53,7 @@ export function PatientSidebar() {
  }
 
  return (
-  <div className="hidden md:flex flex-col w-64 border-r border-border bg-card min-h-screen shrink-0">
+  <div className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen shrink-0">
    {/* Brand */}
    <div className="flex items-center gap-2 p-5 border-b border-border bg-card">
     <Image 
@@ -67,7 +68,7 @@ export function PatientSidebar() {
    </div>
 
    {/* Nav Items */}
-   <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
+   <nav className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto" aria-label="Main navigation">
     {navItems.map((item) => {
      const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
      return (
@@ -75,54 +76,81 @@ export function PatientSidebar() {
        key={item.name}
        href={item.href}
        className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+        "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
         isActive
-         ? "bg-primary/10 text-primary dark:text-sky-400"
-         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+         ? "text-primary dark:text-sky-400"
+         : "text-muted-foreground hover:text-foreground"
        )}
       >
-       <item.icon className="h-4 w-4 shrink-0" />
-       <span>{item.name}</span>
+       {isActive && (
+        <motion.div
+         layoutId="sidebar-active-indicator"
+         className="absolute inset-0 bg-primary/10 dark:bg-sky-500/15 rounded-xl"
+         initial={false}
+         transition={{ type: "spring", stiffness: 400, damping: 35 }}
+        />
+       )}
+       {/* Subtle hover background for inactive items */}
+       {!isActive && (
+        <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
+       )}
+       <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
+       <span className="relative z-10">{item.name}</span>
       </Link>
      )
     })}
    </nav>
 
    {/* User Block */}
-   <div className="border-t border-border p-4">
+   <div className="border-t border-border p-4 bg-muted/20">
     <div className="flex items-center gap-3 px-2 mb-4">
-     <div className="h-9 w-9 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
       {initials}
      </div>
      <div className="flex-1 min-w-0">
       <p className="text-sm font-semibold text-foreground truncate">{user?.name || "User"}</p>
-      <p className="text-xs text-muted-foreground capitalize">{user?.role || "Patient"}</p>
+      <p className="text-xs text-muted-foreground capitalize font-medium mt-0.5">{user?.role || "Patient"}</p>
      </div>
     </div>
     
     {/* FOOTER */}
-    <div className="space-y-1">
-     {bottomNavItems.map((item) => (
-      <Link
-       key={item.name}
-       href={item.href}
-       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-        pathname.includes(item.href)
-         ? "bg-primary/10 text-primary dark:text-sky-400"
-         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-       )}
-      >
-       <item.icon className="h-4 w-4 shrink-0" />
-       <span>{item.name}</span>
-      </Link>
-     ))}
+    <div className="space-y-1.5">
+     {bottomNavItems.map((item) => {
+      const isActive = pathname.includes(item.href)
+      return (
+       <Link
+        key={item.name}
+        href={item.href}
+        className={cn(
+         "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
+         isActive
+          ? "text-primary dark:text-sky-400"
+          : "text-muted-foreground hover:text-foreground"
+        )}
+       >
+        {isActive && (
+         <motion.div
+          layoutId="sidebar-active-indicator"
+          className="absolute inset-0 bg-primary/10 dark:bg-sky-500/15 rounded-xl"
+          initial={false}
+          transition={{ type: "spring", stiffness: 400, damping: 35 }}
+         />
+        )}
+        {!isActive && (
+         <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
+        )}
+        <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
+        <span className="relative z-10">{item.name}</span>
+       </Link>
+      )
+     })}
      <button
       onClick={handleLogout}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+      className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground group transition-all duration-300"
      >
-      <LogOut className="h-4 w-4 shrink-0" />
-      <span>Sign Out</span>
+      <div className="absolute inset-0 bg-destructive/0 group-hover:bg-destructive/10 rounded-xl transition-colors duration-300" />
+      <LogOut className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95 group-hover:text-destructive" />
+      <span className="relative z-10 group-hover:text-destructive transition-colors duration-300">Sign Out</span>
      </button>
     </div>
    </div>

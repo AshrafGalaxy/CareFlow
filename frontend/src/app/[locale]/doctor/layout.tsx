@@ -38,10 +38,10 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
  // Show full-page spinner while Zustand rehydrates from localStorage
  if (!hasHydrated) {
   return (
-   <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-    <div className="flex flex-col items-center gap-3">
-     <Loader2 className="h-8 w-8 text-sky-500 animate-spin" />
-     <p className="text-sm text-slate-500">Loading CareFlow AI...</p>
+   <div className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+     <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+     <p className="text-sm text-slate-500 dark:text-slate-400">Loading CareFlow AI...</p>
     </div>
    </div>
   )
@@ -49,7 +49,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
 
  if (pathname.endsWith("/doctor/login")) {
   return (
-   <div className="min-h-screen bg-slate-50 font-sans">
+   <div className="min-h-screen bg-slate-50 dark:bg-background font-sans">
     <ErrorBoundary>{children}</ErrorBoundary>
    </div>
   )
@@ -58,13 +58,13 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
  if (!token || (user?.role !== "provider" && user?.role !== "admin")) return null
 
  return (
-  <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
-   {/* Top Header */}
-   <header className="h-16 border-b border-slate-200 bg-card flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+  <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-background font-sans">
+   {/* Header */}
+   <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-card flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
     <div className="flex items-center gap-6">
      <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/doctor/dashboard")}>
       <span className="font-brand text-xl font-bold text-foreground tracking-tight">
-       CareFlow <span className="text-sky-500">AI</span> <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded ml-1">Doctor Portal</span>
+       CareFlow <span className="text-sky-500">AI</span> <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded ml-1">Doctor Portal</span>
       </span>
      </div>
 
@@ -73,7 +73,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
        variant="ghost"
        size="sm"
        onClick={() => router.push("/doctor/dashboard")}
-       className="text-slate-600 hover:text-foreground flex items-center gap-1.5"
+       className="text-slate-600 dark:text-slate-400 hover:text-foreground flex items-center gap-1.5"
       >
        <ChevronLeft className="h-4 w-4" />
        <span>Back to Dashboard</span>
@@ -84,14 +84,14 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
     <div className="flex items-center gap-4">
      <div className="text-right hidden sm:block">
       <p className="text-sm font-semibold text-foreground">{user?.name}</p>
-      <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
      </div>
 
      <Button
       variant="outline"
       size="sm"
       onClick={handleLogout}
-      className="flex items-center gap-2 border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-foreground transition-colors"
+      className="flex items-center gap-2 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors"
      >
       <LogOut className="h-4 w-4" />
       <span>Logout</span>
