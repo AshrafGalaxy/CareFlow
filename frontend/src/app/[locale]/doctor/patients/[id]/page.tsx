@@ -9,12 +9,12 @@ import PatientMemo from "@/components/doctor/PatientMemo";
 
 function SkeletonCard() {
  return (
-  <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 bg-card /50 animate-pulse">
-   <div className="h-6 w-1/3 bg-slate-200 rounded-md mb-6"></div>
+  <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 bg-card/50 animate-pulse">
+   <div className="h-6 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-md mb-6"></div>
    <div className="space-y-4">
-    <div className="h-4 w-full bg-slate-100 /50 rounded-md"></div>
-    <div className="h-4 w-5/6 bg-slate-100 /50 rounded-md"></div>
-    <div className="h-4 w-4/6 bg-slate-100 /50 rounded-md"></div>
+    <div className="h-4 w-full bg-slate-100/50 dark:bg-slate-800/50 rounded-md"></div>
+    <div className="h-4 w-5/6 bg-slate-100/50 dark:bg-slate-800/50 rounded-md"></div>
+    <div className="h-4 w-4/6 bg-slate-100/50 dark:bg-slate-800/50 rounded-md"></div>
    </div>
   </Card>
  );
@@ -46,10 +46,10 @@ export default function PatientDetailPage() {
   return (
    <div className="max-w-5xl mx-auto space-y-8 pb-10">
     <div className="flex items-center gap-6 mb-8 animate-pulse">
-     <div className="w-20 h-20 rounded-2xl bg-slate-200 "></div>
+     <div className="w-20 h-20 rounded-2xl bg-slate-200 dark:bg-slate-800"></div>
      <div className="space-y-3 flex-1">
-      <div className="h-8 w-1/3 bg-slate-200 rounded-md"></div>
-      <div className="h-4 w-1/4 bg-slate-200 rounded-md"></div>
+      <div className="h-8 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+      <div className="h-4 w-1/4 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
      </div>
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
