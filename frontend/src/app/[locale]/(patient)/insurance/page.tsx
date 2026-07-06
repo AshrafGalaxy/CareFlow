@@ -70,8 +70,8 @@ export default function InsuranceNavigatorPage() {
          ? `₹${scheme.coverage_amount.toLocaleString("en-IN")}`
          : scheme.coverage_amount}
        </p>
-       <p className="text-sm text-slate-600"><strong>Eligibility:</strong> {scheme.eligibility}</p>
-       <p className="text-sm text-slate-600"><strong>How to apply:</strong> {scheme.how_to_apply}</p>
+       <p className="text-sm text-slate-600 dark:text-slate-400"><strong>Eligibility:</strong> {scheme.eligibility}</p>
+       <p className="text-sm text-slate-600 dark:text-slate-400"><strong>How to apply:</strong> {scheme.how_to_apply}</p>
       </Card>
      ))}
 
@@ -102,7 +102,7 @@ export default function InsuranceNavigatorPage() {
         <div>
          <span className="font-medium">{doc.document}</span>{" "}
          <span className="text-xs text-slate-400">{doc.required ? "(Required)" : "(Optional)"}</span>
-         {doc.notes && <p className="text-xs text-slate-500">{doc.notes}</p>}
+         {doc.notes && <p className="text-xs text-slate-500 dark:text-slate-400">{doc.notes}</p>}
         </div>
        </div>
       ))}
@@ -110,7 +110,7 @@ export default function InsuranceNavigatorPage() {
 
      <details className="border rounded-lg p-4">
       <summary className="cursor-pointer font-medium text-foreground">Cashless Treatment Guidance</summary>
-      <p className="mt-2 text-sm text-slate-600">{result.cashless_guidance}</p>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{result.cashless_guidance}</p>
      </details>
 
      <p className="text-xs text-slate-400">{result.disclaimer}</p>
