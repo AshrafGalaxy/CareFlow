@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
 import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Noto_Sans_Devanagari, Noto_Nastaliq_Urdu, Noto_Sans_Telugu, Noto_Sans_Gujarati, Noto_Sans_Tamil, Noto_Sans_Bengali } from "next/font/google"
-import { Toaster } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 import { PageTransition } from "@/components/ui/page-transition"
 import "../globals.css"
 
@@ -109,7 +109,7 @@ export default async function RootLayout({
  const messages = await getMessages()
 
  return (
-  <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
+  <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
    <head>
     <Script
      id="theme-script"
@@ -124,6 +124,30 @@ export default async function RootLayout({
         document.documentElement.classList.remove('light','dark','warm');
         document.documentElement.classList.add(resolved);
        } catch (e) {}
+      `,
+     }}
+    />
+     {/* Manual cookie logic removed to prevent overriding Google Translate widget state */}
+    <style>{`
+     iframe.skiptranslate { display: none !important; }
+     body { top: 0px !important; }
+     .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
+    `}</style>
+    <Script
+     src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+     strategy="lazyOnload"
+    />
+    <Script
+     id="google-translate-init"
+     strategy="lazyOnload"
+     dangerouslySetInnerHTML={{
+      __html: `
+       function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+         pageLanguage: 'en',
+         autoDisplay: false
+        }, 'google_translate_element');
+       }
       `,
      }}
     />
@@ -143,6 +167,7 @@ export default async function RootLayout({
      disableTransitionOnChange
     >
      <NextIntlClientProvider messages={messages}>
+      <div id="google_translate_element" style={{ display: 'none' }}></div>
       <Suspense fallback={null}>
        <PageTransition />
       </Suspense>

@@ -53,14 +53,14 @@ export function TiltFeatureCard({ title, desc, icon: Icon }: TiltFeatureCardProp
 
    {/* Actual Card */}
    <div
-    className="relative h-full bg-card rounded-2xl p-8 transition-transform duration-200 ease-out border border-slate-100 shadow-sm overflow-hidden"
+    className="relative h-full bg-card rounded-2xl p-8 transition-transform duration-200 ease-out border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden"
     style={{
      transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${isHovered ? 1.02 : 1})`,
      transformStyle: "preserve-3d",
     }}
    >
     <div 
-     className="h-12 w-12 rounded-xl bg-sky-50 flex items-center justify-center mb-5"
+     className="h-12 w-12 rounded-xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center mb-5"
      style={{ transform: "translateZ(30px)" }}
     >
      <Icon className="h-6 w-6 text-sky-500" />

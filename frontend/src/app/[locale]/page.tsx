@@ -312,23 +312,23 @@ export default function LandingPage() {
     <div className="max-w-6xl mx-auto px-6 relative z-10 mb-16">
      <div className="text-center">
       <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">Patient Stories</h2>
-      <p className="text-slate-500 text-xl">See how CareFlow AI is changing lives.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-xl">See how CareFlow AI is changing lives.</p>
      </div>
     </div>
 
     <div className="flex w-[200vw] animate-[marquee_40s_linear_infinite] hover:[animation-play-state:paused] gap-8 px-4">
      {/* Double the array for seamless infinite scroll */}
      {[...testimonials, ...testimonials].map((test, i) => (
-      <div key={i} className="w-[400px] shrink-0 bg-card/80 backdrop-blur-xl border border-slate-200/60 p-8 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-       <div className="text-4xl text-sky-200 font-serif mb-4">"</div>
+      <div key={i} className="w-[400px] shrink-0 bg-card/80 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 p-8 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+       <div className="text-4xl text-sky-200 dark:text-sky-800/50 font-serif mb-4">"</div>
        <p className="text-slate-700 text-lg leading-relaxed mb-8 italic">"{test.quote}"</p>
        <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center font-bold text-sky-700">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-100 to-sky-200 dark:from-sky-900/40 dark:to-sky-800/40 flex items-center justify-center font-bold text-sky-700 dark:text-sky-300">
          {test.author[0]}
         </div>
         <div>
          <h4 className="font-semibold text-foreground">{test.author}</h4>
-         <p className="text-sm text-slate-500">{test.role}</p>
+         <p className="text-sm text-slate-500 dark:text-slate-400">{test.role}</p>
         </div>
        </div>
       </div>
@@ -344,21 +344,21 @@ export default function LandingPage() {
    </section>
 
    {/* ── FAQ ── */}
-   <section id="faq" className="py-32 bg-slate-50/50">
+   <section id="faq" className="py-32 bg-slate-50/50 dark:bg-slate-900/50">
     <div className="max-w-6xl mx-auto px-6 relative z-10">
      <div className="text-center mb-16">
       <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-      <p className="text-slate-500 text-xl">Everything you need to know about the platform.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-xl">Everything you need to know about the platform.</p>
      </div>
      <FAQAccordion />
     </div>
    </section>
 
    {/* ── Footer CTA ── */}
-   <section className="bg-sky-500 relative overflow-hidden py-24">
+   <section className="bg-sky-500 dark:bg-sky-900 relative overflow-hidden py-24">
     {/* Decorative background elements */}
-    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-400 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-400 dark:bg-sky-700 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 dark:bg-sky-950 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
     
     <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
      <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
