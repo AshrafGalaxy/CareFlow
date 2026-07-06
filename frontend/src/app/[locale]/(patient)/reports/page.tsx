@@ -29,7 +29,7 @@ export default function ReportsListPage() {
    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
      <h1 className="text-3xl font-heading font-bold text-foreground tracking-tight">My Reports</h1>
-     <p className="text-slate-500 mt-1">Manage and analyze your medical laboratory reports</p>
+     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and analyze your medical laboratory reports</p>
     </div>
     <Link 
      href="/reports/upload" 
@@ -41,14 +41,14 @@ export default function ReportsListPage() {
    </div>
 
    {/* Reports List */}
-   <div className="bg-card rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+   <div className="bg-card rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
      <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       <input 
        type="text" 
        placeholder="Search reports..." 
-       className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+       className="pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
       />
      </div>
     </div>
@@ -67,11 +67,11 @@ export default function ReportsListPage() {
      </div>
     ) : !reports || reports.length === 0 ? (
      <div className="p-16 text-center">
-      <div className="h-16 w-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3">
-       <FileText size={32} />
+      <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3">
+       <FileText className="h-8 w-8" />
       </div>
-      <h3 className="text-lg font-heading font-bold text-foreground mb-2">No reports yet</h3>
-      <p className="text-slate-500 mb-6 max-w-sm mx-auto">Upload your first lab report to get an AI-powered analysis and personalized health insights.</p>
+      <h3 className="text-lg font-semibold text-foreground mb-2">No reports uploaded yet</h3>
+      <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">Upload your first lab report to get an AI-powered analysis and personalized health insights.</p>
       <Link 
        href="/reports/upload" 
        className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all"
@@ -85,7 +85,7 @@ export default function ReportsListPage() {
        <Link 
         key={report.id} 
         href={`/reports/${report.id}`}
-        className="flex items-center p-4 sm:p-5 hover:bg-slate-50 transition-colors group"
+        className="flex items-center p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
        >
         <div className="h-12 w-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center shrink-0 mr-4 group-hover:scale-105 transition-transform">
          <FileText size={24} />
@@ -95,7 +95,7 @@ export default function ReportsListPage() {
          <h3 className="text-base font-semibold text-foreground truncate mb-1">
           {report.original_filename}
          </h3>
-         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1.5">
            <Calendar size={14} />
            {new Date(report.uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

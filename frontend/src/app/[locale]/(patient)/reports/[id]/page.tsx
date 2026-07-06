@@ -10,6 +10,7 @@ import { DoctorQuestions } from '@/components/reports/DoctorQuestions'
 interface Highlight {
  label: string
  value: string
+ reference_range?: string
  status: 'normal' | 'low' | 'high' | 'borderline'
  note: string
 }
@@ -17,6 +18,7 @@ interface Highlight {
 interface AbnormalValue {
  label: string
  value: string
+ reference_range?: string
  concern: string
 }
 
@@ -80,28 +82,44 @@ export default function ReportDetailPage() {
 
  useEffect(() => {
   if (!id) return
-  // eslint-disable-next-line prefer-const
-  let interval: NodeJS.Timeout
-
+  
   const fetchReport = async () => {
    try {
     const res = await api.get(`/api/reports/${id}`)
-    const data: Report = res.data
-    setReport(data)
-    if (data.processing_status === 'done' || data.processing_status === 'failed') {
-     clearInterval(interval)
+    setReport(res.data)
+    if (res.data.processing_status === 'done' || res.data.processing_status === 'failed') {
      setReanalyzing(false)
     }
    } catch {
     setError('Could not load this report.')
-    clearInterval(interval)
    }
   }
 
+  // Fetch immediately
   fetchReport()
-  interval = setInterval(fetchReport, 3000)
-  return () => clearInterval(interval)
  }, [id])
+
+ // Polling effect
+ useEffect(() => {
+  if (!id) return
+  if (report && (report.processing_status === 'done' || report.processing_status === 'failed')) {
+   return
+  }
+
+  const interval = setInterval(async () => {
+   try {
+    const res = await api.get(`/api/reports/${id}`)
+    setReport(res.data)
+    if (res.data.processing_status === 'done' || res.data.processing_status === 'failed') {
+     setReanalyzing(false)
+    }
+   } catch {
+    console.error('Polling error')
+   }
+  }, 3000)
+
+  return () => clearInterval(interval)
+ }, [id, report?.processing_status])
 
  if (error) {
   return (
@@ -178,16 +196,13 @@ export default function ReportDetailPage() {
      <CheckCircle size={16} />
      Analysis Complete
     </div>
-    {/* Re-analyze button appears when highlights are missing (old/corrupted report) */}
-    {!hasFullAnalysis && (
-     <button
-      onClick={handleReanalyze}
-      disabled={reanalyzing}
-      className="reanalyze-btn"
-     >
-      {reanalyzing ? '⏳ Re-analyzing...' : '🔄 Re-analyze Report'}
-     </button>
-    )}
+    <button
+     onClick={handleReanalyze}
+     disabled={reanalyzing}
+     className="reanalyze-btn"
+    >
+     {reanalyzing ? '⏳ Re-analyzing...' : '🔄 Re-analyze Report'}
+    </button>
    </div>
 
    {/* AI Summary */}
@@ -209,7 +224,10 @@ export default function ReportDetailPage() {
          <span className="highlight-label">{h.label}</span>
          <AbnormalValueBadge status={h.status} label={h.status} />
         </div>
-        <div className="highlight-value">{h.value}</div>
+        <div className="highlight-value">
+         {h.value}
+         {h.reference_range && <span className="text-muted-foreground text-sm font-normal ml-1">/ {h.reference_range}</span>}
+        </div>
         <div className="highlight-note">{h.note}</div>
        </div>
       ))}
@@ -226,7 +244,10 @@ export default function ReportDetailPage() {
        <div key={i} className="abnormal-item">
         <div className="abnormal-item-header">
          <span className="abnormal-label">{av.label}</span>
-         <span className="abnormal-value">{av.value}</span>
+         <span className="abnormal-value">
+          {av.value}
+          {av.reference_range && <span className="text-muted-foreground text-sm font-normal ml-1">/ {av.reference_range}</span>}
+         </span>
          <AbnormalValueBadge status="high" label="Outside Range" />
         </div>
         <p className="abnormal-concern">{av.concern}</p>
@@ -245,7 +266,7 @@ export default function ReportDetailPage() {
 
    {/* Nudge if nothing extra loaded yet */}
    {!hasFullAnalysis && !reanalyzing && summaryText && (
-    <div className="report-section text-center text-slate-400 pt-4 mt-8 border-t border-slate-100">
+    <div className="report-section text-center text-slate-400 pt-4 mt-8 border-t border-slate-100 dark:border-slate-800">
      <p>👆 Click <strong>Re-analyze Report</strong> above to load Key Highlights, Abnormal Values and Doctor Questions.</p>
     </div>
    )}
