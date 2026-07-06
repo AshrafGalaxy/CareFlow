@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.medication import Medication, MedicationLog
 from app.schemas.medication import (
     MedicationCreate, MedicationUpdate, MedicationResponse,
-    MedicationLogCreate, MedicationLogResponse,
+    MedicationLogCreate, MedicationLogUpdate, MedicationLogResponse,
     AdherenceResponse, AdherenceByMedication
 )
 from app.middleware.auth_middleware import get_current_user
@@ -85,6 +85,107 @@ def get_medications(
     return meds
 
 
+@router.get("/adherence", response_model=AdherenceResponse)
+def get_adherence(
+    days: int = 30,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Calculate medication adherence for the last N days."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+    # Get all user medications
+    user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
+    med_ids = [m.id for m in user_meds]
+
+    if not med_ids:
+        return AdherenceResponse(
+            total_doses=0, taken=0, missed=0, skipped=0,
+            adherence_rate=0.0, by_medication=[]
+        )
+
+    # Get logs for these medications in the time window
+    logs = db.query(MedicationLog).filter(
+        MedicationLog.medication_id.in_(med_ids),
+        MedicationLog.scheduled_time >= cutoff
+    ).all()
+
+    total = len(logs)
+    taken = sum(1 for l in logs if l.status == "taken")
+    missed = sum(1 for l in logs if l.status == "missed")
+    skipped = sum(1 for l in logs if l.status == "skipped")
+    adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
+
+    # Breakdown by medication
+    med_map = {str(m.id): m for m in user_meds}
+    by_med: dict[str, dict] = {}
+    for log in logs:
+        mid = str(log.medication_id)
+        if mid not in by_med:
+            by_med[mid] = {"total": 0, "taken": 0, "missed": 0, "skipped": 0}
+        by_med[mid]["total"] += 1
+        by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
+
+    by_medication = []
+    for mid, counts in by_med.items():
+        med_obj = med_map.get(mid)
+        t = counts["total"]
+        tak = counts.get("taken", 0)
+        by_medication.append(AdherenceByMedication(
+            medication_id=mid,
+            medication_name=med_obj.name if med_obj else "Unknown",
+            total=t,
+            taken=tak,
+            missed=counts.get("missed", 0),
+            skipped=counts.get("skipped", 0),
+            adherence_rate=round((tak / t * 100), 1) if t > 0 else 0.0
+        ))
+
+    return AdherenceResponse(
+        total_doses=total,
+        taken=taken,
+        missed=missed,
+        skipped=skipped,
+        adherence_rate=adherence_rate,
+        by_medication=by_medication
+    )
+
+
+@router.get("/logs/all", response_model=list[MedicationLogResponse])
+def get_all_medication_logs(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all logs for all user medications."""
+    # Get all user medications
+    user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
+    med_ids = [m.id for m in user_meds]
+
+    if not med_ids:
+        return []
+
+    logs = db.query(MedicationLog).filter(
+        MedicationLog.medication_id.in_(med_ids)
+    ).order_by(MedicationLog.scheduled_time.desc()).all()
+    
+    return logs
+
+
+@router.get("/{id}", response_model=MedicationResponse)
+def get_medication(
+    id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a single medication."""
+    med = db.query(Medication).filter(
+        Medication.id == id, Medication.user_id == user.id
+    ).first()
+    if not med:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
+    return med
+
+
 @router.put("/{id}", response_model=MedicationResponse)
 def update_medication(
     id: uuid.UUID,
@@ -153,67 +254,50 @@ def log_medication(
     return log
 
 
-@router.get("/adherence", response_model=AdherenceResponse)
-def get_adherence(
-    days: int = 30,
+@router.get("/{id}/logs", response_model=list[MedicationLogResponse])
+def get_medication_logs(
+    id: uuid.UUID,
+    limit: int = 30,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Calculate medication adherence for the last N days."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    """Get recent logs for a specific medication."""
+    med = db.query(Medication).filter(
+        Medication.id == id, Medication.user_id == user.id
+    ).first()
+    if not med:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
 
-    # Get all user medications
-    user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
-    med_ids = [m.id for m in user_meds]
-
-    if not med_ids:
-        return AdherenceResponse(
-            total_doses=0, taken=0, missed=0, skipped=0,
-            adherence_rate=0.0, by_medication=[]
-        )
-
-    # Get logs for these medications in the time window
     logs = db.query(MedicationLog).filter(
-        MedicationLog.medication_id.in_(med_ids),
-        MedicationLog.scheduled_time >= cutoff
-    ).all()
+        MedicationLog.medication_id == id
+    ).order_by(MedicationLog.scheduled_time.desc()).limit(limit).all()
+    
+    return logs
 
-    total = len(logs)
-    taken = sum(1 for l in logs if l.status == "taken")
-    missed = sum(1 for l in logs if l.status == "missed")
-    skipped = sum(1 for l in logs if l.status == "skipped")
-    adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
 
-    # Breakdown by medication
-    med_map = {str(m.id): m for m in user_meds}
-    by_med: dict[str, dict] = {}
-    for log in logs:
-        mid = str(log.medication_id)
-        if mid not in by_med:
-            by_med[mid] = {"total": 0, "taken": 0, "missed": 0, "skipped": 0}
-        by_med[mid]["total"] += 1
-        by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
+@router.put("/logs/{log_id}", response_model=MedicationLogResponse)
+def update_medication_log(
+    log_id: uuid.UUID,
+    body: MedicationLogUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a specific medication log (e.g., change missed to taken)."""
+    log = db.query(MedicationLog).join(Medication).filter(
+        MedicationLog.id == log_id,
+        Medication.user_id == user.id
+    ).first()
+    
+    if not log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log not found")
 
-    by_medication = []
-    for mid, counts in by_med.items():
-        med_obj = med_map.get(mid)
-        t = counts["total"]
-        tak = counts.get("taken", 0)
-        by_medication.append(AdherenceByMedication(
-            medication_id=mid,
-            medication_name=med_obj.name if med_obj else "Unknown",
-            total=t,
-            taken=tak,
-            missed=counts.get("missed", 0),
-            skipped=counts.get("skipped", 0),
-            adherence_rate=round((tak / t * 100), 1) if t > 0 else 0.0
-        ))
+    log.status = body.status
+    if body.status == "taken" and not log.taken_at:
+        log.taken_at = datetime.now(timezone.utc)
+    elif body.status != "taken":
+        log.taken_at = None
 
-    return AdherenceResponse(
-        total_doses=total,
-        taken=taken,
-        missed=missed,
-        skipped=skipped,
-        adherence_rate=adherence_rate,
-        by_medication=by_medication
-    )
+    db.commit()
+    db.refresh(log)
+    db.refresh(log)
+    return log

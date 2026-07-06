@@ -12,6 +12,8 @@ class MedicationCreate(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     notes: Optional[str] = None
+    hospital_notes: Optional[str] = None
+    previous_dosage: Optional[str] = None
 
 
 class MedicationUpdate(BaseModel):
@@ -22,6 +24,8 @@ class MedicationUpdate(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     notes: Optional[str] = None
+    hospital_notes: Optional[str] = None
+    previous_dosage: Optional[str] = None
     is_active: Optional[bool] = None
 
 
@@ -35,6 +39,8 @@ class MedicationResponse(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     notes: Optional[str] = None
+    hospital_notes: Optional[str] = None
+    previous_dosage: Optional[str] = None
     is_active: bool
 
     class Config:
@@ -43,6 +49,11 @@ class MedicationResponse(BaseModel):
 
 class MedicationLogCreate(BaseModel):
     status: str  # "taken" | "missed" | "skipped"
+    taken_at: Optional[datetime] = None
+
+
+class MedicationLogUpdate(BaseModel):
+    status: str
     taken_at: Optional[datetime] = None
 
 

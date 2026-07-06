@@ -19,6 +19,8 @@ class Medication(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date)
     notes = Column(Text)
+    hospital_notes = Column(Text)
+    previous_dosage = Column(String(100))
     is_active = Column(Boolean, default=True, index=True)
 
 class MedicationLog(Base):

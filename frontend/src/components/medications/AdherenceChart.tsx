@@ -20,7 +20,7 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
  const y = cy + radius * Math.sin(-midAngle * RADIAN)
  return (
   <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight={600}>
-   {`${(percent * 100).toFixed(0)}%`}
+   {`${(percent * 100).toFixed(1)}%`}
   </text>
  )
 }
@@ -43,34 +43,35 @@ export function AdherenceChart({ taken, missed, skipped, adherenceRate }: Adhere
  ].filter(d => d.value > 0)
 
  return (
-  <div className="adherence-chart">
-   <div className="adherence-rate-display">
-    <span className="adherence-rate-value">{adherenceRate}%</span>
-    <span className="adherence-rate-label">Adherence</span>
+   <div className="relative w-full h-[200px] flex items-center justify-center">
+    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+     <span className="text-3xl font-bold font-heading text-foreground">{adherenceRate}%</span>
+     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Adherence</span>
+    </div>
+    <ResponsiveContainer width="100%" height={200}>
+     <PieChart>
+      <Pie
+       data={data}
+       cx="50%"
+       cy="50%"
+       innerRadius={65}
+       outerRadius={85}
+       paddingAngle={3}
+       dataKey="value"
+       labelLine={false}
+       label={renderCustomLabel}
+       stroke="none"
+      >
+       {data.map((_, index) => (
+        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+       ))}
+      </Pie>
+      <Tooltip
+       formatter={(value: any, name: any) => [`${value} doses`, name]}
+       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+      />
+     </PieChart>
+    </ResponsiveContainer>
    </div>
-   <ResponsiveContainer width="100%" height={220}>
-    <PieChart>
-     <Pie
-      data={data}
-      cx="50%"
-      cy="50%"
-      innerRadius={60}
-      outerRadius={90}
-      paddingAngle={3}
-      dataKey="value"
-      labelLine={false}
-      label={renderCustomLabel}
-     >
-      {data.map((_, index) => (
-       <Cell key={index} fill={COLORS[index % COLORS.length]} />
-      ))}
-     </Pie>
-     <Tooltip
-      formatter={(value: any, name: any) => [`${value} doses`, name]}
-     />
-     <Legend />
-    </PieChart>
-   </ResponsiveContainer>
-  </div>
  )
 }
