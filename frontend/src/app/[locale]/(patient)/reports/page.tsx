@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Plus, Search, Calendar, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { FileText, Plus, Search, Calendar, ChevronRight, MessageSquare } from 'lucide-react'
 import api from '@/lib/api'
 import useSWR from 'swr'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,6 +18,7 @@ interface Report {
 const fetcher = (url: string) => api.get(url).then(res => res.data)
 
 export default function ReportsListPage() {
+ const router = useRouter()
  const { data: reports, error, isLoading } = useSWR<Report[]>(
   '/api/reports',
   fetcher,
@@ -111,8 +113,22 @@ export default function ReportsListPage() {
          </div>
         </div>
 
-        <div className="text-slate-300 group-hover:text-sky-500 transition-colors">
-         <ChevronRight size={20} />
+        <div className="flex items-center gap-3">
+         <button
+          onClick={(e) => {
+           e.preventDefault()
+           e.stopPropagation()
+           const dateStr = new Date(report.uploaded_at).toLocaleDateString()
+           const query = encodeURIComponent(`Can you explain my recent report "${report.original_filename}" uploaded on ${dateStr}?`)
+           router.push(`/chat?prefill=${query}`)
+          }}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 border border-sky-200 rounded-lg text-xs font-semibold transition-colors dark:bg-sky-900/30 dark:border-sky-800 dark:text-sky-400 dark:hover:bg-sky-900/50"
+         >
+          <MessageSquare size={14} /> Ask AI
+         </button>
+         <div className="text-slate-300 group-hover:text-sky-500 transition-colors">
+          <ChevronRight size={20} />
+         </div>
         </div>
        </Link>
       ))}

@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { FileText, AlertCircle, CheckCircle, MessageSquare } from 'lucide-react'
 import api from '@/lib/api'
 import { AbnormalValueBadge } from '@/components/reports/AbnormalValueBadge'
 import { DoctorQuestions } from '@/components/reports/DoctorQuestions'
@@ -64,6 +64,7 @@ function extractSummary(raw: string | null): string {
 
 export default function ReportDetailPage() {
  const { id } = useParams()
+ const router = useRouter()
  const [report, setReport] = useState<Report | null>(null)
  const [error, setError] = useState<string | null>(null)
  const [reanalyzing, setReanalyzing] = useState(false)
@@ -196,13 +197,25 @@ export default function ReportDetailPage() {
      <CheckCircle size={16} />
      Analysis Complete
     </div>
-    <button
-     onClick={handleReanalyze}
-     disabled={reanalyzing}
-     className="reanalyze-btn"
-    >
-     {reanalyzing ? '⏳ Re-analyzing...' : '🔄 Re-analyze Report'}
-    </button>
+    <div className="flex flex-col sm:flex-row gap-2">
+     <button
+      onClick={() => {
+       const dateStr = new Date(report.uploaded_at).toLocaleDateString()
+       const query = encodeURIComponent(`Can you explain my recent report "${report.original_filename}" uploaded on ${dateStr}?`)
+       router.push(`/chat?prefill=${query}`)
+      }}
+      className="flex items-center justify-center gap-2 px-4 py-2 bg-sky-50 text-sky-600 hover:bg-sky-100 border border-sky-200 rounded-lg font-semibold transition-colors dark:bg-sky-900/30 dark:border-sky-800 dark:text-sky-400 dark:hover:bg-sky-900/50"
+     >
+      <MessageSquare size={16} /> Ask AI
+     </button>
+     <button
+      onClick={handleReanalyze}
+      disabled={reanalyzing}
+      className="reanalyze-btn"
+     >
+      {reanalyzing ? '⏳ Re-analyzing...' : '🔄 Re-analyze Report'}
+     </button>
+    </div>
    </div>
 
    {/* AI Summary */}
