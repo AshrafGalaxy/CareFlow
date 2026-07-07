@@ -12,7 +12,7 @@ def get_patient_store_path(user_id: str) -> str:
     return path
 
 
-async def embed_report(user_id: str, report_text: str, report_id: str, summary: str = "") -> None:
+async def embed_report(user_id: str, report_text: str, report_id: str, summary: str = "", filename: str = "", uploaded_at: str = "") -> None:
     """
     Embed a processed report into the patient's personal FAISS index.
     Call this AFTER OCR + AI analysis is complete.
@@ -21,7 +21,7 @@ async def embed_report(user_id: str, report_text: str, report_id: str, summary: 
     store_path = get_patient_store_path(user_id)
 
     # Create rich document with both raw text and summary
-    content = f"REPORT ID: {report_id}\nSUMMARY: {summary}\nFULL TEXT: {report_text[:3000]}"
+    content = f"REPORT DATE: {uploaded_at}\nFILENAME: {filename}\nREPORT ID: {report_id}\nSUMMARY: {summary}\nFULL TEXT: {report_text[:3000]}"
     doc = Document(
         page_content=content,
         metadata={"source": "report", "report_id": report_id, "user_id": user_id}

@@ -71,7 +71,14 @@ async def process_report_ai(
         db.commit()
 
         # Step 3: Embed into patient's FAISS vector store
-        await embed_report(user_id, ocr_text, report_id, report.ai_summary)
+        await embed_report(
+            user_id=user_id,
+            report_text=ocr_text,
+            report_id=report_id,
+            summary=report.ai_summary,
+            filename=report.original_filename,
+            uploaded_at=str(report.uploaded_at.date()) if report.uploaded_at else ""
+        )
 
         # Step 4: Add to health timeline
         await add_timeline_event(
