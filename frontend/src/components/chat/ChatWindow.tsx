@@ -7,7 +7,7 @@ import { ChatInput } from './ChatInput'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-export function ChatWindow() {
+export function ChatWindow({ initialValue }: { initialValue?: string }) {
  const { messages, isStreaming, activeSession, addMessage, setStreaming, updateLastMessage, updateSessionTitle } = useChatStore()
  const { token } = useAuthStore()
  const bottomRef = useRef<HTMLDivElement>(null)
@@ -144,7 +144,7 @@ export function ChatWindow() {
    </div>
 
    <div className="border-t border-border bg-card p-4 md:p-6">
-    <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} />
+    <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} initialValue={initialValue} />
    </div>
   </div>
  )

@@ -6,11 +6,18 @@ import { Send } from 'lucide-react'
 interface ChatInputProps {
  onSend: (message: string) => void
  disabled?: boolean
+ initialValue?: string
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
- const [value, setValue] = useState('')
+export function ChatInput({ onSend, disabled, initialValue = '' }: ChatInputProps) {
+ const [value, setValue] = useState(initialValue)
  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+ useEffect(() => {
+  if (initialValue) {
+   setValue(initialValue)
+  }
+ }, [initialValue])
 
  // Auto-resize textarea up to 4 lines
  useEffect(() => {

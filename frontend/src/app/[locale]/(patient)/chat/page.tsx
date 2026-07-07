@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Plus, MessageSquare, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { useChatStore } from '@/store/chatStore'
@@ -14,6 +15,8 @@ interface ChatSession {
 }
 
 export default function ChatPage() {
+ const searchParams = useSearchParams()
+ const prefill = searchParams.get('prefill')
  const { sessions, activeSession, messages, setSessions, setActiveSession, setMessages } = useChatStore()
  const [loading, setLoading] = useState(true)
 
@@ -142,7 +145,7 @@ export default function ChatPage() {
    {/* Main Chat Area */}
    <main className="flex-1 flex flex-col bg-card overflow-hidden relative">
     {activeSession ? (
-     <ChatWindow />
+     <ChatWindow initialValue={prefill || ''} />
     ) : (
      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background/50">
       <div className="w-20 h-20 bg-gradient-to-tr from-sky-500/20 to-indigo-500/10 rounded-3xl shadow-sm flex items-center justify-center text-sky-500 mb-6 border border-sky-500/20">
