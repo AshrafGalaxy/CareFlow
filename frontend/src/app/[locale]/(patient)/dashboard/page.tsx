@@ -12,12 +12,14 @@ import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
 import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "next-intl"
+import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 
 interface Report {
  id: string
  original_filename: string
  processing_status: ReportStatus
  uploaded_at: string
+ ai_highlights?: any[]
 }
 
 const fetcher = (url: string) => api.get(url).then(res => res.data)
@@ -100,6 +102,11 @@ export default function DashboardPage() {
      </div>
     ))}
    </div>
+
+   {/* Dynamic Biomarker Trends (Recharts) */}
+   {!isLoading && data && data.length > 0 && (
+    <BiomarkerTrends reports={data} />
+   )}
 
    {/* Recent Reports */}
    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
