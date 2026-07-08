@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+import asyncio
+import json
 from app.database import get_db
 from app.models.user import User
 from app.models.report import Report
@@ -81,6 +84,62 @@ def get_report(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this report")
 
     return report
+
+
+@router.delete("/{id}")
+def delete_report(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    report = db.query(Report).filter(Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    if report.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    
+    db.delete(report)
+    db.commit()
+    return {"message": "Report deleted successfully"}
+
+
+@router.get("/{id}/progress")
+async def report_progress(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """SSE endpoint for real-time report processing progress."""
+    report = db.query(Report).filter(Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    async def event_generator():
+        current_status = ""
+        current_progress = ""
+        
+        while True:
+            # Re-fetch report state
+            db.refresh(report)
+            
+            if report.processing_status != current_status or report.processing_progress != current_progress:
+                current_status = report.processing_status
+                current_progress = report.processing_progress
+                
+                data = {
+                    "status": current_status,
+                    "progress": current_progress
+                }
+                yield f"data: {json.dumps(data)}\n\n"
+                
+                if current_status in ["done", "failed"]:
+                    break
+                    
+            await asyncio.sleep(1)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.post("/{id}/reanalyze", response_model=ReportResponse)

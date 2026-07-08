@@ -21,8 +21,9 @@ class ReportResponse(ReportBase):
     ai_highlights: List[Any] = []
     abnormal_values: List[Any] = []
     questions_for_doctor: List[Any] = []
-    report_date: Optional[date] = None
+    report_date: date | None = None
     processing_status: str
+    processing_progress: str | None = None
     uploaded_at: datetime
 
     class Config:

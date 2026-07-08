@@ -54,11 +54,13 @@ async def process_report_ai(
         import uuid
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         report.processing_status = "processing"
+        report.processing_progress = "Extracting text using OCR..."
         db.commit()
 
         # Step 1: OCR
         ocr_text = await extract_text_from_file(file_bytes, file_type)
         report.ocr_text = ocr_text
+        report.processing_progress = "Analyzing report with Medical AI..."
         db.commit()
 
         # Step 2: AI Analysis
@@ -67,7 +69,7 @@ async def process_report_ai(
         report.ai_highlights = analysis.get("highlights", [])
         report.abnormal_values = analysis.get("abnormal_values", [])
         report.questions_for_doctor = analysis.get("questions_for_doctor", [])
-        report.processing_status = "done"
+        report.processing_progress = "Generating health timeline..."
         db.commit()
 
         # Step 3: Embed into patient's FAISS vector store
@@ -81,6 +83,10 @@ async def process_report_ai(
         )
 
         # Step 4: Add to health timeline
+        report.processing_progress = "Done"
+        report.processing_status = "done"
+        db.commit()
+
         await add_timeline_event(
             db=db,
             user_id=user_id,
@@ -97,6 +103,7 @@ async def process_report_ai(
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
             report.processing_status = "failed"
+            report.processing_progress = f"Failed: {str(e)}"
             db.commit()
         print(f"Report processing failed for {report_id}: {e}")
 

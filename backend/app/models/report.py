@@ -22,4 +22,5 @@ class Report(Base):
     questions_for_doctor = Column(JSONVariant, default=list)
     report_date = Column(Date)
     processing_status = Column(String(20), default="pending")
+    processing_progress = Column(String(100), default="Initializing...")
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

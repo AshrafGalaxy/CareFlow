@@ -3,9 +3,17 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.routers import auth, reports, chat, medications, follow_ups, insurance, timeline, dashboard, notifications
+from app.scheduler import start_scheduler
+from app.middleware.audit_middleware import AuditMiddleware
 
-app = FastAPI(title="CareFlow AI API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    yield
+
+app = FastAPI(title="CareFlow AI API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Add audit logging for sensitive routes
+app.add_middleware(AuditMiddleware)
 
 # Include all routers with prefixes
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
