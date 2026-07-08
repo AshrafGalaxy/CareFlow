@@ -16,8 +16,12 @@ async def get_streaming_response(
     """
     Yields response tokens one by one for Server-Sent Events streaming.
     """
-    # Load patient's retriever (their reports + medication context)
-    retriever = await load_patient_retriever(user_id)
+    # Try to load FAISS retriever, but catch API key errors gracefully
+    retriever = None
+    try:
+        retriever = await load_patient_retriever(user_id)
+    except Exception as e:
+        print(f"FAISS retriever failed to load (likely missing API keys): {e}")
 
     # Use Groq if available, otherwise fallback to Gemini
     groq_api_key = os.getenv("GROQ_API_KEY")
@@ -43,22 +47,39 @@ async def get_streaming_response(
         history_messages.append((role, msg["content"]))
 
     if retriever:
-        # Retrieve relevant patient context
-        docs = await retriever.ainvoke(message)
-        context = "\n\n".join([doc.page_content for doc in docs])
+        try:
+            # Retrieve relevant patient context
+            docs = await retriever.ainvoke(message)
+            context = "\n\n".join([doc.page_content for doc in docs])
+        except Exception as e:
+            print(f"FAISS search failed: {e}")
+            retriever = None  # Fallback to DB
+
+    if not retriever:
+        # PURE DATABASE FALLBACK: If FAISS is missing (e.g., no embeddings API key)
+        # We manually fetch the last 3 reports from Postgres to provide context!
+        from app.database import SessionLocal
+        from app.models.report import Report
+        db = SessionLocal()
+        try:
+            recent_reports = db.query(Report).filter(Report.user_id == user_id).order_by(Report.uploaded_at.desc()).limit(3).all()
+            if recent_reports:
+                context = "Patient's recent medical reports:\n\n"
+                for r in recent_reports:
+                    context += f"--- REPORT ({r.uploaded_at}) ---\nSummary: {r.ai_summary}\nHighlights: {r.ai_highlights}\nAbnormal Values: {r.abnormal_values}\nRaw Text: {r.ocr_text[:1000]}...\n\n"
+            else:
+                context = "No patient records uploaded yet."
+        except Exception as e:
+            print(f"DB Fallback failed: {e}")
+            context = "No patient records uploaded yet."
+        finally:
+            db.close()
         
-        messages = [
-            ("system", CHAT_SYSTEM_PROMPT.format(context=context)),
-            *history_messages,
-            ("human", message)
-        ]
-    else:
-        # No patient data yet — direct chat with system prompt
-        messages = [
-            ("system", CHAT_SYSTEM_PROMPT.format(context="No patient records uploaded yet.")),
-            *history_messages,
-            ("human", message)
-        ]
+    messages = [
+        ("system", CHAT_SYSTEM_PROMPT.format(context=context)),
+        *history_messages,
+        ("human", message)
+    ]
         
     async for chunk in llm.astream(messages):
         if chunk.content:
