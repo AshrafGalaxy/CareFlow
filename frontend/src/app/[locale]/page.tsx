@@ -27,6 +27,7 @@ import { LandingBackground } from "@/components/layout/LandingBackground"
 import { InteractiveBot } from "@/components/layout/InteractiveBot"
 import { TiltFeatureCard } from "@/components/ui/TiltFeatureCard"
 import { FAQAccordion } from "@/components/ui/FAQAccordion"
+import { EcgLineAnimation } from "@/components/ui/EcgLineAnimation"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 
@@ -199,24 +200,9 @@ export default function LandingPage() {
       <div className="hidden md:block absolute top-[64px] left-[15%] right-[15%] border-t-2 border-dashed border-border opacity-50 z-0" />
       
       {/* Traveling glowing EKG spike */}
-      <div className="hidden md:block absolute top-[28px] left-[15%] right-[15%] h-[72px] pointer-events-none overflow-hidden z-10">
-       <svg 
-        className="h-full absolute left-0 text-sky-500 w-[120px] drop-shadow-[0_0_10px_rgba(14,165,233,0.8)] animate-[travelEKG_4s_linear_infinite]"
-        viewBox="0 0 100 50" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-       >
-        {/* A realistic EKG pulse shape */}
-        <path d="M0,25 L30,25 L35,15 L45,45 L55,5 L65,30 L70,25 L100,25" />
-       </svg>
+      <div className="hidden md:block absolute top-[28px] left-[15%] right-[15%] h-[72px] z-10">
+       <EcgLineAnimation color="#0ea5e9" speed={3} lineWidth={3} />
       </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-       @keyframes travelEKG {
-        0% { transform: translateX(0); opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { transform: translateX(calc(80vw - 120px)); opacity: 0; }
-       }
-      `}} />
 
       <div className="grid md:grid-cols-3 gap-16 md:gap-12 relative z-20">
        {steps.map((item, i) => (
@@ -357,28 +343,28 @@ export default function LandingPage() {
    </section>
 
    {/* ── Footer CTA ── */}
-   <section className="bg-sky-500 dark:bg-sky-900 relative overflow-hidden py-24">
+   <section className="bg-sky-500 dark:bg-slate-900 relative overflow-hidden py-24 border-t dark:border-slate-800">
     {/* Decorative background elements */}
-    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-400 dark:bg-sky-700 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 dark:bg-sky-950 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-400 dark:bg-sky-500/10 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 dark:bg-indigo-500/10 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
     
     <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
      <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
       Take Control of Your Health Today
      </h2>
-     <p className="text-sky-100 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
+     <p className="text-sky-100 dark:text-slate-300 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
       Join thousands of patients across India who are making informed healthcare decisions with our AI-powered platform.
      </p>
      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
       <Link
        href="/register"
-       className="w-full sm:w-auto bg-card text-sky-600 font-bold text-lg px-10 py-4 rounded-xl shadow-xl shadow-sky-900/20 hover:bg-slate-50 hover:scale-105 transition-all duration-300"
+       className="w-full sm:w-auto bg-card text-sky-600 dark:text-sky-400 font-bold text-lg px-10 py-4 rounded-xl shadow-xl shadow-sky-900/20 dark:shadow-sky-500/10 hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 transition-all duration-300 border dark:border-slate-700"
       >
        Create Free Account
       </Link>
       <Link
        href="/login"
-       className="w-full sm:w-auto bg-transparent border-2 border-white/30 text-white font-semibold text-lg px-10 py-4 rounded-xl hover:border-white hover:bg-card/10 transition-all duration-300"
+       className="w-full sm:w-auto bg-transparent border-2 border-white/30 dark:border-slate-700 text-white dark:text-slate-300 font-semibold text-lg px-10 py-4 rounded-xl hover:border-white dark:hover:border-slate-500 hover:bg-card/10 dark:hover:bg-slate-800 transition-all duration-300"
       >
        Log In
       </Link>
