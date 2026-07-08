@@ -103,7 +103,9 @@ export default function LandingPage() {
 
    {/* ── Hero ── */}
    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32">
-    <div className="max-w-6xl mx-auto px-6 text-center">
+    {/* Premium Ambient Dark Mode Glow */}
+    <div className="hidden dark:block absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-sky-900/20 rounded-full blur-[120px] pointer-events-none -z-10" />
+    <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
      <div className="inline-flex items-center gap-2 bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 animate-fade-in-up">
       <MapPin className="h-3.5 w-3.5" />
       {t("badgeText")}
@@ -112,7 +114,7 @@ export default function LandingPage() {
      <h1 className="text-5xl md:text-7xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-6 animate-fade-in-up-delay-1">
       {t("heroTitle1")}
       <br />
-      <span className="text-sky-500 relative inline-block">
+      <span className="relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-indigo-500 dark:from-sky-400 dark:to-indigo-400 pb-2">
        {t("heroTitle2")}
        <svg className="absolute -bottom-2 left-0 w-full h-3 text-sky-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
         <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -221,9 +223,9 @@ export default function LandingPage() {
         <div key={item.title} className="text-center relative group">
          <div className="relative inline-block mb-8 z-10 px-4">
           {/* Organic Glow instead of white square */}
-          <div className="absolute inset-0 bg-sky-200/50 rounded-full blur-2xl group-hover:bg-sky-300/60 transition-colors duration-500" />
+          <div className="absolute inset-0 bg-sky-200/50 dark:bg-sky-900/40 rounded-full blur-2xl group-hover:bg-sky-300/60 dark:group-hover:bg-sky-800/50 transition-colors duration-500" />
           
-          <div className="relative h-32 w-32 rounded-full bg-card/60 backdrop-blur-md border border-sky-100 flex items-center justify-center mx-auto shadow-sm group-hover:shadow-sky-200 group-hover:-translate-y-2 transition-all duration-500">
+          <div className="relative h-32 w-32 rounded-full bg-card/60 backdrop-blur-md border border-sky-100 dark:border-sky-800/50 flex items-center justify-center mx-auto shadow-sm dark:shadow-[inset_0_0_20px_rgba(14,165,233,0.1)] group-hover:shadow-sky-200 dark:group-hover:shadow-sky-900/40 group-hover:-translate-y-2 transition-all duration-500">
            <item.icon className="h-12 w-12 text-sky-500" />
           </div>
           <div className="absolute top-0 right-2 h-10 w-10 rounded-full bg-slate-900 dark:bg-foreground text-white dark:text-background font-bold flex items-center justify-center shadow-lg group-hover:bg-sky-500 transition-colors duration-300 z-20">
@@ -319,9 +321,9 @@ export default function LandingPage() {
     <div className="flex w-[200vw] animate-[marquee_40s_linear_infinite] hover:[animation-play-state:paused] gap-8 px-4">
      {/* Double the array for seamless infinite scroll */}
      {[...testimonials, ...testimonials].map((test, i) => (
-      <div key={i} className="w-[400px] shrink-0 bg-card/80 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 p-8 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+      <div key={i} className="w-[400px] shrink-0 bg-card/80 dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 p-8 rounded-3xl shadow-sm hover:shadow-xl dark:hover:shadow-sky-900/20 hover:-translate-y-2 transition-all duration-300">
        <div className="text-4xl text-sky-200 dark:text-sky-800/50 font-serif mb-4">"</div>
-       <p className="text-slate-700 text-lg leading-relaxed mb-8 italic">"{test.quote}"</p>
+       <p className="text-slate-700 dark:text-slate-200 text-lg leading-relaxed mb-8 italic">"{test.quote}"</p>
        <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-100 to-sky-200 dark:from-sky-900/40 dark:to-sky-800/40 flex items-center justify-center font-bold text-sky-700 dark:text-sky-300">
          {test.author[0]}
