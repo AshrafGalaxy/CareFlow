@@ -13,7 +13,6 @@ async def upload_and_process(
     filename: str,
     file_type: str,
     user_id: str,
-    db: Session,
     background_tasks: BackgroundTasks
 ) -> Report:
     # Create DB record with pending status
@@ -34,8 +33,7 @@ async def upload_and_process(
         file_bytes=file_bytes,
         file_type=file_type,
         report_id=str(report.id),
-        user_id=str(user_id),
-        db=db
+        user_id=str(user_id)
     )
 
     return report
@@ -45,10 +43,11 @@ async def process_report_ai(
     file_bytes: bytes,
     file_type: str,
     report_id: str,
-    user_id: str,
-    db: Session
+    user_id: str
 ):
     """Background task: OCR → AI Analysis → FAISS embedding → Timeline event"""
+    from app.database import SessionLocal
+    db = SessionLocal()
     try:
         # Update status to processing
         import uuid
@@ -106,14 +105,18 @@ async def process_report_ai(
             report.processing_progress = f"Failed: {str(e)}"
             db.commit()
         print(f"Report processing failed for {report_id}: {e}")
+    finally:
+        db.close()
 
 
-async def reanalyze_report_ai(report_id: str, db: Session):
+async def reanalyze_report_ai(report_id: str):
     """
     Fast re-analysis: ONLY re-runs the AI analysis step using saved OCR text.
     Skips OCR (already done), FAISS embedding (text unchanged), and timeline (already has event).
     Typical time: ~3 seconds vs ~30 seconds for full pipeline.
     """
+    from app.database import SessionLocal
+    db = SessionLocal()
     try:
         import uuid
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
@@ -136,4 +139,6 @@ async def reanalyze_report_ai(report_id: str, db: Session):
             report.processing_status = "failed"
             db.commit()
         print(f"Re-analysis failed for {report_id}: {e}")
+    finally:
+        db.close()
 

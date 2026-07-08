@@ -53,8 +53,7 @@ async def upload_report(
         file_bytes=file_bytes,
         file_type=file.content_type,
         report_id=str(new_report.id),
-        user_id=str(current_user.id),
-        db=db
+        user_id=str(current_user.id)
     )
 
     return new_report
@@ -176,8 +175,7 @@ async def reanalyze_report(
     # Fast re-analysis: only the AI step (skips OCR, embedding, timeline)
     background_tasks.add_task(
         reanalyze_report_ai,
-        report_id=str(report.id),
-        db=db
+        report_id=str(report.id)
     )
 
     return report
