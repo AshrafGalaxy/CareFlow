@@ -9,9 +9,11 @@ import { toast } from "sonner"
 import { User, Lock, AlertTriangle } from "lucide-react"
 import api from "@/lib/api"
 import { useRouter } from "@/i18n/routing"
+import { useTranslations } from "next-intl"
 
 export default function ProfilePage() {
  const user = useAuthStore((state) => state.user)
+ const t = useTranslations("Profile")
 
  // Dummy state for forms
  const [name, setName] = useState(user?.name || "")
@@ -55,8 +57,8 @@ export default function ProfilePage() {
   <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
    
    <div>
-    <h1 className="text-3xl font-heading font-bold text-foreground">Medical Profile</h1>
-    <p className="text-muted-foreground mt-1">Manage your health information and demographics.</p>
+    <h1 className="text-3xl font-heading font-bold text-foreground">{t("title")}</h1>
+    <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
    </div>
 
    <div className="grid gap-6">

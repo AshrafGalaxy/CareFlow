@@ -58,5 +58,39 @@
     "recentReports": "Recent Reports",
     "noReports": "No reports uploaded yet.",
     "uploadYourFirstReport": "Upload your first medical report to get started."
+  },
+  "Settings": {
+    "title": "Account Settings",
+    "subtitle": "Manage your security, preferences, and notifications",
+    "security": "Security & Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "deleteAccount": "Delete Account",
+    "deleteWarning": "Once you delete your account, there is no going back. Please be certain.",
+    "notifications": "Notifications & Alarms",
+    "pushAlarms": "Medication Push Alarms",
+    "pushDesc": "Receive desktop and mobile notifications when it's time to take your medication.",
+    "enableAlarms": "Enable Push Alarms",
+    "testAlarm": "Test Alarm"
+  },
+  "Profile": {
+    "title": "Medical Profile",
+    "subtitle": "Your central health passport. Keep this updated for accurate AI analysis.",
+    "abhaId": "ABHA ID (Health ID)",
+    "demographics": "Demographics",
+    "age": "Age",
+    "gender": "Gender",
+    "bloodGroup": "Blood Group",
+    "weight": "Weight (kg)",
+    "height": "Height (cm)",
+    "medicalHistory": "Medical History",
+    "conditions": "Pre-existing Conditions",
+    "allergies": "Known Allergies",
+    "emergency": "Emergency Contact",
+    "contactName": "Contact Name",
+    "contactPhone": "Contact Phone",
+    "saveChanges": "Save Changes"
   }
 }
