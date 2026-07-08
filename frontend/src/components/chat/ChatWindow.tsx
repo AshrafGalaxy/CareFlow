@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useChatStore } from '@/store/chatStore'
 import { useAuthStore } from '@/store/authStore'
 import { ChatInput } from './ChatInput'
@@ -115,8 +117,14 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
         CF
        </div>
       )}
-      <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4' : 'bg-muted border border-border text-foreground rounded-bl-sm'}`}>
-       <p className="whitespace-pre-wrap">{msg.content}</p>
+      <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4' : 'bg-muted border border-border text-foreground rounded-bl-sm prose prose-sm prose-sky max-w-none dark:prose-invert'}`}>
+       {msg.role === 'user' ? (
+        <p className="whitespace-pre-wrap">{msg.content}</p>
+       ) : (
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+         {msg.content}
+        </ReactMarkdown>
+       )}
       </div>
      </div>
     ))}
