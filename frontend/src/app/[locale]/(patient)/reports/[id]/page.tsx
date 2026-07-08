@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { FileText, AlertCircle, CheckCircle, MessageSquare } from 'lucide-react'
 import api from '@/lib/api'
 import { AbnormalValueBadge } from '@/components/reports/AbnormalValueBadge'
 import { DoctorQuestions } from '@/components/reports/DoctorQuestions'
+import { useAuthStore } from '@/store/authStore'
 
 interface Highlight {
  label: string
@@ -26,6 +27,7 @@ interface Report {
  id: string
  original_filename: string
  processing_status: string
+ processing_progress?: string
  ai_summary: string | null
  ai_highlights: Highlight[]
  abnormal_values: AbnormalValue[]
@@ -65,9 +67,11 @@ function extractSummary(raw: string | null): string {
 export default function ReportDetailPage() {
  const { id } = useParams()
  const router = useRouter()
+ const { token } = useAuthStore()
  const [report, setReport] = useState<Report | null>(null)
  const [error, setError] = useState<string | null>(null)
  const [reanalyzing, setReanalyzing] = useState(false)
+ const abortControllerRef = useRef<AbortController | null>(null)
 
  const handleReanalyze = async () => {
   if (!id || reanalyzing) return
@@ -100,27 +104,80 @@ export default function ReportDetailPage() {
   fetchReport()
  }, [id])
 
- // Polling effect
- useEffect(() => {
-  if (!id) return
-  if (report && (report.processing_status === 'done' || report.processing_status === 'failed')) {
-   return
-  }
-
-  const interval = setInterval(async () => {
-   try {
-    const res = await api.get(`/api/reports/${id}`)
-    setReport(res.data)
-    if (res.data.processing_status === 'done' || res.data.processing_status === 'failed') {
-     setReanalyzing(false)
-    }
-   } catch {
-    console.error('Polling error')
+  // SSE Streaming for processing updates
+  useEffect(() => {
+   if (!id || !token) return
+   if (report && (report.processing_status === 'done' || report.processing_status === 'failed')) {
+    return
    }
-  }, 3000)
 
-  return () => clearInterval(interval)
- }, [id, report?.processing_status])
+   const controller = new AbortController()
+   abortControllerRef.current = controller
+
+   const listenToProgress = async () => {
+    try {
+     const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+     const response = await fetch(`${API_BASE}/api/reports/${id}/progress`, {
+      method: 'GET',
+      headers: {
+       Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal
+     })
+
+     if (!response.ok || !response.body) return
+
+     const reader = response.body.getReader()
+     const decoder = new TextDecoder()
+
+     while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      const text = decoder.decode(value, { stream: true })
+      const lines = text.split('\n')
+
+      for (const line of lines) {
+       if (!line.startsWith('data: ')) continue
+       const dataStr = line.slice(6).trim()
+       if (!dataStr) continue
+       
+       try {
+        const data = JSON.parse(dataStr)
+        setReport(prev => {
+         if (!prev) return prev
+         return {
+          ...prev,
+          processing_status: data.status || prev.processing_status,
+          processing_progress: data.progress || prev.processing_progress
+         }
+        })
+        
+        if (data.status === 'done' || data.status === 'failed') {
+         // Final fetch to get all generated data
+         api.get(`/api/reports/${id}`).then(res => setReport(res.data))
+         setReanalyzing(false)
+         controller.abort()
+         return
+        }
+       } catch (e) {
+        // ignore parse error for chunks
+       }
+      }
+     }
+    } catch (err: any) {
+     if (err.name !== 'AbortError') {
+      console.error('SSE Error:', err)
+     }
+    }
+   }
+
+   listenToProgress()
+
+   return () => {
+    controller.abort()
+   }
+  }, [id, token, report?.processing_status])
 
  if (error) {
   return (
@@ -139,8 +196,13 @@ export default function ReportDetailPage() {
    <div className="report-detail-page">
     <div className="report-processing">
      <div className="processing-spinner" />
-     <h2>CareFlow AI is reading your report...</h2>
-     <p>This usually takes 15–30 seconds. We&apos;re extracting the text and analyzing it for you.</p>
+      <h2>CareFlow AI is reading your report...</h2>
+      <p>This usually takes 15–30 seconds. We&apos;re extracting the text and analyzing it for you.</p>
+      {report?.processing_progress && (
+        <div className="mt-4 text-sky-600 font-medium">
+          {report.processing_progress}
+        </div>
+      )}
      <div className="processing-steps">
       <div className={`step ${report?.processing_status === 'processing' ? 'step--active' : 'step--waiting'}`}>
        📄 Reading document
