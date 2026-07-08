@@ -121,21 +121,28 @@ async def report_progress(
         current_progress = ""
         
         while True:
-            # Re-fetch report state
-            db.refresh(report)
-            
-            if report.processing_status != current_status or report.processing_progress != current_progress:
-                current_status = report.processing_status
-                current_progress = report.processing_progress
-                
-                data = {
-                    "status": current_status,
-                    "progress": current_progress
-                }
-                yield f"data: {json.dumps(data)}\n\n"
-                
-                if current_status in ["done", "failed"]:
+            from app.database import SessionLocal
+            local_db = SessionLocal()
+            try:
+                # Re-fetch report state using a fresh session
+                latest_report = local_db.query(Report).filter(Report.id == id).first()
+                if not latest_report:
                     break
+                
+                if latest_report.processing_status != current_status or latest_report.processing_progress != current_progress:
+                    current_status = latest_report.processing_status
+                    current_progress = latest_report.processing_progress
+                    
+                    data = {
+                        "status": current_status,
+                        "progress": current_progress
+                    }
+                    yield f"data: {json.dumps(data)}\n\n"
+                    
+                    if current_status in ["done", "failed"]:
+                        break
+            finally:
+                local_db.close()
                     
             await asyncio.sleep(1)
 

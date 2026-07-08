@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
  LineChart,
  Line,
@@ -80,7 +80,7 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
  }, [reports])
 
  // Set default selected biomarker
- useMemo(() => {
+ useEffect(() => {
   if (chartData.length > 0 && !selectedBiomarker) {
    setSelectedBiomarker(chartData[0][0])
   }

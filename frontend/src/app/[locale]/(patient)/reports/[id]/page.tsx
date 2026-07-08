@@ -168,6 +168,16 @@ export default function ReportDetailPage() {
     } catch (err: any) {
      if (err.name !== 'AbortError') {
       console.error('SSE Error:', err)
+      // Robustly handle network errors by failing the process gracefully
+      setReport(prev => {
+       if (!prev) return prev
+       return {
+        ...prev,
+        processing_status: 'failed',
+        processing_progress: 'Network error occurred during progress sync.'
+       }
+      })
+      setReanalyzing(false)
      }
     }
    }

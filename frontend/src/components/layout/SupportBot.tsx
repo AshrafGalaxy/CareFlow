@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Send, LifeBuoy, AlertCircle, CreditCard, MessageSquare } from "lucide-react"
@@ -61,7 +61,7 @@ export function SupportBot() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isTyping])
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = useCallback((text: string) => {
     if (!text.trim()) return
 
     const newUserMsg: Message = {
@@ -78,15 +78,15 @@ export function SupportBot() {
     // Mock response logic
     setTimeout(() => {
       setIsTyping(false)
-      const mockReply: Message = {
+      const newBotMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: "Thanks for reaching out! Our support team has received your message and will connect with you shortly. If this is an emergency, please use the SOS feature.",
         sender: "bot",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
-      setMessages((prev) => [...prev, mockReply])
-    }, 1500)
-  }
+      setMessages((prev) => [...prev, newBotMsg])
+    }, 2000)
+  }, [])
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">

@@ -37,31 +37,31 @@ export function MedicationCard({ medication, onLogSuccess }: MedicationCardProps
  const [loadingLogs, setLoadingLogs] = useState(true)
 
  useEffect(() => {
+  const fetchRecentLogs = async () => {
+   try {
+    const res = await api.get(`/api/medications/${medication.id}/logs?limit=1`)
+    const logs = res.data
+    if (logs.length > 0) {
+     // Check if the latest log was today
+     const logDate = new Date(logs[0].scheduled_time).toDateString()
+     const today = new Date().toDateString()
+     if (logDate === today) {
+      setTodayLog(logs[0])
+     }
+    }
+   } catch (e) {
+    console.error("Failed to fetch logs:", e)
+   } finally {
+    setLoadingLogs(false)
+   }
+  }
+
   if (medication.is_active) {
    fetchRecentLogs()
   } else {
    setLoadingLogs(false)
   }
  }, [medication.id, medication.is_active])
-
- const fetchRecentLogs = async () => {
-  try {
-   const res = await api.get(`/api/medications/${medication.id}/logs?limit=1`)
-   const logs = res.data
-   if (logs.length > 0) {
-    // Check if the latest log was today
-    const logDate = new Date(logs[0].scheduled_time).toDateString()
-    const today = new Date().toDateString()
-    if (logDate === today) {
-     setTodayLog(logs[0])
-    }
-   }
-  } catch (e) {
-   console.error("Failed to fetch logs:", e)
-  } finally {
-   setLoadingLogs(false)
-  }
- }
 
  const logDose = async (status: 'taken' | 'missed' | 'skipped') => {
   setLogging(true)

@@ -1,6 +1,7 @@
 "use client"
 
 import { useLocale } from "next-intl"
+import { useCallback } from "react"
 import { usePathname, useRouter } from "@/i18n/routing"
 import {
   DropdownMenu,
@@ -27,7 +28,7 @@ export function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
 
-  const handleLanguageChange = (newLocale: string) => {
+  const handleLanguageChange = useCallback((newLocale: string) => {
     // 1. Aggressively set/clear cookies for Google Translate across all domain variations
     const hostname = window.location.hostname;
     const domains = ['', ` domain=${hostname};`, ` domain=.${hostname};`];
@@ -53,7 +54,7 @@ export function LanguageSwitcher() {
 
     // 4. Force a hard reload so Google Translate and Next.js initialize cleanly at the new URL
     window.location.href = newUrl;
-  }
+  }, []);
 
   return (
     <DropdownMenu>
