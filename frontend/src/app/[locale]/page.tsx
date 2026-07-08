@@ -28,6 +28,7 @@ import { InteractiveBot } from "@/components/layout/InteractiveBot"
 import { TiltFeatureCard } from "@/components/ui/TiltFeatureCard"
 import { FAQAccordion } from "@/components/ui/FAQAccordion"
 import { EcgLineAnimation } from "@/components/ui/EcgLineAnimation"
+import { ShowstopperFeature } from "@/components/ui/ShowstopperFeature"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 
@@ -186,6 +187,9 @@ export default function LandingPage() {
      </div>
     </div>
    </section>
+
+   {/* ── Showstopper AI Feature ── */}
+   <ShowstopperFeature />
 
    {/* ── How It Works ── */}
    <section id="how-it-works" className="py-32 relative overflow-hidden">
