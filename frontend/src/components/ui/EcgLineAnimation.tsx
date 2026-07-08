@@ -194,13 +194,13 @@ export function EcgLineAnimation({
     >
       {/* Medical Background Grid - Transparent, adapts to theme */}
       <div 
-        className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none transition-opacity duration-700 group-hover:opacity-25"
+        className="absolute inset-0 border-y border-foreground/10 dark:border-foreground/20 opacity-10 dark:opacity-20 pointer-events-none transition-opacity duration-700 group-hover:opacity-25"
         style={{
           backgroundImage: `
             linear-gradient(to right, currentColor 1px, transparent 1px),
             linear-gradient(to bottom, currentColor 1px, transparent 1px)
           `,
-          backgroundSize: '20px 20px',
+          backgroundSize: '18px 18px', // 18px perfectly divides the 72px container height into 4 equal rows
           maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
         }}
