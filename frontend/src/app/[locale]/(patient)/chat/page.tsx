@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Plus, MessageSquare, Trash2 } from 'lucide-react'
+import { Plus, MessageSquare, Trash2, AlertTriangle } from 'lucide-react'
 import api from '@/lib/api'
 import { useChatStore } from '@/store/chatStore'
+import { useAuthStore } from '@/store/authStore'
+import { Link } from '@/i18n/routing'
+import { APP_ROUTES } from '@/lib/constants'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { toast } from 'sonner'
 
@@ -14,11 +17,14 @@ interface ChatSession {
  created_at: string
 }
 
-export default function ChatPage() {
- const searchParams = useSearchParams()
- const prefill = searchParams.get('prefill')
- const { sessions, activeSession, messages, setSessions, setActiveSession, setMessages } = useChatStore()
- const [loading, setLoading] = useState(true)
+ export default function ChatPage() {
+  const searchParams = useSearchParams()
+  const prefill = searchParams.get('prefill')
+  const { sessions, activeSession, messages, setSessions, setActiveSession, setMessages } = useChatStore()
+  const { user } = useAuthStore()
+  const [loading, setLoading] = useState(true)
+  
+  const isProfileIncomplete = user && (!user.blood_group || !user.state_residence || !user.abha_id)
 
  const loadSessions = async () => {
   try {
@@ -144,6 +150,18 @@ export default function ChatPage() {
 
    {/* Main Chat Area */}
    <main className="flex-1 flex flex-col bg-card overflow-hidden relative">
+    {isProfileIncomplete && (
+     <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-900 p-3 px-6 flex items-center justify-between shrink-0">
+      <div className="flex items-center gap-3 text-amber-800 dark:text-amber-200">
+       <AlertTriangle size={18} />
+       <p className="text-sm font-medium">Your health profile is incomplete. CareFlow AI responses may be less personalized.</p>
+      </div>
+      <Link href={APP_ROUTES.PROFILE} className="text-sm font-semibold text-amber-700 dark:text-amber-300 hover:underline">
+       Complete Profile &rarr;
+      </Link>
+     </div>
+    )}
+
     {activeSession ? (
      <ChatWindow initialValue={prefill || ''} />
     ) : (
