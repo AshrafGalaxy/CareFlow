@@ -16,6 +16,9 @@ type FormData = {
  password: string
  confirmPassword: string
  terms: boolean
+ nmcRegistrationNumber?: string
+ medicalCouncil?: string
+ qualificationDegree?: string
 }
 
 // ── Password Strength Meter ────────────────────────────────
@@ -89,6 +92,9 @@ export default function RegisterPage() {
     email: data.email,
     password: data.password,
     role,
+    nmc_registration_number: role === "doctor" ? data.nmcRegistrationNumber : undefined,
+    medical_council: role === "doctor" ? data.medicalCouncil : undefined,
+    qualification_degree: role === "doctor" ? data.qualificationDegree : undefined,
    })
    const loginRes = await api.post(API_ROUTES.AUTH.LOGIN, {
     email: data.email,
@@ -98,7 +104,12 @@ export default function RegisterPage() {
    toast("Account created! Welcome to CareFlow AI.", {
     icon: <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-inner shrink-0"><CheckCircle className="h-4 w-4" /></div>,
    })
-   router.push(APP_ROUTES.DASHBOARD)
+   
+   if (role === "doctor") {
+    router.push(APP_ROUTES.DOCTOR_DASHBOARD)
+   } else {
+    router.push(APP_ROUTES.ONBOARDING)
+   }
   } catch (err: unknown) {
    toast.error(
     (err as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Failed to create account. Please try again."
@@ -299,6 +310,87 @@ export default function RegisterPage() {
        </p>
       )}
      </div>
+
+     {role === "doctor" && (
+      <div className="space-y-4 pt-2 pb-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+       <h3 className="text-sm font-semibold text-foreground">Medical Credentials</h3>
+       
+       {/* NMC Registration Number */}
+       <div className="space-y-1.5">
+        <label htmlFor="nmcRegistrationNumber" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+         NMC/SMC Registration Number
+        </label>
+        <input
+         id="nmcRegistrationNumber"
+         type="text"
+         placeholder="e.g., 12345"
+         aria-invalid={!!errors.nmcRegistrationNumber}
+         className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
+          errors.nmcRegistrationNumber ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-slate-200 dark:border-slate-700 bg-card"
+         }`}
+         {...register("nmcRegistrationNumber", {
+          required: role === "doctor" ? "Registration number is required" : false,
+         })}
+        />
+        {errors.nmcRegistrationNumber && (
+         <p role="alert" className="flex items-center gap-1.5 text-xs text-red-500">
+          <AlertCircle className="h-3 w-3 shrink-0" />
+          {errors.nmcRegistrationNumber.message}
+         </p>
+        )}
+       </div>
+
+       {/* Medical Council */}
+       <div className="space-y-1.5">
+        <label htmlFor="medicalCouncil" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+         Medical Council Jurisdiction
+        </label>
+        <input
+         id="medicalCouncil"
+         type="text"
+         placeholder="e.g., Delhi Medical Council"
+         aria-invalid={!!errors.medicalCouncil}
+         className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
+          errors.medicalCouncil ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-slate-200 dark:border-slate-700 bg-card"
+         }`}
+         {...register("medicalCouncil", {
+          required: role === "doctor" ? "Medical council is required" : false,
+         })}
+        />
+        {errors.medicalCouncil && (
+         <p role="alert" className="flex items-center gap-1.5 text-xs text-red-500">
+          <AlertCircle className="h-3 w-3 shrink-0" />
+          {errors.medicalCouncil.message}
+         </p>
+        )}
+       </div>
+
+       {/* Qualification Degree */}
+       <div className="space-y-1.5">
+        <label htmlFor="qualificationDegree" className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+         Primary Medical Degree
+        </label>
+        <input
+         id="qualificationDegree"
+         type="text"
+         placeholder="e.g., MBBS, MD"
+         aria-invalid={!!errors.qualificationDegree}
+         className={`w-full h-12 px-4 rounded-lg border text-foreground text-sm placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
+          errors.qualificationDegree ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-slate-200 dark:border-slate-700 bg-card"
+         }`}
+         {...register("qualificationDegree", {
+          required: role === "doctor" ? "Qualification degree is required" : false,
+         })}
+        />
+        {errors.qualificationDegree && (
+         <p role="alert" className="flex items-center gap-1.5 text-xs text-red-500">
+          <AlertCircle className="h-3 w-3 shrink-0" />
+          {errors.qualificationDegree.message}
+         </p>
+        )}
+       </div>
+      </div>
+     )}
 
      {/* Terms Checkbox */}
      <div className="pt-1">

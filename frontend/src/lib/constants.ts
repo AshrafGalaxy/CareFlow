@@ -33,6 +33,7 @@ export const API_ROUTES = {
   REGISTER: "/api/auth/register",
   REFRESH: "/api/auth/refresh",
   ME: "/api/auth/me",
+  PROFILE: "/api/auth/profile",
  },
  REPORTS: {
   UPLOAD: "/api/reports/upload",
@@ -54,4 +55,7 @@ export const APP_ROUTES = {
  MEDICATIONS: "/medications",
  INSURANCE: "/insurance",
  TIMELINE: "/timeline",
+ ONBOARDING: "/onboarding",
+ PROFILE: "/profile",
+ DOCTOR_DASHBOARD: "/doctor/dashboard",
 } as const
