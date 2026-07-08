@@ -136,6 +136,21 @@ async def reanalyze_report_ai(report_id: str):
         report.ai_highlights = analysis.get("highlights", [])
         report.abnormal_values = analysis.get("abnormal_values", [])
         report.questions_for_doctor = analysis.get("questions_for_doctor", [])
+        
+        # Step 3: Update FAISS embedding
+        try:
+            from app.ai.vector_store import embed_report
+            await embed_report(
+                user_id=str(report.user_id),
+                report_text=report.ocr_text,
+                report_id=str(report.id),
+                summary=report.ai_summary,
+                filename=report.original_filename,
+                uploaded_at=str(report.uploaded_at.date()) if report.uploaded_at else ""
+            )
+        except Exception as embed_err:
+            print(f"Warning: Failed to embed report {report_id} into FAISS during re-analysis: {embed_err}")
+
         report.processing_status = "done"
         db.commit()
 
