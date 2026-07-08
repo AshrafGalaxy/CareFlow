@@ -23,9 +23,8 @@ export function LandingNavbar() {
  // Interpolate border radius: at top 0px (or small), scrolled 9999px
  const navRadius = useTransform(scrollY, [0, 150], ["8px", "9999px"])
 
- // Interpolate background opacity and colors
- const navBg = useTransform(scrollY, [0, 150], ["rgba(255, 255, 255, 0)", "var(--color-card)"])
- const navBorder = useTransform(scrollY, [0, 150], ["rgba(226, 232, 240, 0)", "var(--color-border)"])
+ // Interpolate background opacity instead of colors
+ const bgOpacity = useTransform(scrollY, [0, 150], [0, 1])
  const navShadow = useTransform(scrollY, [0, 150], ["0px 0px 0px rgba(0,0,0,0)", "0px 8px 30px rgba(0,0,0,0.06)"])
  
  // Right float controls: as we scroll, they can move slightly or just fade/position
@@ -54,12 +53,19 @@ export function LandingNavbar() {
      paddingTop: navPy,
      paddingBottom: navPy,
      borderRadius: navRadius,
-     backgroundColor: navBg,
-     borderColor: navBorder,
      boxShadow: navShadow
     }}
-    className="pointer-events-auto flex flex-wrap items-center justify-between border w-full backdrop-blur-xl"
+    className="pointer-events-auto flex flex-wrap items-center justify-between w-full relative z-10"
    >
+    {/* Animated background to avoid interpolating CSS variables */}
+    <motion.div
+     style={{
+      opacity: bgOpacity,
+      borderRadius: navRadius,
+     }}
+     className="absolute inset-0 bg-card border border-border backdrop-blur-xl -z-10"
+    />
+
     {/* Logo */}
     <div className="flex items-center gap-2.5">
      <motion.div style={{ width: logoSize, height: logoSize }} className="relative shrink-0">
@@ -71,8 +77,8 @@ export function LandingNavbar() {
        priority
       />
      </motion.div>
-     <span className="font-brand text-xl font-bold text-foreground tracking-tight whitespace-nowrap">
-      CareFlow <span className="text-sky-500 dark:text-sky-400">AI</span>
+     <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-sky-600 dark:from-white dark:to-sky-400">
+      CareFlow AI
      </span>
     </div>
 
