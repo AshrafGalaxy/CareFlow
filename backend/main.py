@@ -3,7 +3,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, reports, chat, medications, follow_ups, insurance, timeline, dashboard
+from app.routers import auth, reports, chat, medications, follow_ups, insurance, timeline, dashboard, notifications
 
 app = FastAPI(title="CareFlow AI API", version="1.0.0")
 
@@ -27,6 +27,7 @@ app.include_router(follow_ups.router, prefix="/api/follow-ups", tags=["follow-up
 app.include_router(insurance.router, prefix="/api/insurance", tags=["insurance"])
 app.include_router(timeline.router, prefix="/api/timeline", tags=["timeline"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
 
 @app.get("/api/health")
 def health():

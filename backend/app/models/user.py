@@ -1,8 +1,11 @@
 from sqlalchemy import Column, String, Boolean, Date, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB as PG_JSONB
 from sqlalchemy.sql import func
+from sqlalchemy import JSON
 from app.database import Base
 import uuid
+
+JSONVariant = JSON().with_variant(PG_JSONB, "postgresql")
 
 class User(Base):
     __tablename__ = "users"
@@ -20,5 +23,6 @@ class User(Base):
     emergency_contact_name = Column(String(255))
     emergency_contact_phone = Column(String(20))
     is_active = Column(Boolean, default=True)
+    push_subscription = Column(JSONVariant, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
