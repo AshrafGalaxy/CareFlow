@@ -115,7 +115,7 @@ export default function LandingPage() {
      <h1 className="text-5xl md:text-7xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-6 animate-fade-in-up-delay-1">
       {t("heroTitle1")}
       <br />
-      <span className="relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-sky-600 dark:from-sky-400 dark:to-sky-300 pb-2">
+      <span className="relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 dark:from-cyan-300 dark:to-blue-400 pb-2">
        {t("heroTitle2")}
        <svg className="absolute -bottom-2 left-0 w-full h-3 text-sky-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
         <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />

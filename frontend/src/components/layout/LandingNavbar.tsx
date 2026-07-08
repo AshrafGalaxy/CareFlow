@@ -77,8 +77,8 @@ export function LandingNavbar() {
        priority
       />
      </motion.div>
-     <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-sky-600 dark:from-white dark:to-sky-400">
-      CareFlow AI
+     <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap text-foreground">
+      CareFlow <span className="text-sky-500 dark:text-sky-400">AI</span>
      </span>
     </div>
 
