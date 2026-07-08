@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings,
+ LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
@@ -23,7 +23,8 @@ const getNavItems = (t: (key: string) => string) => [
 ]
 
 const bottomNavItems = [
- { name: "Settings", href: "/profile", icon: Settings },
+ { name: "Settings", href: "/settings", icon: Settings },
+ { name: "Profile", href: "/profile", icon: User },
 ]
 
 import { toast } from "sonner"
