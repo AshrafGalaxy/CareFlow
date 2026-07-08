@@ -81,9 +81,8 @@ async def analyze_report(ocr_text: str) -> dict:
             max_retries=1
         )
 
-    response = await llm.ainvoke(messages)
-
     try:
+        response = await llm.ainvoke(messages)
         result = _extract_json(response.content)
         # Validate required keys exist
         return {
@@ -92,12 +91,23 @@ async def analyze_report(ocr_text: str) -> dict:
             "abnormal_values": result.get("abnormal_values", []),
             "questions_for_doctor": result.get("questions_for_doctor", [])
         }
-    except (ValueError, Exception):
+    except (ValueError, Exception) as llm_err:
+        print(f"LLM or JSON extraction error: {llm_err}")
         # Last resort: show summary only
-        clean = response.content.replace("```json", "").replace("```", "").strip()
-        # Try one more time to get just the summary value from the text
-        summary_match = re.search(r'"summary"\s*:\s*"([^"]+)"', clean)
-        summary_text = summary_match.group(1) if summary_match else clean[:500]
+        # Try to pull content if response exists, otherwise fallback string
+        clean_content = ""
+        try:
+            if 'response' in locals() and hasattr(response, 'content'):
+                clean_content = response.content.replace("```json", "").replace("```", "").strip()
+        except Exception:
+            pass
+            
+        if clean_content:
+            summary_match = re.search(r'"summary"\s*:\s*"([^"]+)"', clean_content)
+            summary_text = summary_match.group(1) if summary_match else clean_content[:500]
+        else:
+            summary_text = "We encountered an error connecting to the Medical AI. Please try again."
+
         return {
             "summary": summary_text,
             "highlights": [],

@@ -73,14 +73,18 @@ async def process_report_ai(
         db.commit()
 
         # Step 3: Embed into patient's FAISS vector store
-        await embed_report(
-            user_id=user_id,
-            report_text=ocr_text,
-            report_id=report_id,
-            summary=report.ai_summary,
-            filename=report.original_filename,
-            uploaded_at=str(report.uploaded_at.date()) if report.uploaded_at else ""
-        )
+        try:
+            await embed_report(
+                user_id=user_id,
+                report_text=ocr_text,
+                report_id=report_id,
+                summary=report.ai_summary,
+                filename=report.original_filename,
+                uploaded_at=str(report.uploaded_at.date()) if report.uploaded_at else ""
+            )
+        except Exception as embed_err:
+            print(f"Warning: Failed to embed report {report_id} into FAISS: {embed_err}")
+            # We don't fail the entire report processing just because vector store failed.
 
         # Step 4: Add to health timeline
         report.processing_progress = "Done"
@@ -99,6 +103,7 @@ async def process_report_ai(
         )
 
     except Exception as e:
+        db.rollback()
         import uuid
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
@@ -135,7 +140,9 @@ async def reanalyze_report_ai(report_id: str):
         db.commit()
 
     except Exception as e:
-        report = db.query(Report).filter(Report.id == report_id).first()
+        db.rollback()
+        import uuid
+        report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
             report.processing_status = "failed"
             db.commit()
