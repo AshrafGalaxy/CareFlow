@@ -8,3 +8,4 @@ from .timeline import HealthTimelineEvent
 from .doctor import DoctorPatient
 from .memo import PatientMemo
 from .analytics import PatientAnalytics
+from .provider_profile import ProviderProfile

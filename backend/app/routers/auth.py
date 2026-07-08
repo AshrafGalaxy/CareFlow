@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user import UserCreate, UserResponse, Token
-from app.models.user import User
 from app.services.auth_service import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_token
+from app.middleware.auth_middleware import get_current_user
+from app.models.provider_profile import ProviderProfile
+from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate
 from app.middleware.auth_middleware import get_current_user
 from pydantic import BaseModel
 
@@ -33,10 +34,28 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         name=user_in.name,
         role=user_in.role,
         phone=user_in.phone,
-        date_of_birth=user_in.date_of_birth
+        date_of_birth=user_in.date_of_birth,
+        abha_id=user_in.abha_id,
+        state_residence=user_in.state_residence,
+        preferred_locale=user_in.preferred_locale,
+        blood_group=user_in.blood_group,
+        emergency_contact_name=user_in.emergency_contact_name,
+        emergency_contact_phone=user_in.emergency_contact_phone
     )
     db.add(new_user)
     db.commit()
+    db.refresh(new_user)
+    
+    if user_in.role == "doctor":
+        provider_profile = ProviderProfile(
+            user_id=new_user.id,
+            nmc_registration_number=user_in.nmc_registration_number,
+            medical_council=user_in.medical_council,
+            qualification_degree=user_in.qualification_degree
+        )
+        db.add(provider_profile)
+        db.commit()
+        
     db.refresh(new_user)
     return new_user
 
@@ -76,6 +95,20 @@ def refresh(request: RefreshRequest):
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.get("/profile", response_model=UserResponse)
+def get_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.patch("/profile", response_model=UserResponse)
+def update_profile(profile_data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    update_data = profile_data.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(current_user, key, value)
+    
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 @router.put("/password")

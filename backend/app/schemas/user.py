@@ -8,10 +8,32 @@ class UserBase(BaseModel):
     name: str
     phone: Optional[str] = None
     date_of_birth: Optional[date] = None
+    abha_id: Optional[str] = None
+    state_residence: Optional[str] = None
+    preferred_locale: Optional[str] = None
+    blood_group: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
     role: str
+    
+    # Doctor specific fields
+    nmc_registration_number: Optional[str] = None
+    medical_council: Optional[str] = None
+    qualification_degree: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    abha_id: Optional[str] = None
+    state_residence: Optional[str] = None
+    preferred_locale: Optional[str] = None
+    blood_group: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
 
 class UserResponse(UserBase):
     id: UUID
