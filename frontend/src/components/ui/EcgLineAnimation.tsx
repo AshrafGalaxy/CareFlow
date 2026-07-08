@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface EcgLineAnimationProps {
   color?: string;
@@ -11,7 +12,7 @@ interface EcgLineAnimationProps {
 export function EcgLineAnimation({
   color = "#0ea5e9", // Tailwind sky-500
   lineWidth = 2.5,
-  speed = 2.5,
+  speed = 3.5, // slightly faster base speed
 }: EcgLineAnimationProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -51,19 +52,20 @@ export function EcgLineAnimation({
     ctx.scale(dpr, dpr);
 
     let animationFrameId: number;
-    let x = 0; // Current scanning horizontal position
     
     // Smooth transition variables for interactive hover
-    let currentCycleLength = 200;
+    let currentCycleLength = 130; // Shorter cycle = MORE SPIKES on screen
     let currentSpeed = speed;
-
-    // Clear background once initially
-    ctx.fillStyle = "transparent";
-    ctx.fillRect(0, 0, width, height);
+    
+    let time = 0;
+    
+    // Store history of points for a perfect, transparent tail fade
+    const points: { x: number; y: number; isSpiking: boolean }[] = [];
+    const maxTailLength = Math.floor((width / speed) * 0.9); // 90% of screen width
 
     // ECG Complex Generator Function (Simulates P-Q-R-S-T waves)
-    const getEcgData = (time: number, cycleLength: number): { offset: number; isSpiking: boolean } => {
-      const cycle = (time % cycleLength) / cycleLength; 
+    const getEcgData = (t: number, cycleLength: number): { offset: number; isSpiking: boolean } => {
+      const cycle = (t % cycleLength) / cycleLength; 
       let offset = 0; 
       let isSpiking = false;
 
@@ -84,11 +86,11 @@ export function EcgLineAnimation({
         const progress = (cycle - 0.26) / 0.04;
         const spike = 1 - Math.abs(progress - 0.5) * 2;
         // Increase amplitude slightly if hovering (Tachycardia / Adrenaline)
-        const amplitude = isHoveredRef.current ? 1.2 : 1.0;
+        const amplitude = isHoveredRef.current ? 1.3 : 1.0;
         offset += spike * amplitude;
         
         // Mark as spiking for dynamic flash effect
-        if (spike > 0.5) isSpiking = true;
+        if (spike > 0.4) isSpiking = true;
       }
 
       // 5. S-Wave (The sharp downward dip right after the spike)
@@ -103,7 +105,6 @@ export function EcgLineAnimation({
         offset += Math.sin((cycle - 0.40) * Math.PI * 6.67) * 0.25;
       }
 
-      // Return scaled to fit visual height boundaries safely
       return { 
         offset: offset * (height * 0.4),
         isSpiking 
@@ -112,46 +113,68 @@ export function EcgLineAnimation({
 
     const render = () => {
       // Smoothly interpolate speed and cycle length for hover effects
-      const targetCycleLength = isHoveredRef.current ? 110 : 200;
-      const targetSpeed = isHoveredRef.current ? speed * 1.8 : speed;
+      const targetCycleLength = isHoveredRef.current ? 80 : 130;
+      const targetSpeed = isHoveredRef.current ? speed * 1.5 : speed;
       
       currentCycleLength += (targetCycleLength - currentCycleLength) * 0.05;
       currentSpeed += (targetSpeed - currentSpeed) * 0.05;
 
-      // Create a fading trailing effect ahead of the scanner line
-      ctx.fillStyle = "rgba(0, 0, 0, 0.08)"; 
-      ctx.fillRect(0, 0, width, height); // Fade entire canvas slowly instead of clearRect for a smoother trail
-      // Erase a small vertical band directly ahead of the pulse to prevent overlaps
-      ctx.clearRect(x, 0, 20, height);
+      // Clear the canvas entirely for perfect transparency
+      ctx.clearRect(0, 0, width, height);
 
       const midY = height / 2;
+      const x = (time * currentSpeed) % width;
       
-      // Map current horizontal pixel space to a temporal point in the ECG sequence
-      const ecgData = getEcgData(x, currentCycleLength); 
+      const ecgData = getEcgData(time * currentSpeed, currentCycleLength); 
       const currentY = midY - ecgData.offset;
 
-      // Draw the crisp line segment
-      ctx.beginPath();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
+      points.push({ x, y: currentY, isSpiking: ecgData.isSpiking });
+      if (points.length > maxTailLength) {
+        points.shift();
+      }
+
+      // Draw the ECG line segment by segment with varying opacity
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      
-      // Dynamic Flash: Increase glow intensely when the R-wave hits
-      ctx.shadowBlur = ecgData.isSpiking ? 25 : 8;
-      ctx.shadowColor = color;
+      ctx.lineWidth = lineWidth;
 
-      // Draw a line from the previous X point to the current X point
-      const prevX = x - currentSpeed;
-      if (prevX >= 0) {
-        ctx.moveTo(prevX, midY - getEcgData(prevX, currentCycleLength).offset);
-        ctx.lineTo(x, currentY);
+      let isGlowing = false;
+
+      for (let i = 1; i < points.length; i++) {
+        const p1 = points[i - 1];
+        const p2 = points[i];
+
+        // If the scanner wrapped around, don't draw a line connecting the edges
+        if (Math.abs(p2.x - p1.x) > width / 2) continue;
+
+        // Calculate opacity based on position in the trail (older points are more transparent)
+        const opacity = i / points.length;
+        
+        ctx.beginPath();
+        // Use rgba to apply opacity directly to the stroke, supporting light/dark backgrounds
+        ctx.strokeStyle = `rgba(14, 165, 233, ${opacity})`; 
+        
+        // Dynamic Flash: Increase glow intensely when the R-wave hits
+        if (p2.isSpiking && opacity > 0.8) {
+          isGlowing = true;
+        }
+
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
       }
 
-      // Advance scanner position, wrapping around smoothly when hitting the width boundary
-      x = (x + currentSpeed) % width;
+      // Apply the glow to the entire canvas if the current head is spiking
+      // (Since shadowBlur applies globally to all drawn strokes, we isolate it or just set it based on head)
+      if (isGlowing) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = color;
+      } else {
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = color;
+      }
 
+      time += 1;
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -169,13 +192,13 @@ export function EcgLineAnimation({
       onMouseEnter={() => (isHoveredRef.current = true)}
       onMouseLeave={() => (isHoveredRef.current = false)}
     >
-      {/* Medical Background Grid */}
+      {/* Medical Background Grid - Transparent, adapts to theme */}
       <div 
-        className="absolute inset-0 opacity-20 dark:opacity-30 mix-blend-screen pointer-events-none transition-opacity duration-700 group-hover:opacity-40"
+        className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none transition-opacity duration-700 group-hover:opacity-25"
         style={{
           backgroundImage: `
-            linear-gradient(to right, ${color}22 1px, transparent 1px),
-            linear-gradient(to bottom, ${color}22 1px, transparent 1px)
+            linear-gradient(to right, currentColor 1px, transparent 1px),
+            linear-gradient(to bottom, currentColor 1px, transparent 1px)
           `,
           backgroundSize: '20px 20px',
           maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
@@ -186,7 +209,7 @@ export function EcgLineAnimation({
       <canvas 
         ref={canvasRef} 
         style={{ width: dimensions.width, height: dimensions.height }} 
-        className="block mix-blend-screen relative z-10" 
+        className="block relative z-10" 
       />
     </div>
   );
