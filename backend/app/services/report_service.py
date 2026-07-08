@@ -13,6 +13,7 @@ async def upload_and_process(
     filename: str,
     file_type: str,
     user_id: str,
+    db: Session,
     background_tasks: BackgroundTasks
 ) -> Report:
     # Create DB record with pending status
