@@ -53,7 +53,7 @@ export function TiltFeatureCard({ title, desc, icon: Icon }: TiltFeatureCardProp
 
    {/* Actual Card */}
    <div
-    className="relative h-full bg-card rounded-2xl p-8 transition-transform duration-200 ease-out border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden"
+    className="relative h-full bg-card rounded-2xl p-8 transition-transform duration-200 ease-out border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none overflow-hidden group-hover:dark:border-sky-900/50"
     style={{
      transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${isHovered ? 1.02 : 1})`,
      transformStyle: "preserve-3d",
@@ -74,7 +74,7 @@ export function TiltFeatureCard({ title, desc, icon: Icon }: TiltFeatureCardProp
     </h3>
     
     <p 
-     className="text-slate-500 text-sm leading-relaxed"
+     className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed"
      style={{ transform: "translateZ(10px)" }}
     >
      {desc}

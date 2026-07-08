@@ -34,8 +34,8 @@ export function FAQAccordion() {
      <div 
       key={index}
       className={cn(
-       "border border-slate-200 rounded-2xl overflow-hidden transition-all duration-300",
-       isOpen ? "bg-card shadow-md border-sky-200" : "bg-card/50 hover:bg-card"
+       "border border-border rounded-2xl overflow-hidden transition-all duration-300",
+       isOpen ? "bg-card shadow-md border-sky-200 dark:border-sky-800 dark:bg-slate-900/50" : "bg-card/50 hover:bg-card"
       )}
      >
       <button
@@ -56,7 +56,7 @@ export function FAQAccordion() {
         isOpen ? "max-h-40 pb-5 opacity-100" : "max-h-0 opacity-0"
        )}
       >
-       <p className="text-slate-500 text-sm leading-relaxed">{faq.answer}</p>
+       <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{faq.answer}</p>
       </div>
      </div>
     )
