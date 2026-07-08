@@ -115,7 +115,7 @@ export default function LandingPage() {
      <h1 className="text-5xl md:text-7xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-6 animate-fade-in-up-delay-1">
       {t("heroTitle1")}
       <br />
-      <span className="relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-indigo-500 dark:from-sky-400 dark:to-indigo-400 pb-2">
+      <span className="relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-sky-600 dark:from-sky-400 dark:to-sky-300 pb-2">
        {t("heroTitle2")}
        <svg className="absolute -bottom-2 left-0 w-full h-3 text-sky-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
         <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -276,8 +276,8 @@ export default function LandingPage() {
         </div>
        </div>
        <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
-         <FileKey className="h-6 w-6 text-purple-400" />
+        <div className="h-12 w-12 rounded-full bg-sky-500/20 flex items-center justify-center shrink-0">
+         <FileKey className="h-6 w-6 text-sky-500" />
         </div>
         <div>
          <h4 className="font-semibold text-lg">100% Data Ownership</h4>
@@ -346,7 +346,7 @@ export default function LandingPage() {
    <section className="bg-sky-500 dark:bg-slate-900 relative overflow-hidden py-24 border-t dark:border-slate-800">
     {/* Decorative background elements */}
     <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-400 dark:bg-sky-500/10 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 dark:bg-indigo-500/10 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-600 dark:bg-sky-500/10 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/3 pointer-events-none" />
     
     <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
      <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
