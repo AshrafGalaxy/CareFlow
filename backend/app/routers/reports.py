@@ -70,12 +70,11 @@ async def upload_report(
         file_bytes=file_bytes,
         file_type=file.content_type,
         report_id=str(new_report.id),
-<<<<<<< Updated upstream
+
         user_id=str(current_user.id)
-=======
+
         user_id=str(target_user_id),
         db=db
->>>>>>> Stashed changes
     )
 
     return new_report

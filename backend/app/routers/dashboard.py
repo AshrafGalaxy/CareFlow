@@ -79,10 +79,10 @@ async def patient_detail(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return detail
 
-<<<<<<< Updated upstream
-from pydantic import BaseModel
+
 class MemoCreate(BaseModel):
     content: str
+
 
 @router.post("/patients/{id}/memos")
 async def add_memo(
@@ -91,11 +91,19 @@ async def add_memo(
     doctor: User = Depends(require_role("doctor", "admin")),
     db: Session = Depends(get_db)
 ):
-    memo = await dashboard_service.add_patient_memo(id, doctor, memo_data.content, db)
+    memo = await dashboard_service.add_patient_memo(
+        id,
+        doctor,
+        memo_data.content,
+        db,
+    )
     if not memo:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to add memo for this patient")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to add memo for this patient",
+        )
     return memo
-=======
+
 
 @router.post("/patients/{id}/remove")
 async def remove_patient(
@@ -105,7 +113,10 @@ async def remove_patient(
 ):
     success = await dashboard_service.remove_patient(provider.id, id, db)
     if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient assignment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Patient assignment not found",
+        )
     return {"status": "success", "message": "Patient removed successfully"}
 
 
@@ -125,4 +136,4 @@ async def list_upcoming_followups(
     db: Session = Depends(get_db)
 ):
     return await dashboard_service.get_upcoming_followups(provider, db, limit)
->>>>>>> Stashed changes
+
