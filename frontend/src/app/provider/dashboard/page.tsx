@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import PatientList from "@/components/provider/PatientList";
-import AdherenceAnalytics from "@/components/provider/AdherenceAnalytics";
+import PatientList from "@/components/doctor/PatientList";
+import AdherenceAnalytics from "@/components/doctor/AdherenceAnalytics";
 import { FileText, Calendar, User, Clock, CalendarDays, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -208,4 +208,4 @@ export default function ProviderDashboardPage() {
       </div>
     </div>
   );
-}
+}
