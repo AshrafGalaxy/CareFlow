@@ -80,55 +80,55 @@ export default function ProviderLogin() {
    </div>
 
    {/* LEFT SIDE - ULTRA PREMIUM VISUAL PANEL (UNIFORM THEME) */}
-   <div className="hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 lg:p-16 bg-slate-950 text-white overflow-hidden shadow-2xl z-10">
+   <div className="hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 lg:p-16 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-2xl z-10 border-r border-slate-100 dark:border-slate-800/50">
     
     {/* Animated Radial Gradients (Exactly matching patient for uniform AI theme) */}
-    <div className="absolute top-0 left-0 w-[50rem] h-[50rem] bg-sky-600/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '8s' }}></div>
-    <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-emerald-500/10 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3"></div>
-    <div className="absolute top-1/2 left-1/2 w-[30rem] h-[30rem] bg-sky-400/10 rounded-full blur-[60px] -translate-x-1/2 -translate-y-1/2"></div>
+    <div className="absolute top-0 left-0 w-[50rem] h-[50rem] bg-sky-200/50 dark:bg-sky-600/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '8s' }}></div>
+    <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-emerald-100/60 dark:bg-emerald-500/10 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3"></div>
+    <div className="absolute top-1/2 left-1/2 w-[30rem] h-[30rem] bg-sky-100/60 dark:bg-sky-400/10 rounded-full blur-[60px] -translate-x-1/2 -translate-y-1/2"></div>
 
     {/* Healthcare AI Neural Network SVG (Uniform Theme) */}
-    <div className="absolute inset-0 opacity-30 pointer-events-none">
+    <div className="absolute inset-0 opacity-40 dark:opacity-30 pointer-events-none">
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M10,20 Q30,10 50,30 T90,20" fill="none" stroke="rgba(56,189,248,0.3)" strokeWidth="0.2" className="animate-pulse" />
-        <path d="M20,80 Q40,90 60,70 T100,80" fill="none" stroke="rgba(56,189,248,0.3)" strokeWidth="0.2" className="animate-pulse" style={{ animationDelay: '1s' }} />
-        <path d="M10,20 L20,80 M50,30 L60,70 M90,20 L100,80" fill="none" stroke="rgba(56,189,248,0.15)" strokeWidth="0.1" />
-        <circle cx="10" cy="20" r="0.8" fill="#38bdf8" className="animate-ping" style={{ animationDuration: '3s' }} />
-        <circle cx="50" cy="30" r="1.2" fill="#38bdf8" className="animate-pulse" />
-        <circle cx="90" cy="20" r="0.8" fill="#38bdf8" className="animate-ping" style={{ animationDuration: '4s' }} />
-        <circle cx="20" cy="80" r="1" fill="#38bdf8" />
-        <circle cx="60" cy="70" r="1.5" fill="#34d399" className="animate-pulse" />
+        <path d="M10,20 Q30,10 50,30 T90,20" fill="none" stroke="currentColor" strokeWidth="0.2" className="text-sky-300 dark:text-sky-700 animate-pulse" />
+        <path d="M20,80 Q40,90 60,70 T100,80" fill="none" stroke="currentColor" strokeWidth="0.2" className="text-sky-300 dark:text-sky-700 animate-pulse" style={{ animationDelay: '1s' }} />
+        <path d="M10,20 L20,80 M50,30 L60,70 M90,20 L100,80" fill="none" stroke="currentColor" strokeWidth="0.1" className="text-sky-200 dark:text-sky-800" />
+        <circle cx="10" cy="20" r="0.8" className="fill-sky-400 dark:fill-sky-500 animate-ping" style={{ animationDuration: '3s' }} />
+        <circle cx="50" cy="30" r="1.2" className="fill-sky-500 dark:fill-sky-400 animate-pulse" />
+        <circle cx="90" cy="20" r="0.8" className="fill-sky-400 dark:fill-sky-500 animate-ping" style={{ animationDuration: '4s' }} />
+        <circle cx="20" cy="80" r="1" className="fill-sky-500 dark:fill-sky-400" />
+        <circle cx="60" cy="70" r="1.5" className="fill-emerald-400 dark:fill-emerald-500 animate-pulse" />
       </svg>
     </div>
 
     <div className="relative z-20">
      <Link href="/" className="inline-flex items-center gap-3 mb-16 hover:opacity-80 transition-opacity cursor-pointer group">
       <div className="relative">
-       <div className="absolute inset-0 bg-sky-400 blur-md opacity-40 group-hover:opacity-70 transition-opacity"></div>
-       <Image src="/favicon.svg" alt="CareFlow Logo" width={44} height={44} className="relative drop-shadow-xl" />
+       <div className="absolute inset-0 bg-sky-200 dark:bg-sky-400 blur-md opacity-40 group-hover:opacity-70 transition-opacity"></div>
+       <Image src="/favicon.svg" alt="CareFlow Logo" width={44} height={44} className="relative drop-shadow-sm dark:drop-shadow-xl" />
       </div>
-      <span className="font-heading font-bold text-3xl tracking-tight">CareFlow</span>
+      <span className="font-heading font-bold text-3xl tracking-tight text-slate-900 dark:text-white">CareFlow</span>
      </Link>
      
      <div className="max-w-md mt-16 space-y-8">
-      <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(56,189,248,0.15)]">
+      <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-sky-50/80 dark:bg-white/5 border border-sky-100 dark:border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(56,189,248,0.1)] dark:shadow-[0_0_15px_rgba(56,189,248,0.15)]">
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
         </span>
-        <span className="text-xs font-bold uppercase tracking-widest text-sky-100">Verified Personnel Only</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-sky-700 dark:text-sky-100">Verified Personnel Only</span>
       </div>
-      <h1 className="text-5xl lg:text-6xl font-heading font-extrabold leading-[1.1] tracking-tight">
+      <h1 className="text-5xl lg:text-6xl font-heading font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white">
        Modern Care, <br />
-       <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-sky-100 to-white drop-shadow-sm">Elevated.</span>
+       <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-sky-700 dark:from-sky-300 dark:via-sky-100 dark:to-white drop-shadow-sm">Elevated.</span>
       </h1>
-      <p className="text-sky-100/70 text-lg leading-relaxed font-medium max-w-sm">
+      <p className="text-slate-600 dark:text-sky-100/70 text-lg leading-relaxed font-medium max-w-sm">
        Securely access patient records, review AI-analyzed labs, and manage prescriptions seamlessly from your clinical dashboard.
       </p>
      </div>
     </div>
     
-    <div className="relative z-20 flex items-center gap-4 text-sm font-semibold text-sky-200/50 backdrop-blur-sm bg-white/5 w-fit px-6 py-3 rounded-2xl border border-white/5">
+    <div className="relative z-20 flex items-center gap-4 text-sm font-semibold text-slate-600 dark:text-sky-200/50 backdrop-blur-sm bg-white/50 dark:bg-white/5 w-fit px-6 py-3 rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-sm dark:shadow-none">
       <ShieldCheck className="w-5 h-5 text-emerald-400/70" />
       <span>CareFlow for Providers v2.0 • EMR Compliant</span>
     </div>
