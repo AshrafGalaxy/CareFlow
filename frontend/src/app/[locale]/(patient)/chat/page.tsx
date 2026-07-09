@@ -10,6 +10,7 @@ import { Link } from '@/i18n/routing'
 import { APP_ROUTES } from '@/lib/constants'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
 interface ChatSession {
  id: string
@@ -81,9 +82,7 @@ interface ChatSession {
   }
  }
 
- const deleteSession = async (e: React.MouseEvent, sessionId: string) => {
-  e.stopPropagation()
-  
+ const deleteSession = async (sessionId: string) => {
   try {
    await api.delete(`/api/chat/${sessionId}`)
    setSessions(sessions.filter(s => s.id !== sessionId))
@@ -123,9 +122,17 @@ interface ChatSession {
       </div>
      )}
      {sessions.map((session) => (
-      <button
+      <div
        key={session.id}
-       className={`group w-full text-left p-3 rounded-xl flex items-center space-x-3 transition-all ${activeSession?.id === session.id ? 'bg-primary/10 border border-primary/20 shadow-sm text-primary' : 'hover:bg-accent border border-transparent text-foreground'}`}
+       role="button"
+       tabIndex={0}
+       onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+         e.preventDefault()
+         selectSession(session)
+        }
+       }}
+       className={`group w-full text-left p-3 rounded-xl flex items-center space-x-3 transition-all cursor-pointer ${activeSession?.id === session.id ? 'bg-primary/10 border border-primary/20 shadow-sm text-primary' : 'hover:bg-accent border border-transparent text-foreground'}`}
        onClick={() => selectSession(session)}
       >
        <div className={`p-2 rounded-lg ${activeSession?.id === session.id ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
@@ -137,13 +144,23 @@ interface ChatSession {
          {new Date(session.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
         </p>
        </div>
-       <div 
-        className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
-        onClick={(e) => deleteSession(e, session.id)}
-       >
-        <Trash2 size={16} />
-       </div>
-      </button>
+       <ConfirmDialog
+        title="Delete Conversation"
+        description="Are you sure you want to delete this conversation? This action cannot be undone."
+        isDestructive={true}
+        confirmText="Delete"
+        onConfirm={() => deleteSession(session.id)}
+        trigger={
+         <button
+          type="button"
+          className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
+          onClick={(e) => e.stopPropagation()}
+         >
+          <Trash2 size={16} />
+         </button>
+        }
+       />
+      </div>
      ))}
     </div>
    </aside>

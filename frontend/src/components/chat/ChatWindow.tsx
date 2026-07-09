@@ -6,6 +6,30 @@ import remarkGfm from 'remark-gfm'
 import { useChatStore } from '@/store/chatStore'
 import { useAuthStore } from '@/store/authStore'
 import { ChatInput } from './ChatInput'
+import { Copy, Check, RefreshCcw, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+
+const CopyButton = ({ text }: { text: string }) => {
+ const [copied, setCopied] = useState(false)
+
+ const handleCopy = () => {
+  navigator.clipboard.writeText(text)
+  setCopied(true)
+  toast.success("Copied to clipboard", { duration: 2000 })
+  setTimeout(() => setCopied(false), 2000)
+ }
+
+ return (
+  <button
+   onClick={handleCopy}
+   className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+   title="Copy message"
+  >
+   {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+  </button>
+ )
+}
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -113,38 +137,65 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       className={`flex items-start max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
      >
       {msg.role === 'assistant' && (
-       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
+       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm mt-1">
         CF
        </div>
       )}
-      <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4' : 'bg-muted border border-border text-foreground rounded-bl-sm prose prose-sm prose-sky max-w-none dark:prose-invert'}`}>
-       {msg.role === 'user' ? (
-        <p className="whitespace-pre-wrap">{msg.content}</p>
-       ) : (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-         {msg.content}
-        </ReactMarkdown>
+      <div className="group relative max-w-full">
+       <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4' : 'bg-muted border border-border text-foreground rounded-bl-sm prose prose-sm prose-sky max-w-none dark:prose-invert'}`}>
+        {msg.role === 'user' ? (
+         <p className="whitespace-pre-wrap">{msg.content}</p>
+        ) : (
+         <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {msg.content}
+         </ReactMarkdown>
+        )}
+       </div>
+       {msg.role === 'assistant' && (
+        <div className="absolute -bottom-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+         <CopyButton text={msg.content} />
+        </div>
        )}
       </div>
      </div>
     ))}
 
     {isStreaming && messages[messages.length - 1]?.role === 'user' && (
-     <div className="flex items-start max-w-3xl mr-auto">
+     <div className="flex items-start max-w-3xl mr-auto mt-4">
       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
        CF
       </div>
-      <div className="px-6 py-5 bg-muted border border-border rounded-3xl rounded-bl-sm flex items-center space-x-2 shadow-sm">
-       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-       <div className="w-2.5 h-2.5 bg-sky-400 rounded-full animate-bounce"></div>
+      <div className="px-5 py-4 bg-muted border border-border rounded-3xl rounded-bl-sm flex items-center gap-3 shadow-sm min-w-[120px]">
+       <div className="flex space-x-1.5">
+        <div className="w-2 h-2 bg-sky-400/80 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        <div className="w-2 h-2 bg-sky-400/80 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+        <div className="w-2 h-2 bg-sky-400/80 rounded-full animate-bounce"></div>
+       </div>
+       <span className="text-xs font-medium text-muted-foreground animate-pulse">AI is thinking...</span>
       </div>
      </div>
     )}
 
-    {error && (
-     <div className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-xl text-center max-w-md mx-auto shadow-sm">
-      <p className="font-medium">{error}</p>
+    {error && !isStreaming && (
+     <div className="flex items-start max-w-3xl mr-auto mt-4">
+      <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
+       <AlertCircle size={20} />
+      </div>
+      <div className="flex flex-col items-start gap-2">
+       <div className="px-5 py-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-3xl rounded-bl-sm text-[15px] shadow-sm">
+        {error}
+       </div>
+       <button 
+        onClick={() => {
+         const lastUserMsg = messages.filter(m => m.role === 'user').pop()
+         if (lastUserMsg) sendMessage(lastUserMsg.content)
+        }}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-full transition-colors ml-2"
+       >
+        <RefreshCcw size={12} />
+        Retry Message
+       </button>
+      </div>
      </div>
     )}
 
