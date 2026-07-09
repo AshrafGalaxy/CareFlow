@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { FileText, Download, ZoomIn, ZoomOut, Maximize, RotateCcw } from 'lucide-react'
+import { FileText, Download, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 
 interface ReportViewerModalProps {
@@ -15,22 +15,22 @@ interface ReportViewerModalProps {
 export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName }: ReportViewerModalProps) {
  const [isLoading, setIsLoading] = useState(true)
  const [scale, setScale] = useState(1)
+ const [numPages, setNumPages] = useState(1)
  
- // Infer type if fileType is missing but we have an extension
+ useEffect(() => {
+  if (isOpen) {
+   setIsLoading(true)
+   setScale(1)
+   setNumPages(1)
+  }
+ }, [isOpen, fileUrl])
+
  const lowerUrl = fileUrl?.toLowerCase() || ''
  const isPdf = fileType === 'application/pdf' || lowerUrl.endsWith('.pdf')
+ const isCloudinaryPdf = isPdf && fileUrl.includes('res.cloudinary.com')
+ const isRegularImage = !isPdf && (fileType?.startsWith('image/') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg'))
  
- // Cloudinary blocks direct PDF delivery on free tiers by default (returns 401 Unauthorized),
- // but it allows on-the-fly conversion to images. We convert it to a high-quality JPG for preview!
- let displayUrl = fileUrl;
- let isImage = fileType?.startsWith('image/') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg')
- let effectiveIsPdf = isPdf;
-
- if (isPdf && fileUrl.includes('res.cloudinary.com')) {
-  displayUrl = fileUrl.replace(/\.pdf$/i, '.jpg');
-  isImage = true;
-  effectiveIsPdf = false;
- }
+ const showCustomZoom = isRegularImage || isCloudinaryPdf
 
  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3))
  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5))
@@ -40,7 +40,6 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
   <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
    <DialogContent className="max-w-[95vw] lg:max-w-7xl h-[85vh] lg:h-[90vh] flex flex-col p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl rounded-2xl">
     
-    {/* Premium Minimalist Header */}
     <DialogHeader className="px-6 py-4 border-b border-border/40 shrink-0 bg-background/40 backdrop-blur-md z-20">
      <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -50,14 +49,13 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
        <div className="min-w-0 pr-4">
         <DialogTitle className="text-lg font-semibold tracking-tight truncate">{fileName}</DialogTitle>
         <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
-         {isImage ? 'Image Viewer' : isPdf ? 'PDF Viewer' : 'Document Viewer'}
+         {isCloudinaryPdf || isPdf ? 'PDF Viewer' : isRegularImage ? 'Image Viewer' : 'Document Viewer'}
         </DialogDescription>
        </div>
       </div>
       
       <div className="flex items-center gap-2 sm:gap-4">
-       {/* Zoom Controls (Only for images since Google Docs Viewer has built-in controls for PDFs) */}
-       {isImage && (
+       {showCustomZoom && (
         <div className="hidden sm:flex items-center bg-muted/50 rounded-lg p-1 border border-border/50">
          <button onClick={handleZoomOut} className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm" title="Zoom Out">
           <ZoomOut size={16} />
@@ -89,7 +87,6 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
      </div>
     </DialogHeader>
 
-    {/* Viewer Canvas */}
     <div className="flex-1 bg-slate-100/50 dark:bg-black/20 flex items-center justify-center overflow-auto relative">
      <AnimatePresence>
       {isLoading && (
@@ -105,10 +102,39 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
       )}
      </AnimatePresence>
 
-     {isImage ? (
+     {isCloudinaryPdf ? (
+      <div className="w-full h-full flex flex-col items-center gap-8 p-8 overflow-auto">
+       {Array.from({ length: numPages }).map((_, index) => {
+        const pageNum = index + 1;
+        const pageUrl = fileUrl.replace('/upload/', `/upload/pg_${pageNum}/`).replace(/\.pdf$/i, '.jpg');
+        
+        return (
+         <img 
+          key={pageNum}
+          src={pageUrl} 
+          alt={`${fileName} - Page ${pageNum}`} 
+          style={{ width: `${scale * 100}%`, maxWidth: scale > 1 ? 'none' : '100%' }}
+          className="h-auto object-contain rounded-lg shadow-xl border border-border/50 transition-all duration-200 ease-out"
+          onLoad={() => {
+           if (pageNum === numPages) {
+            setNumPages(prev => prev + 1);
+           }
+           if (pageNum === 1) setIsLoading(false);
+          }}
+          onError={(e) => {
+           if (pageNum === numPages) {
+            (e.target as HTMLImageElement).style.display = 'none';
+           }
+           if (pageNum === 1) setIsLoading(false);
+          }}
+         />
+        )
+       })}
+      </div>
+     ) : isRegularImage ? (
       <div className="w-full h-full flex items-center justify-center p-8 overflow-auto">
-       <motion.img 
-        src={displayUrl} 
+       <img 
+        src={fileUrl} 
         alt={fileName} 
         style={{ scale }}
         className="max-w-full max-h-full object-contain rounded-lg shadow-xl border border-border/50 origin-center transition-transform duration-200 ease-out"
@@ -116,9 +142,8 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
         onError={() => setIsLoading(false)}
        />
       </div>
-     ) : effectiveIsPdf ? (
+     ) : isPdf ? (
       <div className="w-full h-full overflow-hidden flex items-center justify-center bg-slate-200 dark:bg-slate-900 relative">
-       {/* Note: Google Docs Viewer handles its own zoom, so we don't apply CSS transform here to avoid double-scaling */}
        <iframe 
         src={`https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`}
         className="w-full h-full border-0 bg-transparent absolute inset-0" 
