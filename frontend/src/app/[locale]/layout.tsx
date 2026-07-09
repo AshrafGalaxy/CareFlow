@@ -176,21 +176,6 @@ export default async function RootLayout({
        position="top-right"
        richColors
        closeButton
-       toastOptions={{
-        classNames: {
-         toast: "group flex items-start gap-4 w-full font-sans text-[14px] font-medium shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-4 backdrop-blur-2xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white overflow-hidden",
-         content: "flex-1 min-w-0 flex flex-col gap-1",
-         icon: "mt-0.5 shrink-0 flex items-center justify-center",
-         title: "font-brand font-bold text-slate-900 dark:text-white text-[15px] tracking-tight",
-         description: "text-slate-600 font-medium text-sm leading-relaxed dark:text-slate-400",
-         actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-sm transition-transform hover:scale-105 active:scale-95",
-         cancelButton: "bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700",
-         success: "border-emerald-200/50 bg-emerald-50/90 dark:border-emerald-900/50 dark:bg-emerald-950/90 dark:text-emerald-50 text-emerald-900",
-         error: "border-red-200/50 bg-red-50/90 dark:border-red-900/50 dark:bg-red-950/90 dark:text-red-50 text-red-900",
-         info: "border-sky-200/50 bg-sky-50/90 dark:border-sky-900/50 dark:bg-sky-950/90 dark:text-sky-50 text-sky-900",
-         warning: "border-amber-200/50 bg-amber-50/90 dark:border-amber-900/50 dark:bg-amber-950/90 dark:text-amber-50 text-amber-900",
-        },
-       }}
       />
      </NextIntlClientProvider>
     </ThemeProvider>
