@@ -5,6 +5,7 @@ from sqlalchemy import or_
 
 from app.models.user import User
 from app.models.doctor import DoctorPatient
+from app.models.provider import ProviderPatient
 from app.models.medication import Medication, MedicationLog
 from app.models.follow_up import FollowUp
 from app.models.report import Report
