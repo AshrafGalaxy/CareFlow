@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from "lucide-react"
+import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Activity } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { useNotificationStore } from "@/store/notificationStore"
 import { usePathname } from "@/i18n/routing"
@@ -28,6 +28,7 @@ const iconMap = {
  warning: <AlertTriangle className="h-4 w-4" />,
  error: <XCircle className="h-4 w-4" />,
  security: <ShieldCheck className="h-4 w-4" />,
+ system: <Activity className="h-4 w-4" />,
 }
 
 const colorMap = {
@@ -36,6 +37,7 @@ const colorMap = {
  warning: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400",
  error: "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400",
  security: "text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400",
+ system: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
 }
 
 export function TopNav() {

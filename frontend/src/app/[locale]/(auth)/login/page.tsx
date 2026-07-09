@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, Activity, HeartPulse, ChevronRight } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, Activity, HeartPulse, ChevronRight, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
