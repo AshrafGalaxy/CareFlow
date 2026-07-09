@@ -21,6 +21,11 @@ interface NotificationState {
   markAllAsRead: () => void
   removeNotification: (id: string) => void
   clearAll: () => void
+  /**
+   * Called on account deletion or logout. Wipes ALL notification data from
+   * this store AND from localStorage so it never bleeds into a future session.
+   */
+  purgeForUser: () => void
 }
 
 export const useNotificationStore = create<NotificationState>()(
@@ -67,6 +72,18 @@ export const useNotificationStore = create<NotificationState>()(
           notifications: state.notifications.filter((n) => n.id !== id),
         })),
       clearAll: () => set({ notifications: [] }),
+      purgeForUser: () => {
+        // Wipe state in memory
+        set({ notifications: [] })
+        // Also nuke localStorage so a future account (same email or not)
+        // starts completely fresh. This is the only reliable way to prevent
+        // cross-session bleed when the persist middleware is active.
+        try {
+          localStorage.removeItem('careflow-notifications')
+        } catch {
+          // localStorage might not be available in SSR context
+        }
+      },
     }),
     {
       name: 'careflow-notifications',

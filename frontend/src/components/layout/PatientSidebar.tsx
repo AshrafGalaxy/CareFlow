@@ -39,6 +39,10 @@ export function PatientSidebar() {
  const initials = getInitials(user?.name)
 
  const handleLogout = async () => {
+  // SECURITY: Purge all notifications before clearing auth so no data
+  // bleeds into a future session (different user, same device).
+  const { useNotificationStore } = await import('@/store/notificationStore')
+  useNotificationStore.getState().purgeForUser()
   logout()
   toast.success(
    <div className="flex flex-col gap-1">

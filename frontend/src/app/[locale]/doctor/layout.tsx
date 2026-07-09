@@ -31,6 +31,10 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
  }, [user, token, hasHydrated, router, pathname])
 
  const handleLogout = async () => {
+  // SECURITY: Purge all notifications before clearing auth so no data
+  // bleeds into a future session (different user, same device).
+  const { useNotificationStore } = await import('@/store/notificationStore')
+  useNotificationStore.getState().purgeForUser()
   logout()
   const { toast } = await import('sonner')
   const { LogOut } = await import('lucide-react')

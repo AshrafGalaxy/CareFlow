@@ -67,17 +67,14 @@ export default function SettingsPage() {
         onClick: async () => {
           try {
             await api.delete("/api/auth/account")
-            toast.success("Account deleted successfully")
             
-            // Add notification to store before redirecting
-            const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
-            store.addNotification({
-              title: "Account Deleted",
-              message: "Your account and all associated data have been permanently removed.",
-              type: "warning"
-            })
+            // SECURITY: Purge ALL notification data from memory + localStorage
+            // BEFORE logout so no data bleeds into any future account session.
+            const notifStore = (await import('@/store/notificationStore')).useNotificationStore.getState()
+            notifStore.purgeForUser()
             
             useAuthStore.getState().logout()
+            toast.success("Your account has been permanently deleted.")
             router.push("/")
           } catch (error: any) {
             toast.error(error.response?.data?.detail || "Failed to delete account")

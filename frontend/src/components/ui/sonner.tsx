@@ -1,67 +1,126 @@
 "use client"
 
 import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-const Toaster = ({ ...props }: ToasterProps) => {
- const { resolvedTheme, theme } = useTheme()
+/**
+ * We CANNOT use Tailwind `dark:` variant classes inside Sonner's `icons` prop
+ * because Sonner renders toasts into a portal/shadow DOM that does NOT inherit
+ * the root `<html class="dark">` Tailwind cascade.
+ *
+ * The ONLY reliable solution is to:
+ *  1. Use `resolvedTheme` from next-themes (gives us "light" or "dark" explicitly)
+ *  2. Pass `theme` prop directly to <Sonner> (tells Sonner to set its own data-theme attribute)
+ *  3. Use inline CSS colors on icon wrappers (not Tailwind dark: classes)
+ */
 
- return (
-  <Sonner
-   theme={(resolvedTheme || theme) as ToasterProps["theme"]}
-   className="toaster group"
-   icons={{
-    success: (
-     <div className="h-6 w-6 shrink-0 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-sm">
-      <CircleCheckIcon className="h-3.5 w-3.5" />
-     </div>
-    ),
-    info: (
-     <div className="h-6 w-6 shrink-0 bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 rounded-full flex items-center justify-center shadow-sm">
-      <InfoIcon className="h-3.5 w-3.5" />
-     </div>
-    ),
-    warning: (
-     <div className="h-6 w-6 shrink-0 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center shadow-sm">
-      <TriangleAlertIcon className="h-3.5 w-3.5" />
-     </div>
-    ),
-    error: (
-     <div className="h-6 w-6 shrink-0 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center shadow-sm">
-      <OctagonXIcon className="h-3.5 w-3.5" />
-     </div>
-    ),
-    loading: (
-     <div className="h-6 w-6 shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full flex items-center justify-center shadow-sm">
-      <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-     </div>
-    ),
-   }}
-   style={
-    {
-     "--normal-bg": "var(--popover)",
-     "--normal-text": "var(--popover-foreground)",
-     "--normal-border": "var(--border)",
-     "--border-radius": "var(--radius)",
-    } as React.CSSProperties
-   }
-   toastOptions={{
-    classNames: {
-     toast:
-      "group toast flex gap-3 items-start w-full p-4 rounded-xl shadow-lg border border-border bg-background text-foreground",
-     content: "flex-1 min-w-0 flex flex-col gap-1 overflow-hidden",
-     description: "text-sm text-slate-500 dark:text-slate-400 line-clamp-2",
-     title: "font-semibold text-sm",
-     actionButton:
-      "bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg px-3 py-1.5 transition-colors",
-     cancelButton:
-      "bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg px-3 py-1.5 transition-colors dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700",
-    },
-   }}
-   {...props}
-  />
- )
+type ThemeAwareIconProps = {
+  isDark: boolean
+  color: { light: string; dark: string }
+  bg: { light: string; dark: string }
+  children: React.ReactNode
+}
+
+function ThemeAwareIcon({ isDark, color, bg, children }: ThemeAwareIconProps) {
+  return (
+    <div
+      style={{
+        height: 24,
+        width: 24,
+        flexShrink: 0,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: isDark ? bg.dark : bg.light,
+        color: isDark ? color.dark : color.light,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { resolvedTheme } = useTheme()
+  // Default to light until we know the real theme (avoids flicker)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  // resolvedTheme is "light" or "dark" — never "system"
+  const isDark = mounted ? resolvedTheme === "dark" : false
+  const sonnerTheme = isDark ? "dark" : "light"
+
+  const iconSize = { height: 14, width: 14 }
+
+  return (
+    <Sonner
+      theme={sonnerTheme}
+      className="toaster group"
+      icons={{
+        success: (
+          <ThemeAwareIcon
+            isDark={isDark}
+            color={{ light: "#059669", dark: "#34d399" }}
+            bg={{ light: "#d1fae5", dark: "rgba(6,78,59,0.6)" }}
+          >
+            <CircleCheckIcon style={iconSize} />
+          </ThemeAwareIcon>
+        ),
+        info: (
+          <ThemeAwareIcon
+            isDark={isDark}
+            color={{ light: "#0284c7", dark: "#38bdf8" }}
+            bg={{ light: "#e0f2fe", dark: "rgba(8,47,73,0.6)" }}
+          >
+            <InfoIcon style={iconSize} />
+          </ThemeAwareIcon>
+        ),
+        warning: (
+          <ThemeAwareIcon
+            isDark={isDark}
+            color={{ light: "#d97706", dark: "#fbbf24" }}
+            bg={{ light: "#fef3c7", dark: "rgba(69,26,3,0.6)" }}
+          >
+            <TriangleAlertIcon style={iconSize} />
+          </ThemeAwareIcon>
+        ),
+        error: (
+          <ThemeAwareIcon
+            isDark={isDark}
+            color={{ light: "#dc2626", dark: "#f87171" }}
+            bg={{ light: "#fee2e2", dark: "rgba(69,10,10,0.6)" }}
+          >
+            <OctagonXIcon style={iconSize} />
+          </ThemeAwareIcon>
+        ),
+        loading: (
+          <ThemeAwareIcon
+            isDark={isDark}
+            color={{ light: "#64748b", dark: "#94a3b8" }}
+            bg={{ light: "#f1f5f9", dark: "rgba(15,23,42,0.8)" }}
+          >
+            <Loader2Icon style={{ ...iconSize, animation: "spin 1s linear infinite" }} />
+          </ThemeAwareIcon>
+        ),
+      }}
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+      }}
+      {...props}
+    />
+  )
 }
 
 export { Toaster }
