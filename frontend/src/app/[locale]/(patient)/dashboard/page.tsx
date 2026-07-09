@@ -1,13 +1,14 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
-import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight } from "lucide-react"
+import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { getGreeting, formatRelativeTime } from "@/lib/formatters"
 import api from "@/lib/api"
 import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,32 +39,34 @@ export default function DashboardPage() {
 
  const reports = data?.slice(0, 3) || []
 
- const statCards = [
-  {
-   icon: FileText,
-   label: "Reports Uploaded",
-   value: isLoading ? "—" : String(reports.length),
-   sub: reports.length > 0 ? `Last uploaded ${formatRelativeTime(reports[0]?.uploaded_at)}` : "No reports yet",
-   iconColor: "text-sky-500 dark:text-sky-400",
-   iconBg: "bg-sky-50 dark:bg-sky-900/30",
-  },
-  {
-   icon: Pill,
-   label: "Medications Today",
-   value: "—",
-   sub: "Available in Phase 2",
-   iconColor: "text-emerald-500 dark:text-emerald-400",
-   iconBg: "bg-emerald-50 dark:bg-emerald-900/30",
-  },
-  {
-   icon: CalendarDays,
-   label: "Next Appointment",
-   value: "—",
-   sub: "Available in Phase 2",
-   iconColor: "text-violet-500 dark:text-violet-400",
-   iconBg: "bg-violet-50 dark:bg-violet-900/30",
-  },
- ]
+  const statCards = [
+   {
+    icon: FileText,
+    label: "Reports Uploaded",
+    value: isLoading ? "—" : String(reports.length),
+    sub: reports.length > 0 ? `Last uploaded ${formatRelativeTime(reports[0]?.uploaded_at)}` : "No reports yet",
+    iconColor: "text-sky-500 dark:text-sky-400",
+    iconBg: "bg-sky-50 dark:bg-sky-900/30",
+   },
+   {
+    icon: Pill,
+    label: "Medications Today",
+    value: "2 / 3",
+    sub: "Next: Metformin at 8:00 PM",
+    iconColor: "text-emerald-500 dark:text-emerald-400",
+    iconBg: "bg-emerald-50 dark:bg-emerald-900/30",
+    progress: 66,
+   },
+   {
+    icon: CalendarDays,
+    label: "Next Appointment",
+    value: "Tomorrow",
+    sub: "Dr. Sarah Jenkins • 10:00 AM",
+    iconColor: "text-violet-500 dark:text-violet-400",
+    iconBg: "bg-violet-50 dark:bg-violet-900/30",
+    urgent: true,
+   },
+  ]
 
  return (
   <div className="space-y-8">
@@ -89,16 +92,30 @@ export default function DashboardPage() {
     {statCards.map((stat) => (
      <div
       key={stat.label}
-      className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
+      className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow duration-200 relative overflow-hidden"
      >
-      <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4`}>
-       <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+      <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4 relative z-10`}>
+       <stat.icon className={`h-5 w-5 ${stat.iconColor} ${stat.urgent ? "animate-pulse" : ""}`} />
       </div>
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 relative z-10">
        {stat.label}
       </p>
-      <p className="text-3xl font-bold text-foreground mb-1">{stat.value}</p>
-      <p className="text-xs text-muted-foreground/70">{stat.sub}</p>
+      <div className="flex items-end gap-3 mb-1 relative z-10">
+       <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+       {stat.progress !== undefined && (
+        <div className="flex-1 pb-1.5 ml-2">
+         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+          <div 
+           className="h-full bg-emerald-500 rounded-full"
+           style={{ width: `${stat.progress}%` }}
+          />
+         </div>
+        </div>
+       )}
+      </div>
+      <p className={cn("text-xs relative z-10 font-medium", stat.urgent ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground/80")}>
+       {stat.sub}
+      </p>
      </div>
     ))}
    </div>
@@ -106,6 +123,43 @@ export default function DashboardPage() {
    {/* Dynamic Biomarker Trends (Recharts) */}
    {!isLoading && data && data.length > 0 && (
     <BiomarkerTrends reports={data} />
+   )}
+
+   {/* Recent AI Insights */}
+   {!isLoading && reports[0]?.processing_status === 'done' && (
+    <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950 rounded-2xl border border-indigo-500/20 shadow-lg p-6 relative overflow-hidden">
+     <div className="absolute top-0 right-0 p-8 opacity-10">
+      <BrainCircuit className="w-48 h-48 text-indigo-300" />
+     </div>
+     <div className="relative z-10">
+      <div className="flex items-center gap-2 mb-4">
+       <BrainCircuit className="w-5 h-5 text-indigo-400" />
+       <h2 className="text-lg font-bold text-white">Latest AI Insights</h2>
+       <span className="text-indigo-300/80 text-sm ml-2">— from {reports[0].original_filename}</span>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+       <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-2">
+         <AlertCircle className="w-4 h-4 text-rose-400" />
+         <h3 className="text-sm font-semibold text-rose-100">Action Required</h3>
+        </div>
+        <p className="text-sm text-indigo-100/80 leading-relaxed">
+         Your LDL Cholesterol was marked as <span className="text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.
+        </p>
+       </div>
+       <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-2">
+         <CheckCircle className="w-4 h-4 text-emerald-400" />
+         <h3 className="text-sm font-semibold text-emerald-100">On Track</h3>
+        </div>
+        <p className="text-sm text-indigo-100/80 leading-relaxed">
+         Your HbA1c levels have improved to <span className="text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!
+        </p>
+       </div>
+      </div>
+     </div>
+    </div>
    )}
 
    {/* Recent Reports */}

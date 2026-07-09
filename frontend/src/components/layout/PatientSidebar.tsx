@@ -8,8 +8,9 @@ import {
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
+import { useSidebarStore } from "@/store/sidebarStore"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { useTranslations } from "next-intl"
 
@@ -33,10 +34,13 @@ export function PatientSidebar() {
  const pathname = usePathname()
  const logout = useAuthStore((state) => state.logout)
  const user = useAuthStore((state) => state.user)
+ const { state: sidebarState, toggle: toggleSidebar } = useSidebarStore()
  const t = useTranslations("Navigation")
  const navItems = getNavItems(t)
 
  const initials = getInitials(user?.name)
+ const isCollapsed = sidebarState === 'collapsed'
+ const isHidden = sidebarState === 'hidden'
 
  const handleLogout = async () => {
   const { useNotificationStore } = await import('@/store/notificationStore')
@@ -53,33 +57,66 @@ export function PatientSidebar() {
  }
 
  return (
-  <div className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen shrink-0">
+  <motion.div 
+   initial={false}
+   animate={{ 
+    width: isHidden ? 0 : isCollapsed ? 80 : 256,
+    opacity: isHidden ? 0 : 1
+   }}
+   transition={{ type: "spring", stiffness: 300, damping: 30 }}
+   className={cn("hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 overflow-hidden", isHidden && "pointer-events-none")}
+  >
    {/* Brand */}
-   <div className="flex items-center gap-2 p-5 border-b border-border bg-card">
+   <div className="flex items-center gap-2 p-5 border-b border-border bg-card h-[72px] shrink-0 relative">
     <Image 
      src="/favicon.svg" 
      alt="CareFlow Logo" 
      width={32} 
      height={32} 
-     className="h-8 w-8"
+     className="h-8 w-8 shrink-0"
      priority
     />
-    <span className="font-brand text-xl font-bold text-foreground tracking-tight">CareFlow <span className="text-sky-500">AI</span></span>
+    <AnimatePresence>
+     {!isCollapsed && (
+      <motion.span 
+       initial={{ opacity: 0, width: 0 }}
+       animate={{ opacity: 1, width: "auto" }}
+       exit={{ opacity: 0, width: 0 }}
+       className="font-brand text-xl font-bold text-foreground tracking-tight whitespace-nowrap overflow-hidden"
+      >
+       CareFlow <span className="text-sky-500">AI</span>
+      </motion.span>
+     )}
+    </AnimatePresence>
+    
+    {/* Toggle Button */}
+    <button 
+     onClick={toggleSidebar}
+     className="absolute right-4 p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+    >
+     <div className="flex flex-col gap-[3px] items-center justify-center w-4 h-4">
+      <span className="w-1 h-1 rounded-full bg-current" />
+      <span className="w-1 h-1 rounded-full bg-current" />
+      <span className="w-1 h-1 rounded-full bg-current" />
+     </div>
+    </button>
    </div>
 
-   {/* Nav Items */}
-   <nav className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto" aria-label="Main navigation">
+  {/* Nav Items */}
+   <nav className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="Main navigation">
     {navItems.map((item) => {
      const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
      return (
       <Link
        key={item.name}
        href={item.href}
+       title={isCollapsed ? item.name : undefined}
        className={cn(
         "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
         isActive
          ? "text-primary dark:text-sky-400"
-         : "text-muted-foreground hover:text-foreground"
+         : "text-muted-foreground hover:text-foreground",
+        isCollapsed && "justify-center px-0"
        )}
       >
        {isActive && (
@@ -95,22 +132,42 @@ export function PatientSidebar() {
         <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
        )}
        <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
-       <span className="relative z-10">{item.name}</span>
+       <AnimatePresence>
+        {!isCollapsed && (
+         <motion.span 
+          initial={{ opacity: 0, width: 0 }}
+          animate={{ opacity: 1, width: "auto" }}
+          exit={{ opacity: 0, width: 0 }}
+          className="relative z-10 whitespace-nowrap overflow-hidden"
+         >
+          {item.name}
+         </motion.span>
+        )}
+       </AnimatePresence>
       </Link>
      )
     })}
    </nav>
 
    {/* User Block */}
-   <div className="border-t border-border p-4 bg-muted/20">
-    <div className="flex items-center gap-3 px-2 mb-4">
+   <div className="border-t border-border p-3 bg-muted/20 shrink-0">
+    <div className={cn("flex items-center gap-3 mb-4", isCollapsed ? "justify-center px-0" : "px-2")}>
      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
       {initials}
      </div>
-     <div className="flex-1 min-w-0">
-      <p className="text-sm font-semibold text-foreground truncate">{user?.name || "User"}</p>
-      <p className="text-xs text-muted-foreground capitalize font-medium mt-0.5">{user?.role || "Patient"}</p>
-     </div>
+     <AnimatePresence>
+      {!isCollapsed && (
+       <motion.div 
+        initial={{ opacity: 0, width: 0 }}
+        animate={{ opacity: 1, width: "auto" }}
+        exit={{ opacity: 0, width: 0 }}
+        className="flex-1 min-w-0 overflow-hidden"
+       >
+        <p className="text-sm font-semibold text-foreground truncate">{user?.name || "User"}</p>
+        <p className="text-xs text-muted-foreground capitalize font-medium mt-0.5">{user?.role || "Patient"}</p>
+       </motion.div>
+      )}
+     </AnimatePresence>
     </div>
     
     {/* FOOTER */}
@@ -121,11 +178,13 @@ export function PatientSidebar() {
        <Link
         key={item.name}
         href={item.href}
+        title={isCollapsed ? item.name : undefined}
         className={cn(
          "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
          isActive
           ? "text-primary dark:text-sky-400"
-          : "text-muted-foreground hover:text-foreground"
+          : "text-muted-foreground hover:text-foreground",
+         isCollapsed && "justify-center px-0"
         )}
        >
         {isActive && (
@@ -140,20 +199,46 @@ export function PatientSidebar() {
          <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
         )}
         <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
-        <span className="relative z-10">{item.name}</span>
+        <AnimatePresence>
+         {!isCollapsed && (
+          <motion.span 
+           initial={{ opacity: 0, width: 0 }}
+           animate={{ opacity: 1, width: "auto" }}
+           exit={{ opacity: 0, width: 0 }}
+           className="relative z-10 whitespace-nowrap overflow-hidden"
+          >
+           {item.name}
+          </motion.span>
+         )}
+        </AnimatePresence>
        </Link>
       )
      })}
      <button
       onClick={handleLogout}
-      className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground group transition-all duration-300"
+      title={isCollapsed ? "Sign Out" : undefined}
+      className={cn(
+       "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground group transition-all duration-300",
+       isCollapsed && "justify-center px-0"
+      )}
      >
       <div className="absolute inset-0 bg-destructive/0 group-hover:bg-destructive/10 rounded-xl transition-colors duration-300" />
       <LogOut className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95 group-hover:text-destructive" />
-      <span className="relative z-10 group-hover:text-destructive transition-colors duration-300">Sign Out</span>
+      <AnimatePresence>
+       {!isCollapsed && (
+        <motion.span 
+         initial={{ opacity: 0, width: 0 }}
+         animate={{ opacity: 1, width: "auto" }}
+         exit={{ opacity: 0, width: 0 }}
+         className="relative z-10 group-hover:text-destructive transition-colors duration-300 whitespace-nowrap overflow-hidden"
+        >
+         Sign Out
+        </motion.span>
+       )}
+      </AnimatePresence>
      </button>
     </div>
    </div>
-  </div>
+  </motion.div>
  )
 }
