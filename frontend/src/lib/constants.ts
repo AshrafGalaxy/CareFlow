@@ -40,7 +40,9 @@ export const API_ROUTES = {
   LIST: "/api/reports/",
   DETAIL: (id: string) => `/api/reports/${id}`,
  },
- DASHBOARD: "/api/dashboard/",
+ DASHBOARD: {
+  KPIS: "/api/dashboard/kpis",
+ },
 } as const
 
 export const APP_ROUTES = {

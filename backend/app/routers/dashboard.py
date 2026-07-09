@@ -5,10 +5,18 @@ import uuid
 from app.database import get_db
 from app.models.user import User
 from app.middleware.rbac import require_role
+from app.middleware.auth_middleware import get_current_user
 from app.services import dashboard_service
+from app.schemas.dashboard import DashboardKPIsResponse
 
 router = APIRouter()
 
+@router.get("/kpis", response_model=DashboardKPIsResponse)
+async def get_kpis(
+    patient: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return await dashboard_service.get_patient_dashboard_kpis(patient, db)
 
 @router.get("/patients")
 async def list_patients(

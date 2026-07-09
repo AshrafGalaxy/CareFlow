@@ -9,6 +9,8 @@ import { getGreeting, formatRelativeTime } from "@/lib/formatters"
 import api from "@/lib/api"
 import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { useEffect, useRef } from "react"
 
 import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -21,6 +23,24 @@ interface Report {
  processing_status: ReportStatus
  uploaded_at: string
  ai_highlights?: any[]
+}
+
+interface DashboardKPIs {
+ medications_today_total: number
+ medications_today_taken: number
+ next_medication?: {
+  id: string
+  name: string
+  scheduled_time: string
+  status: string
+ }
+ next_appointment?: {
+  id: string
+  doctor_name: string
+  specialty?: string
+  appointment_date: string
+  status: string
+ }
 }
 
 const fetcher = (url: string) => api.get(url).then(res => res.data)
@@ -37,7 +57,68 @@ export default function DashboardPage() {
   { refreshInterval: 0, revalidateOnFocus: true }
  )
 
- const reports = data?.slice(0, 3) || []
+  const { data: kpiData, isLoading: kpiLoading } = useSWR<DashboardKPIs>(
+   API_ROUTES.DASHBOARD.KPIS,
+   fetcher,
+   { refreshInterval: 60000, revalidateOnFocus: true }
+  )
+
+  const notifiedMedication = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (kpiData?.next_medication && kpiData.next_medication.id !== notifiedMedication.current) {
+      const medTime = new Date(kpiData.next_medication.scheduled_time)
+      const now = new Date()
+      const diffMinutes = (medTime.getTime() - now.getTime()) / (1000 * 60)
+      
+      // If medication is due in the next 30 minutes, or slightly overdue
+      if (diffMinutes <= 30 && diffMinutes > -60) {
+        toast("Medication Reminder", {
+          description: `It's time to take your ${kpiData.next_medication.name}.`,
+          duration: 10000,
+          icon: <Pill className="w-5 h-5 text-emerald-500" />
+        })
+        notifiedMedication.current = kpiData.next_medication.id
+      }
+    }
+  }, [kpiData?.next_medication])
+
+  const reports = data?.slice(0, 3) || []
+
+  // Dynamic Medications Logic
+  const medTotal = kpiData?.medications_today_total || 0
+  const medTaken = kpiData?.medications_today_taken || 0
+  const medProgress = medTotal > 0 ? (medTaken / medTotal) * 100 : 0
+  let medSub = "No medications scheduled today"
+  if (kpiData?.next_medication) {
+    const time = new Date(kpiData.next_medication.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    medSub = `Next: ${kpiData.next_medication.name} at ${time}`
+  } else if (medTotal > 0 && medTaken === medTotal) {
+    medSub = "All medications taken today!"
+  }
+
+  // Dynamic Appointment Logic
+  let apptValue = "—"
+  let apptSub = "No upcoming appointments"
+  let apptUrgent = false
+  if (kpiData?.next_appointment) {
+    const apptDate = new Date(kpiData.next_appointment.appointment_date)
+    const now = new Date()
+    const diffHours = (apptDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+    
+    if (diffHours < 24 && diffHours > 0) {
+      apptValue = "Tomorrow"
+      apptUrgent = true
+    } else if (diffHours <= 0) {
+      apptValue = "Today"
+      apptUrgent = true
+    } else {
+      apptValue = apptDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }
+    
+    const time = apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    apptSub = `Dr. ${kpiData.next_appointment.doctor_name} • ${time}`
+  }
 
   const statCards = [
    {
@@ -51,20 +132,20 @@ export default function DashboardPage() {
    {
     icon: Pill,
     label: "Medications Today",
-    value: "2 / 3",
-    sub: "Next: Metformin at 8:00 PM",
+    value: kpiLoading ? "—" : `${medTaken} / ${medTotal}`,
+    sub: medSub,
     iconColor: "text-emerald-500 dark:text-emerald-400",
     iconBg: "bg-emerald-50 dark:bg-emerald-900/30",
-    progress: 66,
+    progress: medTotal > 0 ? medProgress : undefined,
    },
    {
     icon: CalendarDays,
     label: "Next Appointment",
-    value: "Tomorrow",
-    sub: "Dr. Sarah Jenkins • 10:00 AM",
+    value: kpiLoading ? "—" : apptValue,
+    sub: apptSub,
     iconColor: "text-violet-500 dark:text-violet-400",
     iconBg: "bg-violet-50 dark:bg-violet-900/30",
-    urgent: true,
+    urgent: apptUrgent,
    },
   ]
 

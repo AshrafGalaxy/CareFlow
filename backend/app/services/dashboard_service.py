@@ -10,6 +10,7 @@ from app.models.follow_up import FollowUp
 from app.models.report import Report
 from app.models.memo import PatientMemo
 from app.models.analytics import PatientAnalytics
+from app.schemas.dashboard import DashboardKPIsResponse, NextMedication, NextAppointment
 
 
 def _sync_patient_analytics(patient_id: uuid.UUID, db: Session):
@@ -62,6 +63,69 @@ def _sync_patient_analytics(patient_id: uuid.UUID, db: Session):
         db.add(analytics)
     db.commit()
     return analytics
+
+async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPIsResponse:
+    now_utc = datetime.now(timezone.utc)
+    
+    # 1. Medications Today
+    today = now_utc.date()
+    start_of_day = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc)
+    end_of_day = datetime.combine(today, datetime.max.time(), tzinfo=timezone.utc)
+    
+    patient_meds = db.query(Medication).filter(Medication.user_id == patient.id, Medication.is_active == True).all()
+    patient_med_ids = [m.id for m in patient_meds]
+    
+    medications_today_total = 0
+    medications_today_taken = 0
+    next_medication = None
+    
+    if patient_med_ids:
+        # Get logs for today
+        today_logs = db.query(MedicationLog).filter(
+            MedicationLog.medication_id.in_(patient_med_ids),
+            MedicationLog.scheduled_time >= start_of_day,
+            MedicationLog.scheduled_time <= end_of_day
+        ).order_by(MedicationLog.scheduled_time.asc()).all()
+        
+        medications_today_total = len(today_logs)
+        medications_today_taken = sum(1 for log in today_logs if log.status == "taken")
+        
+        # Find the next scheduled medication that is not taken/skipped
+        for log in today_logs:
+            if log.status == "pending" or log.status is None or log.status == "scheduled":
+                med = next((m for m in patient_meds if m.id == log.medication_id), None)
+                if med:
+                    next_medication = NextMedication(
+                        id=str(med.id),
+                        name=med.name,
+                        scheduled_time=log.scheduled_time,
+                        status=log.status or "scheduled"
+                    )
+                    break
+
+    # 2. Next Appointment
+    next_follow_up = db.query(FollowUp).filter(
+        FollowUp.user_id == patient.id,
+        FollowUp.status == "scheduled",
+        FollowUp.appointment_date >= now_utc
+    ).order_by(FollowUp.appointment_date.asc()).first()
+    
+    next_appointment = None
+    if next_follow_up:
+        next_appointment = NextAppointment(
+            id=str(next_follow_up.id),
+            doctor_name=next_follow_up.doctor_name,
+            specialty=next_follow_up.specialty,
+            appointment_date=next_follow_up.appointment_date,
+            status=next_follow_up.status
+        )
+
+    return DashboardKPIsResponse(
+        medications_today_total=medications_today_total,
+        medications_today_taken=medications_today_taken,
+        next_medication=next_medication,
+        next_appointment=next_appointment
+    )
 
 async def get_patient_overview(doctor: User, db: Session):
     """
