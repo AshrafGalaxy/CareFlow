@@ -1,8 +1,7 @@
 "use client"
 
-import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Activity, Menu } from "lucide-react"
+import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Activity } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
-import { useSidebarStore } from "@/store/sidebarStore"
 import { useNotificationStore } from "@/store/notificationStore"
 import { usePathname } from "@/i18n/routing"
 import { getGreeting, getInitials } from "@/lib/formatters"
@@ -44,7 +43,6 @@ const colorMap = {
 export function TopNav() {
  const user = useAuthStore((state) => state.user)
  const authHydrated = useAuthStore((state) => state._hasHydrated)
- const { state: sidebarState, toggle: toggleSidebar } = useSidebarStore()
  const { notifications, markAllAsRead, markAsRead, _hasHydrated, currentUserId, loadForUser, clearAll } = useNotificationStore()
  const pathname = usePathname()
 
@@ -64,19 +62,9 @@ export function TopNav() {
 
  return (
   <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm transition-colors duration-300">
-   <div className="flex items-center gap-4">
-    {sidebarState === 'hidden' && (
-     <button 
-      onClick={toggleSidebar}
-      className="p-2 -ml-2 text-slate-500 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-     >
-      <Menu className="h-5 w-5" />
-     </button>
-    )}
-    <div className="flex flex-col">
-     <h2 className="text-base font-semibold text-foreground leading-tight">{title}</h2>
-     <p className="text-xs text-slate-500 font-medium">{greeting}, {user?.name?.split(" ")[0] || "User"}</p>
-    </div>
+   <div className="flex flex-col">
+    <h2 className="text-base font-semibold text-foreground leading-tight">{title}</h2>
+    <p className="text-xs text-slate-500 font-medium">{greeting}, {user?.name?.split(" ")[0] || "User"}</p>
    </div>
 
    <div className="flex items-center gap-4">

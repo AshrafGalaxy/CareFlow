@@ -40,7 +40,6 @@ export function PatientSidebar() {
 
  const initials = getInitials(user?.name)
  const isCollapsed = sidebarState === 'collapsed'
- const isHidden = sidebarState === 'hidden'
 
  const handleLogout = async () => {
   const { useNotificationStore } = await import('@/store/notificationStore')
@@ -60,14 +59,25 @@ export function PatientSidebar() {
   <motion.div 
    initial={false}
    animate={{ 
-    width: isHidden ? 0 : isCollapsed ? 80 : 256,
-    opacity: isHidden ? 0 : 1
+    width: isCollapsed ? 80 : 256,
    }}
    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-   className={cn("hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 overflow-hidden", isHidden && "pointer-events-none")}
+   className="hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative z-20"
   >
+   {/* Toggle Button - Placed outside the border */}
+   <button 
+    onClick={toggleSidebar}
+    className="absolute -right-3 top-7 w-6 h-6 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm z-50"
+   >
+    <div className="flex flex-col gap-[2px] items-center justify-center">
+     <span className="w-0.5 h-0.5 rounded-full bg-current" />
+     <span className="w-0.5 h-0.5 rounded-full bg-current" />
+     <span className="w-0.5 h-0.5 rounded-full bg-current" />
+    </div>
+   </button>
+
    {/* Brand */}
-   <div className="flex items-center gap-2 p-5 border-b border-border bg-card h-[72px] shrink-0 relative">
+   <div className="flex items-center gap-2 p-5 border-b border-border bg-card h-[72px] shrink-0 relative overflow-hidden">
     <Image 
      src="/favicon.svg" 
      alt="CareFlow Logo" 
@@ -88,18 +98,6 @@ export function PatientSidebar() {
       </motion.span>
      )}
     </AnimatePresence>
-    
-    {/* Toggle Button */}
-    <button 
-     onClick={toggleSidebar}
-     className="absolute right-4 p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-    >
-     <div className="flex flex-col gap-[3px] items-center justify-center w-4 h-4">
-      <span className="w-1 h-1 rounded-full bg-current" />
-      <span className="w-1 h-1 rounded-full bg-current" />
-      <span className="w-1 h-1 rounded-full bg-current" />
-     </div>
-    </button>
    </div>
 
   {/* Nav Items */}

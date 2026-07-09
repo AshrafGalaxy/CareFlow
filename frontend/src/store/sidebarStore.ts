@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type SidebarState = 'expanded' | 'collapsed' | 'hidden'
+export type SidebarState = 'expanded' | 'collapsed'
 
 interface SidebarStore {
   state: SidebarState
