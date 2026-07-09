@@ -45,8 +45,8 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
       </div>
       
       <div className="flex items-center gap-2 sm:gap-4">
-       {/* Zoom Controls */}
-       {(isImage || isPdf) && (
+       {/* Zoom Controls (Only for images since Google Docs Viewer has built-in controls for PDFs) */}
+       {isImage && (
         <div className="hidden sm:flex items-center bg-muted/50 rounded-lg p-1 border border-border/50">
          <button onClick={handleZoomOut} className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm" title="Zoom Out">
           <ZoomOut size={16} />
@@ -106,11 +106,11 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
        />
       </div>
      ) : isPdf ? (
-      <div className="w-full h-full overflow-hidden flex items-center justify-center bg-slate-200 dark:bg-slate-900">
+      <div className="w-full h-full overflow-hidden flex items-center justify-center bg-slate-200 dark:bg-slate-900 relative">
+       {/* Note: Google Docs Viewer handles its own zoom, so we don't apply CSS transform here to avoid double-scaling */}
        <iframe 
-        src={`${fileUrl}#toolbar=0&view=FitH&zoom=${Math.round(scale * 100)}`} 
-        className="w-full h-full border-0 bg-transparent transition-transform duration-200 ease-out" 
-        style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+        src={`https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`}
+        className="w-full h-full border-0 bg-transparent absolute inset-0" 
         title={fileName}
         onLoad={() => setIsLoading(false)}
        />
