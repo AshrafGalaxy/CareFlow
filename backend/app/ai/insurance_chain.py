@@ -1,88 +1,22 @@
 import json
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_groq import ChatGroq
-from langchain_community.vectorstores import FAISS
-from langchain_core.documents import Document
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from app.ai.prompts import INSURANCE_SYSTEM_PROMPT, PROCEDURE_EXTRACTION_PROMPT
 
-SCHEME_DOCS_PATH = "data/schemes_index"
 SCHEMES_DIR = "data/schemes"
-
 
 def _get_llm():
     groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key or groq_api_key.strip() == "":
+        raise ValueError("GROQ_API_KEY is missing. Insurance AI cannot function.")
 
-    if groq_api_key and groq_api_key.strip():
-        return ChatGroq(
-            model="llama-3.3-70b-versatile",
-            api_key=groq_api_key,
-            temperature=0.1,
-            max_retries=1
-        )
-
-    return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite",
+    return ChatGroq(
+        model="llama-3.3-70b-versatile",
+        api_key=groq_api_key,
         temperature=0.1,
         max_retries=1
     )
-
-
-async def build_scheme_index():
-    docs = []
-
-    for filename in os.listdir(SCHEMES_DIR):
-        if filename.endswith(".txt"):
-            filepath = os.path.join(SCHEMES_DIR, filename)
-
-            with open(filepath, encoding="utf-8") as f:
-                text = f.read()
-
-            splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=200
-            )
-
-            chunks = splitter.split_text(text)
-
-            for chunk in chunks:
-                docs.append(
-                    Document(
-                        page_content=chunk,
-                        metadata={"source": filename}
-                    )
-                )
-
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001"
-    )
-
-    store = FAISS.from_documents(docs, embeddings)
-
-    os.makedirs(SCHEME_DOCS_PATH, exist_ok=True)
-    store.save_local(SCHEME_DOCS_PATH)
-
-    return store
-
-
-async def get_scheme_retriever():
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001"
-    )
-
-    if os.path.exists(f"{SCHEME_DOCS_PATH}/index.faiss"):
-        store = FAISS.load_local(
-            SCHEME_DOCS_PATH,
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
-    else:
-        store = await build_scheme_index()
-
-    return store.as_retriever(search_kwargs={"k": 6})
-
 
 async def extract_procedure(query: str) -> str:
     llm = _get_llm()
@@ -99,7 +33,6 @@ async def extract_procedure(query: str) -> str:
 
     return extracted
 
-
 async def navigate_insurance(query: str, state: str = "Maharashtra") -> dict:
     """
     Main insurance navigator pipeline.
@@ -110,27 +43,23 @@ async def navigate_insurance(query: str, state: str = "Maharashtra") -> dict:
     print("USER QUERY:", query)
     print("EXTRACTED PROCEDURE:", procedure)
 
-    retriever = await get_scheme_retriever()
+    # Read all scheme text files for context instead of using FAISS/Embeddings
+    context_parts = []
+    if os.path.exists(SCHEMES_DIR):
+        for filename in os.listdir(SCHEMES_DIR):
+            if filename.endswith(".txt"):
+                filepath = os.path.join(SCHEMES_DIR, filename)
+                try:
+                    with open(filepath, encoding="utf-8") as f:
+                        context_parts.append(f.read())
+                except Exception as e:
+                    print(f"Error reading {filename}: {e}")
+                    
+    context = "\n\n".join(context_parts)
+    if not context.strip():
+        context = "No scheme documents found. Provide general insurance advice."
 
-    # Better retrieval query (uses full user context)
-    search_query = f"""
-    Patient Query: {query}
-    Extracted Procedure: {procedure}
-    State: {state}
-
-    Find relevant government insurance schemes, eligibility,
-    costs, coverage, and required documents.
-    """
-
-    print("RETRIEVAL QUERY:", search_query)
-
-    scheme_docs = await retriever.ainvoke(search_query)
-
-    context = "\n\n".join([
-        doc.page_content for doc in scheme_docs
-    ])
-
-    print("RETRIEVED DOCS:", len(scheme_docs))
+    print("LOADED SCHEMES CONTEXT LENGTH:", len(context))
 
     llm = _get_llm()
 
