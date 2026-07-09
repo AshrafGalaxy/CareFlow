@@ -161,10 +161,10 @@ export function TopNav() {
        </AnimatePresence>
       </div>
       {notifications.length > 0 && (
-       <div className="p-3 border-t border-border bg-slate-50 dark:bg-slate-950 text-center">
+       <div className="p-3 border-t border-border/50 dark:border-[#27272a] bg-slate-50/50 dark:bg-black/50 text-center">
         <button 
          onClick={markAllAsRead}
-         className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors w-full py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900"
+         className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors w-full py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#18181b]"
         >
          Mark all as read
         </button>
