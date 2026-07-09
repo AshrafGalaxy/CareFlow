@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User
+ LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
@@ -64,17 +64,7 @@ export function PatientSidebar() {
    transition={{ type: "spring", stiffness: 300, damping: 30 }}
    className="hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative z-20"
   >
-   {/* Toggle Button - Placed outside the border */}
-   <button 
-    onClick={toggleSidebar}
-    className="absolute -right-3 top-8 w-3 h-12 rounded-r-md border border-l-0 border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm z-50"
-   >
-    <div className="flex flex-col gap-[2px] items-center justify-center">
-     <span className="w-[2px] h-[2px] rounded-full bg-current" />
-     <span className="w-[2px] h-[2px] rounded-full bg-current" />
-     <span className="w-[2px] h-[2px] rounded-full bg-current" />
-    </div>
-   </button>
+
 
    {/* Brand */}
    <div className="flex items-center gap-2 p-5 border-b border-border bg-card h-[72px] shrink-0 relative overflow-hidden">
@@ -231,6 +221,32 @@ export function PatientSidebar() {
          className="relative z-10 group-hover:text-destructive transition-colors duration-300 whitespace-nowrap overflow-hidden"
         >
          Sign Out
+        </motion.span>
+       )}
+      </AnimatePresence>
+     </button>
+     
+     {/* Sidebar Toggle Button */}
+     <button
+      onClick={toggleSidebar}
+      title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+      className={cn(
+       "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground group transition-all duration-300 mt-2 border border-border/50 bg-muted/30 hover:bg-muted",
+       isCollapsed && "justify-center px-0"
+      )}
+     >
+      <div className="relative z-10 shrink-0 flex items-center justify-center h-[18px] w-[18px]">
+       {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+      </div>
+      <AnimatePresence>
+       {!isCollapsed && (
+        <motion.span 
+         initial={{ opacity: 0, width: 0 }}
+         animate={{ opacity: 1, width: "auto" }}
+         exit={{ opacity: 0, width: 0 }}
+         className="relative z-10 whitespace-nowrap overflow-hidden"
+        >
+         Collapse
         </motion.span>
        )}
       </AnimatePresence>
