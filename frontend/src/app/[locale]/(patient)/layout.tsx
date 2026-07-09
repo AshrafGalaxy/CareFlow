@@ -21,7 +21,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
   if (!hasHydrated) return
   if (!token) {
    router.replace("/login")
-  } else if (user?.role === "doctor") {
+  } else if (user?.role === "doctor" || user?.role === "provider") {
    router.replace("/doctor/dashboard")
   }
  }, [user, token, hasHydrated, router])
@@ -57,7 +57,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
   )
  }
 
- if (!token || user?.role === "doctor") return null
+ if (!token || user?.role === "doctor" || user?.role === "provider") return null
 
  return (
   <div className="flex h-screen overflow-hidden bg-background">
