@@ -68,10 +68,10 @@ export default function SettingsPage() {
           try {
             await api.delete("/api/auth/account")
             
-            // SECURITY: Purge ALL notification data from memory + localStorage
-            // BEFORE logout so no data bleeds into any future account session.
+            // SECURITY: Permanently erase this user's notification history.
+            // Unlike logout (which preserves data), deletion is irreversible.
             const notifStore = (await import('@/store/notificationStore')).useNotificationStore.getState()
-            notifStore.purgeForUser()
+            notifStore.purgeForUser(useAuthStore.getState().user?.id ?? "")
             
             useAuthStore.getState().logout()
             toast.success("Your account has been permanently deleted.")

@@ -31,10 +31,10 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
  }, [user, token, hasHydrated, router, pathname])
 
  const handleLogout = async () => {
-  // SECURITY: Purge all notifications before clearing auth so no data
-  // bleeds into a future session (different user, same device).
   const { useNotificationStore } = await import('@/store/notificationStore')
-  useNotificationStore.getState().purgeForUser()
+  // saveAndEject writes current notifications to user's personal localStorage key
+  // then clears in-memory state. Data is preserved for next login.
+  useNotificationStore.getState().saveAndEject()
   logout()
   const { toast } = await import('sonner')
   toast.success("Signed Out", {

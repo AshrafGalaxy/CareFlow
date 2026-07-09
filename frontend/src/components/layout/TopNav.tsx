@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { formatDistanceToNow } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
+import { useEffect } from "react"
 
 const pageTitles: Record<string, string> = {
  "/dashboard": "Dashboard",
@@ -39,8 +40,17 @@ const colorMap = {
 
 export function TopNav() {
  const user = useAuthStore((state) => state.user)
- const { notifications, markAllAsRead, markAsRead, _hasHydrated } = useNotificationStore()
+ const authHydrated = useAuthStore((state) => state._hasHydrated)
+ const { notifications, markAllAsRead, markAsRead, _hasHydrated, currentUserId, loadForUser } = useNotificationStore()
  const pathname = usePathname()
+
+ // Handle page refresh: auth store hydrates from localStorage but notification
+ // store is empty. This effect re-loads the user's notifications.
+ useEffect(() => {
+  if (authHydrated && user?.id && currentUserId !== user.id) {
+   loadForUser(user.id)
+  }
+ }, [authHydrated, user?.id, currentUserId, loadForUser])
 
  const initials = getInitials(user?.name)
  const title = Object.entries(pageTitles).find(([path]) => pathname.startsWith(path))?.[1] || "CareFlow AI"

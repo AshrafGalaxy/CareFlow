@@ -33,8 +33,9 @@ export default function LoginPage() {
     duration: 3000,
    })
 
-   // Add login notification to store
+   // Load this user's saved notifications (preserves history across sessions)
    const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.loadForUser(res.data.user.id)
    store.addNotification({
     title: "New Login Detected",
     message: `You successfully logged in to CareFlow AI on a new device/session.`,

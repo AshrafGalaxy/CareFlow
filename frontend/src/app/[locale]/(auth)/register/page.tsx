@@ -92,8 +92,9 @@ export default function RegisterPage() {
     duration: 3000,
    })
 
-   // Add registration notification to store
+   // New account — loadForUser first (starts fresh), then add welcome notification
    const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.loadForUser(loginRes.data.user.id)
    store.addNotification({
     title: "Welcome to CareFlow AI!",
     message: "Your secure health portal is ready. Explore features and take control of your health journey.",

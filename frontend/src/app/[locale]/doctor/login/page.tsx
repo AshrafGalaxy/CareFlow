@@ -53,8 +53,9 @@ export default function ProviderLogin() {
     duration: 3000,
    })
 
-   // Add login notification to store
+   // Load this doctor's saved notifications, then add login event
    const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.loadForUser(user.id)
    store.addNotification({
     title: "New Login Detected",
     message: `You successfully logged in to CareFlow Provider Portal on a new device/session.`,
