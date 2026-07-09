@@ -39,14 +39,6 @@ export function PatientSidebar() {
  const initials = getInitials(user?.name)
 
  const handleLogout = async () => {
-  // Add logout notification to store
-  const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
-  store.addNotification({
-   title: "Securely Signed Out",
-   message: "You have been logged out of your CareFlow AI account.",
-   type: "info"
-  })
-
   logout()
   toast.success(
    <div className="flex flex-col gap-1">

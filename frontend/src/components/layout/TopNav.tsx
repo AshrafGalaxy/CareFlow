@@ -110,19 +110,20 @@ export function TopNav() {
            <div className={`mt-0.5 h-9 w-9 rounded-full flex items-center justify-center shrink-0 shadow-sm ${colorMap[notif.type]}`}>
             {iconMap[notif.type]}
            </div>
-           <div className="flex flex-col gap-1.5 w-full pt-0.5">
-            <div className="flex items-center justify-between gap-2">
-             <p className={`text-sm font-semibold leading-none ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
+           <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-0.5">
+            <div className="flex items-start justify-between gap-2">
+             <p className={`text-sm font-semibold leading-tight truncate ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
               {notif.title}
              </p>
-             {!notif.isRead && <span className="h-1.5 w-1.5 rounded-full bg-sky-500 shadow-[0_0_5px_rgba(14,165,233,0.5)] shrink-0" />}
+             {!notif.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_5px_rgba(14,165,233,0.5)] shrink-0" />}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pr-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pr-2 line-clamp-2">
              {notif.message}
             </p>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">
-             {formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}
-            </span>
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wide">
+             <span className="uppercase">{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</span>
+             <span className="opacity-70">{new Date(notif.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>
+            </div>
            </div>
           </motion.div>
          ))

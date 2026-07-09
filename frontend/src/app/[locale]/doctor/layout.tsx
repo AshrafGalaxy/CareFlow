@@ -31,13 +31,6 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
  }, [user, token, hasHydrated, router, pathname])
 
  const handleLogout = async () => {
-  const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
-  store.addNotification({
-   title: "Securely Signed Out",
-   message: "You have been logged out of the Provider Portal.",
-   type: "info"
-  })
-
   logout()
   const { toast } = await import('sonner')
   const { LogOut } = await import('lucide-react')
