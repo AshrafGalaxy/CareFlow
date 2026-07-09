@@ -1,7 +1,7 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
-import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle } from "lucide-react"
+import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, Calendar, FileDown, Eye, MessageSquare, Flame } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
@@ -10,7 +10,7 @@ import api from "@/lib/api"
 import { API_ROUTES, APP_ROUTES, type ReportStatus } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -50,6 +50,7 @@ export default function DashboardPage() {
  const user = useAuthStore((state) => state.user)
  const firstName = user?.name?.split(" ")[0] || "there"
  const greeting = t("greeting") || getGreeting()
+ const [explainSimply, setExplainSimply] = useState(false)
 
  const { data, error, isLoading } = useSWR<Report[]>(
   API_ROUTES.REPORTS.LIST, 
@@ -151,6 +152,25 @@ export default function DashboardPage() {
 
  return (
   <div className="space-y-8">
+   {/* Urgent Alerts Banner (Mock) */}
+   <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+    <div className="absolute top-0 right-0 p-4 opacity-10">
+     <AlertCircle className="w-24 h-24 text-rose-500" />
+    </div>
+    <div className="flex items-center gap-3 relative z-10">
+     <div className="bg-rose-500/20 p-2.5 rounded-xl">
+      <Flame className="w-5 h-5 text-rose-600 dark:text-rose-400 animate-pulse" />
+     </div>
+     <div>
+      <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400">Action Required: Fasting for Labs</h3>
+      <p className="text-sm text-rose-600/80 dark:text-rose-400/80 font-medium">Please fast for 12 hours before your upcoming lab work tomorrow at 8:00 AM.</p>
+     </div>
+    </div>
+    <button className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shrink-0 relative z-10 shadow-sm">
+     Acknowledge
+    </button>
+   </div>
+
    {/* Welcome Banner */}
    <div className="flex items-start justify-between gap-4">
     <div>
@@ -181,16 +201,18 @@ export default function DashboardPage() {
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 relative z-10">
        {stat.label}
       </p>
-      <div className="flex items-end gap-3 mb-1 relative z-10">
+      <div className="flex items-center justify-between gap-3 mb-2 relative z-10">
        <p className="text-3xl font-bold text-foreground">{stat.value}</p>
        {stat.progress !== undefined && (
-        <div className="flex-1 pb-1.5 ml-2">
-         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-          <div 
-           className="h-full bg-emerald-500 rounded-full"
-           style={{ width: `${stat.progress}%` }}
+        <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
+         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" className="stroke-muted" strokeWidth="4" />
+          <circle 
+           cx="18" cy="18" r="14" fill="none" className="stroke-emerald-500 transition-all duration-1000 ease-out" 
+           strokeWidth="4" strokeDasharray="88" strokeDashoffset={88 - (88 * stat.progress) / 100} strokeLinecap="round" 
           />
-         </div>
+         </svg>
+         <span className="absolute text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{Math.round(stat.progress)}%</span>
         </div>
        )}
       </div>
@@ -199,6 +221,25 @@ export default function DashboardPage() {
       </p>
      </div>
     ))}
+   </div>
+
+   {/* Doctor's Memo */}
+   <div className="bg-amber-100/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500" />
+    <div className="flex items-start gap-4 relative z-10">
+     <div className="bg-amber-500/20 p-2.5 rounded-xl shrink-0 mt-0.5">
+      <MessageSquare className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+     </div>
+     <div className="flex-1">
+      <div className="flex items-center justify-between mb-1">
+       <h3 className="text-sm font-bold text-amber-900 dark:text-amber-500">Note from Dr. Jenkins</h3>
+       <span className="text-xs font-medium text-amber-700/60 dark:text-amber-500/60">2 hours ago</span>
+      </div>
+      <p className="text-sm text-amber-800/90 dark:text-amber-400/90 leading-relaxed italic">
+       "I've reviewed your latest HbA1c results and they look fantastic. Let's stick with the current metformin dosage. Keep up the good work!"
+      </p>
+     </div>
+    </div>
    </div>
 
    {/* Dynamic Biomarker Trends (Recharts) */}
@@ -213,32 +254,74 @@ export default function DashboardPage() {
       <BrainCircuit className="w-48 h-48 text-indigo-300" />
      </div>
      <div className="relative z-10">
-      <div className="flex items-center gap-2 mb-4">
-       <BrainCircuit className="w-5 h-5 text-indigo-400" />
-       <h2 className="text-lg font-bold text-white">Latest AI Insights</h2>
-       <span className="text-indigo-300/80 text-sm ml-2">— from {reports[0].original_filename}</span>
+      <div className="flex items-center justify-between mb-4">
+       <div className="flex items-center gap-2">
+        <BrainCircuit className="w-5 h-5 text-indigo-400" />
+        <h2 className="text-lg font-bold text-white">Latest AI Insights</h2>
+        <span className="text-indigo-300/80 text-sm ml-2 hidden sm:inline">— from {reports[0].original_filename}</span>
+       </div>
+       <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1.5 border border-white/10">
+         <span className="text-xs text-indigo-200 font-medium">Explain Simply</span>
+         <button 
+          onClick={() => setExplainSimply(!explainSimply)}
+          className={cn("w-8 h-4 rounded-full relative transition-colors duration-200", explainSimply ? "bg-indigo-500" : "bg-indigo-950 border border-white/20")}
+         >
+          <span className={cn("absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform duration-200", explainSimply ? "left-4" : "left-1")} />
+         </button>
+        </div>
+       </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-       <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-         <AlertCircle className="w-4 h-4 text-rose-400" />
-         <h3 className="text-sm font-semibold text-rose-100">Action Required</h3>
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Insight 1 */}
+        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+         <div>
+          <div className="flex items-center justify-between mb-2">
+           <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            <h3 className="text-sm font-semibold text-rose-100">Action Required</h3>
+           </div>
+           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsUp className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsDown className="w-3.5 h-3.5" /></button>
+           </div>
+          </div>
+          <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
+           {explainSimply 
+            ? "Your bad cholesterol (LDL) is higher than normal. The AI suggests booking an appointment to talk about adjusting your medication."
+            : <span>Your LDL Cholesterol was marked as <span className="text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.</span>
+           }
+          </p>
+         </div>
+         <button className="flex items-center justify-center gap-2 w-full py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold rounded-lg border border-rose-500/30 transition-colors">
+          <Calendar className="w-3.5 h-3.5" />
+          Schedule Follow-up
+         </button>
         </div>
-        <p className="text-sm text-indigo-100/80 leading-relaxed">
-         Your LDL Cholesterol was marked as <span className="text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.
-        </p>
-       </div>
-       <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-         <CheckCircle className="w-4 h-4 text-emerald-400" />
-         <h3 className="text-sm font-semibold text-emerald-100">On Track</h3>
+        
+        {/* Insight 2 */}
+        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+         <div>
+          <div className="flex items-center justify-between mb-2">
+           <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-semibold text-emerald-100">On Track</h3>
+           </div>
+           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsUp className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsDown className="w-3.5 h-3.5" /></button>
+           </div>
+          </div>
+          <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
+           {explainSimply 
+            ? "Your 3-month average blood sugar is completely normal! Keep up the great work with your diet."
+            : <span>Your HbA1c levels have improved to <span className="text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!</span>
+           }
+          </p>
+         </div>
         </div>
-        <p className="text-sm text-indigo-100/80 leading-relaxed">
-         Your HbA1c levels have improved to <span className="text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!
-        </p>
        </div>
-      </div>
      </div>
     </div>
    )}
@@ -284,27 +367,50 @@ export default function DashboardPage() {
       }
      />
     ) : (
-     <div className="divide-y divide-border/50">
-      {reports.map((report) => (
-       <Link
-        key={report.id}
-        href={APP_ROUTES.REPORT_DETAIL(report.id)}
-        className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors"
-       >
-        <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-         <FileText className="h-5 w-5 text-red-500 dark:text-red-400" />
+      <div className="divide-y divide-border/50">
+       {reports.map((report) => (
+        <div
+         key={report.id}
+         className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-muted/30 transition-colors group"
+        >
+         <Link href={APP_ROUTES.REPORT_DETAIL(report.id)} className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+           <FileText className="h-5 w-5 text-red-500 dark:text-red-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+           <p className="text-sm font-medium text-foreground truncate group-hover:text-sky-500 transition-colors">
+            {report.original_filename}
+           </p>
+           <p className="text-xs text-muted-foreground">
+            {formatRelativeTime(report.uploaded_at)}
+           </p>
+          </div>
+         </Link>
+         
+         <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+           <Link 
+            href={`${APP_ROUTES.CHAT}?reportId=${report.id}`}
+            className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors group/btn relative"
+           >
+            <BrainCircuit className="w-4 h-4" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">Ask AI</span>
+           </Link>
+           <Link 
+            href={APP_ROUTES.REPORT_DETAIL(report.id)}
+            className="p-1.5 text-muted-foreground hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors group/btn relative"
+           >
+            <Eye className="w-4 h-4" />
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">View PDF</span>
+           </Link>
+          </div>
+          
+          <div className="w-24 flex justify-end">
+           <StatusBadge status={report.processing_status} />
+          </div>
+         </div>
         </div>
-        <div className="flex-1 min-w-0">
-         <p className="text-sm font-medium text-foreground truncate">
-          {report.original_filename}
-         </p>
-         <p className="text-xs text-muted-foreground">
-          {formatRelativeTime(report.uploaded_at)}
-         </p>
-        </div>
-        <StatusBadge status={report.processing_status} />
-       </Link>
-      ))}
+       ))}
      </div>
     )}
    </div>

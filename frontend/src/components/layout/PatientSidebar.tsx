@@ -67,12 +67,12 @@ export function PatientSidebar() {
    {/* Toggle Button - Placed outside the border */}
    <button 
     onClick={toggleSidebar}
-    className="absolute -right-3 top-7 w-6 h-6 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm z-50"
+    className="absolute -right-3 top-8 w-3 h-12 rounded-r-md border border-l-0 border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm z-50"
    >
     <div className="flex flex-col gap-[2px] items-center justify-center">
-     <span className="w-0.5 h-0.5 rounded-full bg-current" />
-     <span className="w-0.5 h-0.5 rounded-full bg-current" />
-     <span className="w-0.5 h-0.5 rounded-full bg-current" />
+     <span className="w-[2px] h-[2px] rounded-full bg-current" />
+     <span className="w-[2px] h-[2px] rounded-full bg-current" />
+     <span className="w-[2px] h-[2px] rounded-full bg-current" />
     </div>
    </button>
 

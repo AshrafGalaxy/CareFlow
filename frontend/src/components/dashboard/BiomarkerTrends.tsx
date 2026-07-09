@@ -33,6 +33,24 @@ interface BiomarkerTrendsProps {
  reports: Report[]
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-black/90 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-xl">
+        <p className="text-white/60 text-xs font-medium mb-2">{data.fullTime}</p>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
+          <p className="text-white font-bold text-sm">
+            {data.originalValue}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
  const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null)
 
@@ -46,27 +64,29 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
   )
 
   // 2. Aggregate all biomarkers
-  const biomarkerMap = new Map<string, { date: string; value: number; originalValue: string }[]>()
+  const biomarkerMap = new Map<string, { date: string; fullTime: string; value: number; originalValue: string }[]>()
 
   sortedReports.forEach((report) => {
    if (!report.ai_highlights) return
    
    report.ai_highlights.forEach((highlight) => {
     // Extract numerical value
-    const match = highlight.value.match(/[\d.]+/)
-    if (match) {
-     const numValue = parseFloat(match[0])
-     const label = highlight.label.trim()
-     const dateStr = format(new Date(report.uploaded_at), "MMM d, yyyy")
+     const match = highlight.value.match(/[\d.]+/)
+     if (match) {
+      const numValue = parseFloat(match[0])
+      const label = highlight.label.trim()
+      const dateStr = format(new Date(report.uploaded_at), "MMM d, yyyy")
+      const fullTimeStr = format(new Date(report.uploaded_at), "MMM d, yyyy • h:mm a")
 
      if (!biomarkerMap.has(label)) {
       biomarkerMap.set(label, [])
      }
-     biomarkerMap.get(label)!.push({
-      date: dateStr,
-      value: numValue,
-      originalValue: highlight.value,
-     })
+      biomarkerMap.get(label)!.push({
+       date: dateStr,
+       fullTime: fullTimeStr,
+       value: numValue,
+       originalValue: highlight.value,
+      })
     }
    })
   })
@@ -160,14 +180,8 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
           className="text-muted-foreground"
          />
          <Tooltip 
-          contentStyle={{ 
-           backgroundColor: 'hsl(var(--card))', 
-           borderColor: 'hsl(var(--border))',
-           borderRadius: '0.75rem',
-           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-          }}
-          itemStyle={{ color: 'hsl(var(--foreground))' }}
-          labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '4px' }}
+          content={<CustomTooltip />}
+          cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }}
          />
          <Area 
           type="monotone" 
@@ -176,7 +190,7 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
           strokeWidth={3}
           fillOpacity={1} 
           fill="url(#colorValue)" 
-          activeDot={{ r: 6, fill: "#0ea5e9", stroke: "var(--card)", strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: "#0ea5e9", stroke: "#0284c7", strokeWidth: 2 }}
          />
         </AreaChart>
        </ResponsiveContainer>
