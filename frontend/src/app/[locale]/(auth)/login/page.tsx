@@ -77,6 +77,21 @@ export default function LoginPage() {
       </svg>
     </div>
 
+    {/* Floating Glassmorphism Cards */}
+    <div className="absolute top-1/4 right-8 z-10 animate-float" style={{ animationDuration: '6s' }}>
+      <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Secure Connection</span>
+      </div>
+    </div>
+    
+    <div className="absolute bottom-1/3 left-12 z-10 animate-float" style={{ animationDuration: '8s', animationDelay: '2s' }}>
+      <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <Activity className="w-3.5 h-3.5 text-sky-500" />
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">AI Active</span>
+      </div>
+    </div>
+
     <div className="relative z-20">
      <Link href="/" className="inline-flex items-center gap-3 mb-16 hover:opacity-80 transition-opacity cursor-pointer group">
       <div className="relative">
@@ -86,19 +101,19 @@ export default function LoginPage() {
       <span className="font-heading font-bold text-3xl tracking-tight text-slate-900 dark:text-white">CareFlow</span>
      </Link>
      
-     <div className="max-w-md mt-16 space-y-8">
+     <div className="max-w-md mt-20 space-y-6">
       <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-sky-50/80 dark:bg-white/5 border border-sky-100 dark:border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(56,189,248,0.1)] dark:shadow-[0_0_15px_rgba(56,189,248,0.15)]">
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
         </span>
-        <span className="text-xs font-bold uppercase tracking-widest text-sky-700 dark:text-sky-100">AI Engine Online</span>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-sky-700 dark:text-sky-100">AI Engine Online</span>
       </div>
-      <h1 className="text-5xl lg:text-6xl font-heading font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white">
+      <h1 className="text-4xl lg:text-5xl font-heading font-extrabold leading-[1.15] tracking-tight text-slate-800 dark:text-white">
        Your Health, <br />
-       <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-sky-700 dark:from-sky-300 dark:via-sky-100 dark:to-white drop-shadow-sm">Decoded by AI.</span>
+       <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-sky-600 to-emerald-500 dark:from-sky-300 dark:via-sky-100 dark:to-white drop-shadow-sm">Decoded by AI.</span>
       </h1>
-      <p className="text-slate-600 dark:text-sky-100/70 text-lg leading-relaxed font-medium max-w-sm">
+      <p className="text-slate-700 dark:text-sky-100/80 text-base leading-relaxed font-medium max-w-sm">
        Access your personalized health timeline, interact with our intelligent medical assistant, and take control of your well-being securely.
       </p>
      </div>
