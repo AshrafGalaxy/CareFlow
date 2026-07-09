@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, Activity, ShieldCheck, ChevronRight, UserCircle2, Stethoscope, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, Activity, ShieldCheck, ChevronRight, UserCircle2, Stethoscope, CheckCircle, ArrowUpCircle } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
@@ -70,8 +70,16 @@ export default function RegisterPage() {
  const router = useRouter()
  const setAuth = useAuthStore((state) => state.setAuth)
 
- const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({ mode: "onBlur" })
- const passwordValue = useWatch({ control, name: "password", defaultValue: "" })
+ const { register, handleSubmit, control, watch, formState: { errors, touchedFields } } = useForm<FormData>({ mode: "onBlur" })
+ const passwordValue = watch("password", "")
+ const emailValue = watch("email", "")
+ const [capsLock, setCapsLock] = useState(false)
+ 
+ const checkCapsLock = (e: any) => {
+  if (e.getModifierState) {
+   setCapsLock(e.getModifierState("CapsLock"))
+  }
+ }
 
  const onSubmit = async (data: FormData) => {
   setIsLoading(true)
@@ -273,6 +281,11 @@ export default function RegisterPage() {
                pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email format" } 
               })}
              />
+             {!errors.email && touchedFields.email && /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailValue) && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-emerald-500 bg-white dark:bg-slate-900 rounded-full">
+               <CheckCircle size={16} />
+              </div>
+             )}
            </div>
            {errors.email && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.email.message}</p>}
           </div>
@@ -287,6 +300,9 @@ export default function RegisterPage() {
             <input
              type={showPassword ? "text" : "password"}
              placeholder="••••••••"
+             onKeyUp={checkCapsLock}
+             onKeyDown={checkCapsLock}
+             onFocus={checkCapsLock}
              className={`relative w-full h-14 pl-5 pr-12 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.password ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
              {...register("password", { 
               required: "Password is required", 
@@ -294,6 +310,11 @@ export default function RegisterPage() {
               pattern: { value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-#])[A-Za-z\d@$!%*?&\-#]{8,}$/, message: "Must include uppercase, lowercase, number, and special char" }
              })}
             />
+            {capsLock && (
+              <div className="absolute right-12 top-1/2 -translate-y-1/2 text-amber-500 bg-white dark:bg-slate-900 px-1 tooltip" title="Caps Lock is ON">
+               <ArrowUpCircle size={16} />
+              </div>
+             )}
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-sky-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 z-10">
              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
