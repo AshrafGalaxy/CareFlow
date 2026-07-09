@@ -178,7 +178,9 @@ export default async function RootLayout({
        closeButton
        toastOptions={{
         classNames: {
-         toast: "group font-sans text-[14px] font-medium shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-4 backdrop-blur-2xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white overflow-hidden",
+         toast: "group flex items-start gap-4 w-full font-sans text-[14px] font-medium shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-4 backdrop-blur-2xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white overflow-hidden",
+         content: "flex-1 min-w-0 flex flex-col gap-1",
+         icon: "mt-0.5 shrink-0 flex items-center justify-center",
          title: "font-brand font-bold text-slate-900 dark:text-white text-[15px] tracking-tight",
          description: "text-slate-600 font-medium text-sm leading-relaxed dark:text-slate-400",
          actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-sm transition-transform hover:scale-105 active:scale-95",
