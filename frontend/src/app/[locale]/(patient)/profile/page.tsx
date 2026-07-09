@@ -44,7 +44,7 @@ export default function ProfilePage() {
         emergency_contact_name: emergencyContactName,
         emergency_contact_phone: emergencyContactPhone
       })
-      useAuthStore.getState().setAuth(res.data, useAuthStore.getState().accessToken!, useAuthStore.getState().refreshToken!)
+      useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
       toast.success("Profile updated successfully")
     } catch (error: any) {
       toast.error(error.response?.data?.detail || "Failed to update profile")

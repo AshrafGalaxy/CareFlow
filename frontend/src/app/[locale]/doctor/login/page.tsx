@@ -2,9 +2,8 @@
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { useRouter } from "@/i18n/routing"
-import { Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, Stethoscope, Lock } from "lucide-react"
+import { useRouter, Link } from "@/i18n/routing"
+import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ChevronRight, Stethoscope, BriefcaseMedical, Activity } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
@@ -65,29 +64,77 @@ export default function ProviderLogin() {
  }
 
  return (
-  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row relative">
+  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row relative overflow-hidden">
+   {/* Floating Controls */}
    <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
     <ThemeToggle />
     <LanguageSwitcher />
    </div>
 
-   <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12">
-    <div className="w-full max-w-[420px] space-y-8">
-     <div className="text-center space-y-3">
-      <div className="mx-auto w-16 h-16 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center rounded-2xl mb-6 shadow-sm border border-sky-200/50 dark:border-sky-800/50">
-       <Stethoscope className="w-8 h-8" />
+   {/* LEFT SIDE - VISUAL PANEL (DOCTOR THEME) */}
+   <div className="hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-indigo-800 via-blue-900 to-slate-900 dark:from-indigo-950 dark:via-blue-950 dark:to-slate-950 text-white overflow-hidden">
+    {/* Abstract Background SVG / Shapes */}
+    <div className="absolute inset-0 opacity-20 pointer-events-none">
+      <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gradDoc" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points="100,0 0,100 100,100" fill="url(#gradDoc)" />
+        <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+        <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+      </svg>
+    </div>
+    
+    <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+
+    <div className="relative z-10">
+     <div className="flex items-center gap-2 mb-16">
+      <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-xl">
+       <BriefcaseMedical className="h-6 w-6 text-indigo-200" />
       </div>
-      <h1 className="text-3xl font-heading font-bold text-foreground tracking-tight">
-       Doctor Portal
+      <span className="font-heading font-bold text-2xl tracking-tight text-white">CareFlow<span className="text-indigo-300">Provider</span></span>
+     </div>
+     
+     <div className="max-w-md mt-12 space-y-6">
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/90">Verified Personnel Only</span>
+      </div>
+      <h1 className="text-4xl lg:text-5xl font-heading font-bold leading-tight">
+       Modern Care, <br />
+       <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-sky-200">Elevated.</span>
       </h1>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-       Securely access patient records, review lab reports, and manage CareFlow prescriptions.
+      <p className="text-indigo-100/80 text-lg leading-relaxed font-medium">
+       Securely access patient records, review AI-analyzed labs, and manage prescriptions seamlessly from your clinical dashboard.
       </p>
      </div>
+    </div>
+    
+    <div className="relative z-10 flex items-center gap-4 text-sm font-medium text-indigo-200/60">
+      <span>CareFlow for Providers v2.0 • EMR Compliant</span>
+    </div>
+   </div>
 
-     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+   {/* RIGHT SIDE - FORM CONTAINER */}
+   <div className="w-full md:w-7/12 lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative bg-slate-50 dark:bg-slate-950">
+    
+    {/* Subtle grid background */}
+    <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" 
+         style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, black 1px, transparent 0)', backgroundSize: '40px 40px' }}>
+    </div>
+
+    <div className="w-full max-w-[440px] relative z-10">
+     <div className="mb-8">
+      <h2 className="text-3xl font-heading font-bold text-foreground mb-2">Doctor Portal</h2>
+      <p className="text-slate-500 dark:text-slate-400 font-medium">Authenticate to access clinical tools</p>
+     </div>
+
+     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {error && (
-       <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200/50 dark:border-red-900/50 flex items-start gap-3">
+       <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200/50 dark:border-red-900/50 flex items-start gap-3 mb-2">
         <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
         <p className="text-sm font-medium text-red-800 dark:text-red-300">
          {error}
@@ -95,108 +142,86 @@ export default function ProviderLogin() {
        </div>
       )}
 
-      <div className="space-y-4">
-       <div className="space-y-2">
-        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-         Email Address
-        </label>
-        <div className="relative">
-         <input
-          {...register("email", { 
-           required: "Email is required",
-           pattern: {
-            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: "Invalid email address"
-           }
-          })}
-          type="email"
-          placeholder="doctor@hospital.com"
-          className="input-base pl-4 pr-4"
-         />
-        </div>
-        {errors.email && (
-         <p className="text-xs font-medium text-red-500 mt-1">
-          {errors.email.message as string}
-         </p>
-        )}
-       </div>
+      {/* Email */}
+      <div className="space-y-1.5">
+       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+        Clinical Email
+       </label>
+       <input
+        type="email"
+        placeholder="doctor@hospital.org"
+        className={`w-full h-12 px-4 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm ${
+         errors.email ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-white dark:bg-slate-900"
+        }`}
+        {...register("email", { required: "Email is required" })}
+       />
+       {errors.email && (
+        <p className="flex items-center gap-1.5 text-xs font-medium text-red-500 mt-1">
+         <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+         {(errors as any).email.message}
+        </p>
+       )}
+      </div>
 
-       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-          Password
-         </label>
-        </div>
-        <div className="relative">
-         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-          <Lock className="h-5 w-5" />
-         </div>
-         <input
-          {...register("password", { required: "Password is required" })}
-          type={showPassword ? "text" : "password"}
-          placeholder="••••••••"
-          className="input-base pl-11 pr-12 font-mono"
-         />
-         <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-         >
-          {showPassword ? (
-           <EyeOff className="h-5 w-5" />
-          ) : (
-           <Eye className="h-5 w-5" />
-          )}
-         </button>
-        </div>
-        {errors.password && (
-         <p className="text-xs font-medium text-red-500 mt-1">
-          {errors.password.message as string}
-         </p>
-        )}
+      {/* Password */}
+      <div className="space-y-1.5">
+       <div className="flex items-center justify-between">
+        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+         Password
+        </label>
+       </div>
+       <div className="relative">
+        <input
+         type={showPassword ? "text" : "password"}
+         placeholder="••••••••"
+         className={`w-full h-12 pl-4 pr-11 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm ${
+          errors.password ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-white dark:bg-slate-900"
+         }`}
+         {...register("password", { required: "Password is required" })}
+        />
+        <button
+         type="button"
+         onClick={() => setShowPassword(!showPassword)}
+         className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
        </div>
       </div>
 
       <button
        type="submit"
        disabled={isLoading}
-       className="w-full btn-glow bg-sky-500 hover:bg-sky-600 text-white font-semibold h-12 rounded-xl flex items-center justify-center transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+       className="w-full h-12 mt-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 transform hover:-translate-y-0.5 active:translate-y-0"
       >
-       {isLoading ? (
-        <>
-         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-         Authenticating...
-        </>
-       ) : (
-        "Sign In securely"
-       )}
+       {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Access Dashboard <ChevronRight className="h-4 w-4" /></>}
       </button>
      </form>
 
-     <div className="text-center">
-      <Link
-       href="/login"
-       className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+     {/* Cross Navigation */}
+     <div className="mt-8 space-y-4">
+      <div className="relative">
+       <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border"></span></div>
+       <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-50 dark:bg-slate-950 px-2 text-muted-foreground font-semibold tracking-wider">Staff Options</span></div>
+      </div>
+      
+      <Link 
+       href="/register" 
+       className="w-full h-12 flex items-center justify-center gap-2 border-2 border-border hover:border-slate-300 dark:hover:border-slate-700 bg-transparent text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition-all duration-200"
       >
-       ← Back to Patient Portal
+       Register new provider
       </Link>
-     </div>
-    </div>
-   </div>
 
-   <div className="hidden md:flex md:w-1/2 bg-sky-600 relative overflow-hidden items-center justify-center">
-    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-    <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-    <div className="relative z-10 text-center px-12">
-     <div className="inline-flex items-center justify-center w-20 h-20 bg-card/10 rounded-2xl backdrop-blur-md mb-8 border border-white/20">
-      <Stethoscope className="w-10 h-10 text-white" />
+      <div className="pt-6 mt-6 border-t border-border/50 text-center">
+       <p className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-2">
+        <Activity className="w-4 h-4" />
+        Are you a patient?
+        <Link href="/login" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline underline-offset-4">
+         Patient Portal
+        </Link>
+       </p>
+      </div>
      </div>
-     <h2 className="text-4xl font-heading font-bold text-white mb-6">
-      CareFlow for Providers
-     </h2>
-     <p className="text-lg text-sky-100/90 font-medium leading-relaxed max-w-lg mx-auto">
-      Empowering doctors with AI-summarized insights, automated adherence tracking, and seamless patient communication.
-     </p>
     </div>
    </div>
   </div>
