@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 import uuid
 
 from app.database import get_db
@@ -43,6 +44,30 @@ async def followup_analytics(
     return await dashboard_service.get_followup_stats(doctor, db)
 
 
+class AssignPatientRequest(BaseModel):
+    patient_id: uuid.UUID
+
+
+@router.get("/patients/unassigned")
+async def list_unassigned_patients(
+    provider: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    return await dashboard_service.get_unassigned_patients(provider, db)
+
+
+@router.post("/patients/assign")
+async def assign_patient(
+    request: AssignPatientRequest,
+    provider: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    success = await dashboard_service.assign_patient(provider.id, request.patient_id, db)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found or not active")
+    return {"status": "success", "message": "Patient assigned successfully"}
+
+
 @router.get("/patients/{id}")
 async def patient_detail(
     id: uuid.UUID,
@@ -54,6 +79,7 @@ async def patient_detail(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return detail
 
+<<<<<<< Updated upstream
 from pydantic import BaseModel
 class MemoCreate(BaseModel):
     content: str
@@ -69,3 +95,34 @@ async def add_memo(
     if not memo:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to add memo for this patient")
     return memo
+=======
+
+@router.post("/patients/{id}/remove")
+async def remove_patient(
+    id: uuid.UUID,
+    provider: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    success = await dashboard_service.remove_patient(provider.id, id, db)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient assignment not found")
+    return {"status": "success", "message": "Patient removed successfully"}
+
+
+@router.get("/analytics/reports")
+async def list_recent_reports(
+    limit: int = 5,
+    provider: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    return await dashboard_service.get_recent_reports(provider, db, limit)
+
+
+@router.get("/analytics/upcoming-followups")
+async def list_upcoming_followups(
+    limit: int = 5,
+    provider: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    return await dashboard_service.get_upcoming_followups(provider, db, limit)
+>>>>>>> Stashed changes

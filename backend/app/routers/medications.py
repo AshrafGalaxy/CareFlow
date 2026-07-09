@@ -8,6 +8,7 @@ import uuid
 from app.database import get_db
 from app.models.user import User
 from app.models.medication import Medication, MedicationLog
+from app.models.provider import ProviderPatient
 from app.schemas.medication import (
     MedicationCreate, MedicationUpdate, MedicationResponse,
     MedicationLogCreate, MedicationLogUpdate, MedicationLogResponse,
@@ -21,6 +22,25 @@ from datetime import date
 router = APIRouter()
 
 
+def get_medication_for_user(medication_id: uuid.UUID, user: User, db: Session):
+    med = db.query(Medication).filter(Medication.id == medication_id).first()
+    if not med:
+        return None
+    if user.role == "admin":
+        return med
+    if user.id == med.user_id:
+        return med
+    if user.role == "doctor":
+        is_assigned = db.query(ProviderPatient).filter(
+            ProviderPatient.provider_id == user.id,
+            ProviderPatient.patient_id == med.user_id,
+            ProviderPatient.is_active == True
+        ).first()
+        if is_assigned:
+            return med
+    return None
+
+
 @router.post("/", response_model=MedicationResponse)
 async def create_medication(
     body: MedicationCreate,
@@ -28,8 +48,22 @@ async def create_medication(
     db: Session = Depends(get_db)
 ):
     """Create a new medication, embed into FAISS, add timeline event."""
+    target_user_id = user.id
+    if body.patient_id:
+        if user.role not in ["doctor", "admin"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create medication for patient")
+        if user.role != "admin":
+            is_assigned = db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == user.id,
+                ProviderPatient.patient_id == body.patient_id,
+                ProviderPatient.is_active == True
+            ).first()
+            if not is_assigned:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned to this provider")
+        target_user_id = body.patient_id
+
     med = Medication(
-        user_id=user.id,
+        user_id=target_user_id,
         name=body.name,
         dosage=body.dosage,
         frequency=body.frequency,
@@ -46,7 +80,7 @@ async def create_medication(
     # Embed into patient FAISS vector store
     try:
         await embed_medication(
-            user_id=str(user.id),
+            user_id=str(target_user_id),
             medication_name=body.name,
             dosage=body.dosage or "",
             frequency=body.frequency or "",
@@ -59,7 +93,7 @@ async def create_medication(
     try:
         await add_timeline_event(
             db=db,
-            user_id=str(user.id),
+            user_id=str(target_user_id),
             event_type="medication",
             event_date=body.start_date,
             title=f"Medication Added: {body.name}",
@@ -193,10 +227,8 @@ def update_medication(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update a medication (own only)."""
-    med = db.query(Medication).filter(
-        Medication.id == id, Medication.user_id == user.id
-    ).first()
+    """Update a medication (own or assigned patient)."""
+    med = get_medication_for_user(id, user, db)
     if not med:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
 
@@ -216,9 +248,7 @@ def delete_medication(
     db: Session = Depends(get_db)
 ):
     """Soft-delete a medication (set is_active=False)."""
-    med = db.query(Medication).filter(
-        Medication.id == id, Medication.user_id == user.id
-    ).first()
+    med = get_medication_for_user(id, user, db)
     if not med:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
 
@@ -235,9 +265,7 @@ def log_medication(
     db: Session = Depends(get_db)
 ):
     """Log a medication dose (taken/missed/skipped)."""
-    med = db.query(Medication).filter(
-        Medication.id == id, Medication.user_id == user.id
-    ).first()
+    med = get_medication_for_user(id, user, db)
     if not med:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
 

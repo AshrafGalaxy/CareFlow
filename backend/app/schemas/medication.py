@@ -12,8 +12,12 @@ class MedicationCreate(BaseModel):
     start_date: date
     end_date: Optional[date] = None
     notes: Optional[str] = None
+<<<<<<< Updated upstream
     hospital_notes: Optional[str] = None
     previous_dosage: Optional[str] = None
+=======
+    patient_id: Optional[UUID] = None
+>>>>>>> Stashed changes
 
 
 class MedicationUpdate(BaseModel):
