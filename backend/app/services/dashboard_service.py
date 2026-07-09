@@ -355,3 +355,139 @@ async def add_patient_memo(patient_id: uuid.UUID, doctor: User, content: str, db
         "content": memo.content,
         "created_at": memo.created_at
     }
+
+
+async def get_unassigned_patients(provider: User, db: Session):
+    """
+    Get a list of active patients who are not currently assigned to the provider.
+    """
+    assigned_subquery = db.query(ProviderPatient.patient_id).filter(
+        ProviderPatient.provider_id == provider.id,
+        ProviderPatient.is_active == True
+    )
+    unassigned_patients = db.query(User).filter(
+        User.role == "patient",
+        User.is_active == True,
+        ~User.id.in_(assigned_subquery)
+    ).all()
+
+    return [
+        {
+            "patient_id": p.id,
+            "name": p.name,
+            "email": p.email
+        } for p in unassigned_patients
+    ]
+
+
+async def assign_patient(provider_id: uuid.UUID, patient_id: uuid.UUID, db: Session):
+    """
+    Assign a patient to a provider. Sets is_active=True on ProviderPatient association.
+    """
+    patient = db.query(User).filter(User.id == patient_id, User.role == "patient", User.is_active == True).first()
+    if not patient:
+        return None
+
+    rel = db.query(ProviderPatient).filter(
+        ProviderPatient.provider_id == provider_id,
+        ProviderPatient.patient_id == patient_id
+    ).first()
+
+    if rel:
+        rel.is_active = True
+    else:
+        rel = ProviderPatient(
+            provider_id=provider_id,
+            patient_id=patient_id,
+            is_active=True
+        )
+        db.add(rel)
+
+    db.commit()
+    db.refresh(rel)
+    return rel
+
+
+async def remove_patient(provider_id: uuid.UUID, patient_id: uuid.UUID, db: Session):
+    """
+    Remove a patient from a provider (soft-remove relationship by setting is_active=False).
+    """
+    rel = db.query(ProviderPatient).filter(
+        ProviderPatient.provider_id == provider_id,
+        ProviderPatient.patient_id == patient_id,
+        ProviderPatient.is_active == True
+    ).first()
+
+    if not rel:
+        return False
+
+    rel.is_active = False
+    db.commit()
+    return True
+
+
+async def get_recent_reports(provider: User, db: Session, limit: int = 5):
+    """
+    Get the most recent reports uploaded by patients assigned to the provider.
+    """
+    if provider.role == "admin":
+        patient_ids_sub = db.query(User.id).filter(User.role == "patient", User.is_active == True)
+    else:
+        patient_ids_sub = db.query(ProviderPatient.patient_id).filter(
+            ProviderPatient.provider_id == provider.id,
+            ProviderPatient.is_active == True
+        )
+
+    reports = db.query(Report, User.name).join(
+        User, User.id == Report.user_id
+    ).filter(
+        Report.user_id.in_(patient_ids_sub)
+    ).order_by(
+        Report.uploaded_at.desc()
+    ).limit(limit).all()
+
+    return [
+        {
+            "id": r.Report.id,
+            "patient_name": r.name,
+            "original_filename": r.Report.original_filename,
+            "file_type": r.Report.file_type,
+            "processing_status": r.Report.processing_status,
+            "uploaded_at": r.Report.uploaded_at
+        } for r in reports
+    ]
+
+
+async def get_upcoming_followups(provider: User, db: Session, limit: int = 5):
+    """
+    Get upcoming follow-ups scheduled for patients assigned to the provider.
+    """
+    if provider.role == "admin":
+        patient_ids_sub = db.query(User.id).filter(User.role == "patient", User.is_active == True)
+    else:
+        patient_ids_sub = db.query(ProviderPatient.patient_id).filter(
+            ProviderPatient.provider_id == provider.id,
+            ProviderPatient.is_active == True
+        )
+
+    now_utc = datetime.now(timezone.utc)
+    followups = db.query(FollowUp, User.name).join(
+        User, User.id == FollowUp.user_id
+    ).filter(
+        FollowUp.user_id.in_(patient_ids_sub),
+        FollowUp.status == "scheduled",
+        FollowUp.appointment_date >= now_utc
+    ).order_by(
+        FollowUp.appointment_date.asc()
+    ).limit(limit).all()
+
+    return [
+        {
+            "id": f.FollowUp.id,
+            "patient_name": f.name,
+            "doctor_name": f.FollowUp.doctor_name,
+            "specialty": f.FollowUp.specialty,
+            "appointment_date": f.FollowUp.appointment_date,
+            "status": f.FollowUp.status
+        } for f in followups
+    ]

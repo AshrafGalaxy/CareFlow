@@ -10,6 +10,7 @@ class FollowUpCreate(BaseModel):
     appointment_date: datetime
     notes: Optional[str] = None
     status: str = "scheduled"
+    patient_id: Optional[UUID] = None
 
 
 class FollowUpUpdate(BaseModel):

@@ -6,11 +6,13 @@ import json
 from app.database import get_db
 from app.models.user import User
 from app.models.report import Report
+from app.models.provider import ProviderPatient
 from app.schemas.report import ReportResponse
 from app.middleware.auth_middleware import get_current_user
 from app.utils.storage import upload_file, delete_file
 from app.utils.file_processor import validate_file
 from app.services.report_service import process_report_ai, reanalyze_report_ai
+from typing import Optional
 import uuid
 from pydantic import BaseModel
 
@@ -21,6 +23,7 @@ router = APIRouter()
 async def upload_report(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    patient_id: Optional[uuid.UUID] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -30,6 +33,20 @@ async def upload_report(
 
     validate_file(file.content_type, file_size)
 
+    target_user_id = current_user.id
+    if patient_id:
+        if current_user.role not in ["doctor", "admin"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to upload on behalf of patient")
+        if current_user.role != "admin":
+            is_assigned = db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == current_user.id,
+                ProviderPatient.patient_id == patient_id,
+                ProviderPatient.is_active == True
+            ).first()
+            if not is_assigned:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned to this provider")
+        target_user_id = patient_id
+
     # Generate unique filename
     unique_filename = f"{uuid.uuid4()}_{file.filename}"
 
@@ -38,7 +55,7 @@ async def upload_report(
 
     # Create DB record with pending status
     new_report = Report(
-        user_id=current_user.id,
+        user_id=target_user_id,
         file_url=file_url,
         file_type=file.content_type,
         original_filename=file.filename,
@@ -54,7 +71,11 @@ async def upload_report(
         file_bytes=file_bytes,
         file_type=file.content_type,
         report_id=str(new_report.id),
+
         user_id=str(current_user.id)
+
+        user_id=str(target_user_id),
+        db=db
     )
 
     return new_report

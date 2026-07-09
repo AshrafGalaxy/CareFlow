@@ -16,6 +16,13 @@ async def add_timeline_event(
     Used by: report processing, medication creation, follow-up creation, insurance queries.
     """
     from app.models.timeline import HealthTimelineEvent
+    import uuid
+    
+    if isinstance(user_id, str):
+        user_id = uuid.UUID(user_id)
+    if isinstance(reference_id, str) and reference_id:
+        reference_id = uuid.UUID(reference_id)
+        
     event = HealthTimelineEvent(
         user_id=user_id,
         event_type=event_type,

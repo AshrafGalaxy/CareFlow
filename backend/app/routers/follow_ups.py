@@ -5,6 +5,7 @@ import uuid
 from app.database import get_db
 from app.models.user import User
 from app.models.follow_up import FollowUp
+from app.models.provider import ProviderPatient
 from app.schemas.follow_up import FollowUpCreate, FollowUpUpdate, FollowUpResponse
 from app.middleware.auth_middleware import get_current_user
 from app.utils.timeline_builder import add_timeline_event
@@ -30,8 +31,22 @@ async def create_follow_up(
     db: Session = Depends(get_db)
 ):
     """Create a new follow-up appointment."""
+    target_user_id = user.id
+    if body.patient_id:
+        if user.role not in ["doctor", "admin"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to schedule follow-up for patient")
+        if user.role != "admin":
+            is_assigned = db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == user.id,
+                ProviderPatient.patient_id == body.patient_id,
+                ProviderPatient.is_active == True
+            ).first()
+            if not is_assigned:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned to this provider")
+        target_user_id = body.patient_id
+
     fu = FollowUp(
-        user_id=user.id,
+        user_id=target_user_id,
         doctor_name=body.doctor_name,
         specialty=body.specialty,
         appointment_date=body.appointment_date,
@@ -46,7 +61,7 @@ async def create_follow_up(
     try:
         await add_timeline_event(
             db=db,
-            user_id=str(user.id),
+            user_id=str(target_user_id),
             event_type="followup",
             event_date=body.appointment_date.date(),
             title=f"Follow-up: {body.doctor_name or 'Doctor'}" + (f" ({body.specialty})" if body.specialty else ""),
