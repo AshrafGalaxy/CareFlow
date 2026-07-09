@@ -18,8 +18,19 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
  
  // Infer type if fileType is missing but we have an extension
  const lowerUrl = fileUrl?.toLowerCase() || ''
- const isImage = fileType?.startsWith('image/') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg')
  const isPdf = fileType === 'application/pdf' || lowerUrl.endsWith('.pdf')
+ 
+ // Cloudinary blocks direct PDF delivery on free tiers by default (returns 401 Unauthorized),
+ // but it allows on-the-fly conversion to images. We convert it to a high-quality JPG for preview!
+ let displayUrl = fileUrl;
+ let isImage = fileType?.startsWith('image/') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg')
+ let effectiveIsPdf = isPdf;
+
+ if (isPdf && fileUrl.includes('res.cloudinary.com')) {
+  displayUrl = fileUrl.replace(/\.pdf$/i, '.jpg');
+  isImage = true;
+  effectiveIsPdf = false;
+ }
 
  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3))
  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5))
@@ -97,7 +108,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
      {isImage ? (
       <div className="w-full h-full flex items-center justify-center p-8 overflow-auto">
        <motion.img 
-        src={fileUrl} 
+        src={displayUrl} 
         alt={fileName} 
         style={{ scale }}
         className="max-w-full max-h-full object-contain rounded-lg shadow-xl border border-border/50 origin-center transition-transform duration-200 ease-out"
@@ -105,7 +116,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
         onError={() => setIsLoading(false)}
        />
       </div>
-     ) : isPdf ? (
+     ) : effectiveIsPdf ? (
       <div className="w-full h-full overflow-hidden flex items-center justify-center bg-slate-200 dark:bg-slate-900 relative">
        {/* Note: Google Docs Viewer handles its own zoom, so we don't apply CSS transform here to avoid double-scaling */}
        <iframe 
