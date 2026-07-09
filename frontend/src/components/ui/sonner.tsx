@@ -1,121 +1,71 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 /**
- * We CANNOT use Tailwind `dark:` variant classes inside Sonner's `icons` prop
- * because Sonner renders toasts into a portal/shadow DOM that does NOT inherit
- * the root `<html class="dark">` Tailwind cascade.
+ * DIAGNOSTIC NOTES — READ BEFORE MODIFYING:
  *
- * The ONLY reliable solution is to:
- *  1. Use `resolvedTheme` from next-themes (gives us "light" or "dark" explicitly)
- *  2. Pass `theme` prop directly to <Sonner> (tells Sonner to set its own data-theme attribute)
- *  3. Use inline CSS colors on icon wrappers (not Tailwind dark: classes)
+ * 1. DO NOT add `richColors` prop to <Toaster> in layout.tsx.
+ *    richColors hardcodes Sonner's own white/black backgrounds and
+ *    completely overrides the CSS variable approach below.
+ *
+ * 2. DO NOT pass a custom `icon` prop in individual toast() calls
+ *    (e.g. toast.success("msg", { icon: <div className="h-8 w-8">...</div> })).
+ *    Sonner allocates ~16px for its icon slot. Oversized icons bleed
+ *    over the text. Use the global `icons` config here instead.
+ *
+ * 3. DO NOT pass JSX as the first argument to toast() (e.g. toast.success(<div>...)).
+ *    Always use: toast.success("Title", { description: "subtitle" })
+ *    Passing JSX as the message disrupts Sonner's internal flex layout.
+ *
+ * 4. `dark:` Tailwind classes work inside Sonner toasts because the portal
+ *    is appended to <body> which is inside <html class="dark">. The cascade
+ *    DOES reach it. However `richColors` (see point 1) disables this.
+ *
+ * 5. Use `resolvedTheme` (not `theme`) — resolvedTheme is never "system",
+ *    always "light" or "dark". This ensures Sonner's own data-theme
+ *    attribute is set correctly for its built-in styles.
  */
-
-type ThemeAwareIconProps = {
-  isDark: boolean
-  color: { light: string; dark: string }
-  bg: { light: string; dark: string }
-  children: React.ReactNode
-}
-
-function ThemeAwareIcon({ isDark, color, bg, children }: ThemeAwareIconProps) {
-  return (
-    <div
-      style={{
-        height: 24,
-        width: 24,
-        flexShrink: 0,
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: isDark ? bg.dark : bg.light,
-        color: isDark ? color.dark : color.light,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      }}
-    >
-      {children}
-    </div>
-  )
-}
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { resolvedTheme } = useTheme()
-  // Default to light until we know the real theme (avoids flicker)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
 
-  // resolvedTheme is "light" or "dark" — never "system"
-  const isDark = mounted ? resolvedTheme === "dark" : false
-  const sonnerTheme = isDark ? "dark" : "light"
-
-  const iconSize = { height: 14, width: 14 }
+  // resolvedTheme is "light" | "dark" | undefined (undefined only during SSR)
+  // We pass it directly so Sonner sets the correct data-theme on its container
+  const theme = (resolvedTheme ?? "light") as ToasterProps["theme"]
 
   return (
     <Sonner
-      theme={sonnerTheme}
+      theme={theme}
       className="toaster group"
-      icons={{
-        success: (
-          <ThemeAwareIcon
-            isDark={isDark}
-            color={{ light: "#059669", dark: "#34d399" }}
-            bg={{ light: "#d1fae5", dark: "rgba(6,78,59,0.6)" }}
-          >
-            <CircleCheckIcon style={iconSize} />
-          </ThemeAwareIcon>
-        ),
-        info: (
-          <ThemeAwareIcon
-            isDark={isDark}
-            color={{ light: "#0284c7", dark: "#38bdf8" }}
-            bg={{ light: "#e0f2fe", dark: "rgba(8,47,73,0.6)" }}
-          >
-            <InfoIcon style={iconSize} />
-          </ThemeAwareIcon>
-        ),
-        warning: (
-          <ThemeAwareIcon
-            isDark={isDark}
-            color={{ light: "#d97706", dark: "#fbbf24" }}
-            bg={{ light: "#fef3c7", dark: "rgba(69,26,3,0.6)" }}
-          >
-            <TriangleAlertIcon style={iconSize} />
-          </ThemeAwareIcon>
-        ),
-        error: (
-          <ThemeAwareIcon
-            isDark={isDark}
-            color={{ light: "#dc2626", dark: "#f87171" }}
-            bg={{ light: "#fee2e2", dark: "rgba(69,10,10,0.6)" }}
-          >
-            <OctagonXIcon style={iconSize} />
-          </ThemeAwareIcon>
-        ),
-        loading: (
-          <ThemeAwareIcon
-            isDark={isDark}
-            color={{ light: "#64748b", dark: "#94a3b8" }}
-            bg={{ light: "#f1f5f9", dark: "rgba(15,23,42,0.8)" }}
-          >
-            <Loader2Icon style={{ ...iconSize, animation: "spin 1s linear infinite" }} />
-          </ThemeAwareIcon>
-        ),
-      }}
+      position="top-right"
+      closeButton
       toastOptions={{
         classNames: {
+          // These group-[.toaster] selectors target elements whose
+          // ancestor has class="toaster". Sonner adds "toaster" to its
+          // container, so this cascade is reliable.
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-xl group-[.toaster]:rounded-2xl group-[.toaster]:font-sans group-[.toaster]:text-sm",
+          title:
+            "group-[.toast]:font-semibold group-[.toast]:text-foreground group-[.toast]:text-[14px] group-[.toast]:leading-snug",
+          description:
+            "group-[.toast]:text-muted-foreground group-[.toast]:text-[13px] group-[.toast]:mt-0.5 group-[.toast]:leading-relaxed",
           actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+            "group-[.toast]:bg-sky-500 group-[.toast]:text-white group-[.toast]:font-semibold group-[.toast]:rounded-lg group-[.toast]:px-3",
           cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-lg group-[.toast]:px-3",
+          closeButton:
+            "group-[.toast]:border-border group-[.toast]:bg-background group-[.toast]:text-muted-foreground",
+          success:
+            "group-[.toaster]:border-emerald-200 dark:group-[.toaster]:border-emerald-900/50",
+          error:
+            "group-[.toaster]:border-red-200 dark:group-[.toaster]:border-red-900/50",
+          warning:
+            "group-[.toaster]:border-amber-200 dark:group-[.toaster]:border-amber-900/50",
+          info:
+            "group-[.toaster]:border-sky-200 dark:group-[.toaster]:border-sky-900/50",
         },
       }}
       {...props}

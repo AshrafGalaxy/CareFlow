@@ -48,16 +48,10 @@ export default function ProviderLogin() {
    }
 
    setAuth(user, access_token, response.data.refresh_token)
-   toast.success(
-    <div className="flex flex-col gap-1">
-     <span className="font-heading font-bold text-foreground">Login Successful</span>
-     <span className="text-sm text-slate-600 dark:text-slate-300">Welcome back, Dr. {user.name.split(" ")[0]}! Securing clinical portal...</span>
-    </div>,
-    {
-     icon: <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]"><CheckCircle className="h-4 w-4" /></div>,
-     duration: 3000,
-    }
-   )
+   toast.success("Login Successful", {
+    description: `Welcome back, Dr. ${user.name.split(" ")[0]}! Securing clinical portal...`,
+    duration: 3000,
+   })
 
    // Add login notification to store
    const store = (await import('@/store/notificationStore')).useNotificationStore.getState()

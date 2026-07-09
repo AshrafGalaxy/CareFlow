@@ -44,16 +44,10 @@ export function PatientSidebar() {
   const { useNotificationStore } = await import('@/store/notificationStore')
   useNotificationStore.getState().purgeForUser()
   logout()
-  toast.success(
-   <div className="flex flex-col gap-1">
-    <span className="font-heading font-bold text-foreground">Signed Out</span>
-    <span className="text-sm text-muted-foreground">You have been securely logged out.</span>
-   </div>,
-   {
-    icon: <div className="h-8 w-8 bg-muted text-muted-foreground rounded-full flex items-center justify-center shadow-inner"><LogOut className="h-4 w-4" /></div>,
-    duration: 3000,
-   }
-  )
+  toast.success("Signed Out", {
+   description: "You have been securely logged out.",
+   duration: 3000,
+  })
   window.location.href = "/login"
  }
 

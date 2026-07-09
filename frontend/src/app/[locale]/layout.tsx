@@ -172,11 +172,7 @@ export default async function RootLayout({
        <PageTransition />
       </Suspense>
       {children}
-      <Toaster
-       position="top-right"
-       richColors
-       closeButton
-      />
+      <Toaster />
      </NextIntlClientProvider>
     </ThemeProvider>
    </body>
