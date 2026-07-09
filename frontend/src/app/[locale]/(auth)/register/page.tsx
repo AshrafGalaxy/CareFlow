@@ -229,7 +229,12 @@ export default function RegisterPage() {
              <input
               placeholder="John Doe"
               className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.name ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
-              {...register("name", { required: "Name is required" })}
+              {...register("name", { 
+               required: "Name is required",
+               pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters and spaces allowed" },
+               minLength: { value: 2, message: "Minimum 2 characters" },
+               maxLength: { value: 50, message: "Maximum 50 characters" }
+              })}
              />
            </div>
            {errors.name && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.name.message}</p>}
@@ -243,7 +248,10 @@ export default function RegisterPage() {
               type="email"
               placeholder="you@example.com"
               className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.email ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
-              {...register("email", { required: "Email is required", pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" } })}
+              {...register("email", { 
+               required: "Email is required", 
+               pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email format" } 
+              })}
              />
            </div>
            {errors.email && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.email.message}</p>}
@@ -260,7 +268,11 @@ export default function RegisterPage() {
              type={showPassword ? "text" : "password"}
              placeholder="••••••••"
              className={`relative w-full h-14 pl-5 pr-12 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.password ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
-             {...register("password", { required: "Required", minLength: { value: 8, message: "Min 8 chars" } })}
+             {...register("password", { 
+              required: "Password is required", 
+              minLength: { value: 8, message: "Minimum 8 characters" },
+              pattern: { value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-#])[A-Za-z\d@$!%*?&\-#]{8,}$/, message: "Must include uppercase, lowercase, number, and special char" }
+             })}
             />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-sky-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 z-10">
              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -296,8 +308,13 @@ export default function RegisterPage() {
             <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
             <input
              placeholder="e.g. 12345"
-             className="relative w-full h-14 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 text-foreground text-sm focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700 focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300"
-             {...register("nmcRegistrationNumber", { required: role === "doctor" ? "Required for doctors" : false })}
+             className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.nmcRegistrationNumber ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
+             {...register("nmcRegistrationNumber", { 
+              required: role === "doctor" ? "Required for doctors" : false,
+              pattern: { value: /^[A-Z0-9-]+$/i, message: "Only alphanumeric and hyphens allowed" },
+              minLength: { value: 4, message: "Minimum 4 characters" },
+              maxLength: { value: 20, message: "Maximum 20 characters" }
+             })}
             />
           </div>
           {errors.nmcRegistrationNumber && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.nmcRegistrationNumber.message}</p>}
@@ -309,10 +326,16 @@ export default function RegisterPage() {
              <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
              <input
               placeholder="e.g. SMC"
-              className="relative w-full h-14 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 text-foreground text-sm focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700 focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300"
-              {...register("medicalCouncil", { required: role === "doctor" ? "Required" : false })}
+              className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.medicalCouncil ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
+              {...register("medicalCouncil", { 
+               required: role === "doctor" ? "Required" : false,
+               pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters and spaces allowed" },
+               minLength: { value: 2, message: "Minimum 2 characters" },
+               maxLength: { value: 50, message: "Maximum 50 characters" }
+              })}
              />
             </div>
+            {errors.medicalCouncil && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.medicalCouncil.message}</p>}
            </div>
            <div className="space-y-2">
             <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Degree</label>
@@ -320,10 +343,15 @@ export default function RegisterPage() {
              <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
              <input
               placeholder="e.g. MBBS, MD"
-              className="relative w-full h-14 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 text-foreground text-sm focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700 focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300"
-              {...register("qualificationDegree", { required: role === "doctor" ? "Required" : false })}
+              className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.qualificationDegree ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
+              {...register("qualificationDegree", { 
+               required: role === "doctor" ? "Required" : false,
+               pattern: { value: /^[A-Za-z.,\s-]+$/, message: "Only letters, dots, commas, and hyphens" },
+               minLength: { value: 2, message: "Minimum 2 characters" }
+              })}
              />
             </div>
+            {errors.qualificationDegree && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.qualificationDegree.message}</p>}
            </div>
          </div>
         </div>

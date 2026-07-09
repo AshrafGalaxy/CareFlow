@@ -176,7 +176,10 @@ export default function ProviderLogin() {
             className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-300 focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 shadow-sm ${
              errors.email ? "border-red-400 focus:border-red-500 focus:ring-red-500/20 bg-red-50/50 dark:bg-red-950/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 hover:border-sky-300 dark:hover:border-sky-700"
             }`}
-            {...register("email", { required: "Email is required" })}
+            {...register("email", { 
+             required: "Email is required",
+             pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email format" }
+            })}
            />
          </div>
          {errors.email && (
