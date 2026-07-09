@@ -80,7 +80,8 @@ export default function ReportDetailPage() {
    await api.post(`/api/reports/${id}/reanalyze`)
    setReport(prev => prev ? { ...prev, processing_status: 'processing' } : prev)
   } catch {
-   alert('Failed to start re-analysis. Please try again.')
+   const { toast } = await import('sonner')
+   toast.error('Failed to start re-analysis. Please try again.')
    setReanalyzing(false)
   }
  }

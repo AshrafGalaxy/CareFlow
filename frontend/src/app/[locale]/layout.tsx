@@ -178,11 +178,15 @@ export default async function RootLayout({
        closeButton
        toastOptions={{
         classNames: {
-         toast: "font-sans text-[15px] font-medium shadow-xl border-slate-200/60 rounded-xl px-5 py-4 backdrop-blur-xl bg-card/80 /80 dark:border-slate-800",
-         title: "font-heading font-bold text-foreground ",
+         toast: "group font-sans text-[14px] font-medium shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/40 dark:border-white/10 rounded-2xl px-5 py-4 backdrop-blur-2xl bg-white/70 dark:bg-slate-900/70 overflow-hidden",
+         title: "font-brand font-bold text-foreground text-[15px] tracking-tight",
          description: "text-slate-600 font-medium text-sm leading-relaxed dark:text-slate-300",
-         actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-sm transition-colors",
-         cancelButton: "bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors dark:text-slate-300 dark:hover:bg-slate-700",
+         actionButton: "bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-sm transition-transform hover:scale-105 active:scale-95",
+         cancelButton: "bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700",
+         success: "border-emerald-100/50 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-emerald-950/70",
+         error: "border-red-100/50 dark:border-red-900/50 bg-red-50/70 dark:bg-red-950/70",
+         info: "border-sky-100/50 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/70",
+         warning: "border-amber-100/50 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-950/70",
         },
        }}
       />

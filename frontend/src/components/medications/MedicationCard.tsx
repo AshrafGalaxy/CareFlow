@@ -95,16 +95,26 @@ export function MedicationCard({ medication, onLogSuccess }: MedicationCardProps
  }
 
  const handleDelete = async () => {
-  if (confirm(`Are you sure you want to delete ${medication.name}?`)) {
-   try {
-    await api.delete(`/api/medications/${medication.id}`)
-    toast.success("Medication deleted")
-    onLogSuccess?.()
-   } catch (e) {
-    toast.error("Failed to delete medication")
-    console.error(e)
-   }
-  }
+  toast("Are you sure?", {
+   description: `Do you want to delete ${medication.name}?`,
+   action: {
+    label: "Delete",
+    onClick: async () => {
+     try {
+      await api.delete(`/api/medications/${medication.id}`)
+      toast.success("Medication deleted")
+      onLogSuccess?.()
+     } catch (e) {
+      toast.error("Failed to delete medication")
+      console.error(e)
+     }
+    }
+   },
+   cancel: {
+    label: "Cancel",
+    onClick: () => {}
+   },
+  })
  }
 
  const formatTime = (time: string) => {

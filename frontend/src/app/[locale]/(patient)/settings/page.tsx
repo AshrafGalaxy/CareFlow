@@ -60,17 +60,35 @@ export default function SettingsPage() {
   }
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.")
-    if (confirmed) {
-      try {
-        await api.delete("/api/auth/account")
-        toast.success("Account deleted successfully")
-        useAuthStore.getState().logout()
-        router.push("/")
-      } catch (error: any) {
-        toast.error(error.response?.data?.detail || "Failed to delete account")
+    toast("Danger Zone", {
+      description: "Are you sure you want to delete your account? This action cannot be undone.",
+      action: {
+        label: "Delete My Account",
+        onClick: async () => {
+          try {
+            await api.delete("/api/auth/account")
+            toast.success("Account deleted successfully")
+            
+            // Add notification to store before redirecting
+            const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+            store.addNotification({
+              title: "Account Deleted",
+              message: "Your account and all associated data have been permanently removed.",
+              type: "warning"
+            })
+            
+            useAuthStore.getState().logout()
+            router.push("/")
+          } catch (error: any) {
+            toast.error(error.response?.data?.detail || "Failed to delete account")
+          }
+        }
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {}
       }
-    }
+    })
   }
 
   const handleSubscribePush = async () => {
@@ -116,7 +134,15 @@ export default function SettingsPage() {
     setIsTesting(true)
     try {
       await api.post("/api/notifications/test")
-      toast.success("Test alarm triggered. Check your device notifications.")
+      
+      const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+      store.addNotification({
+        title: "Test Alarm Triggered",
+        message: "This is a real-time test notification for your medication alarms.",
+        type: "info"
+      })
+
+      toast.success("Test alarm triggered. Check your notifications.")
     } catch (error: any) {
       toast.error(error.response?.data?.detail || "Failed to trigger test alarm")
     } finally {

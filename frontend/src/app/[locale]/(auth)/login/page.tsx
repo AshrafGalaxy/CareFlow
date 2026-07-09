@@ -38,6 +38,15 @@ export default function LoginPage() {
      duration: 3000,
     }
    )
+
+   // Add login notification to store
+   const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.addNotification({
+    title: "New Login Detected",
+    message: `You successfully logged in to CareFlow AI on a new device/session.`,
+    type: "security"
+   })
+
    router.push(APP_ROUTES.DASHBOARD)
   } catch (err: unknown) {
    toast.error(

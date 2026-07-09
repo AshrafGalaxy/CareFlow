@@ -97,6 +97,15 @@ export default function RegisterPage() {
      duration: 3000,
     }
    )
+
+   // Add registration notification to store
+   const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.addNotification({
+    title: "Welcome to CareFlow AI!",
+    message: "Your secure health portal is ready. Explore features and take control of your health journey.",
+    type: "success"
+   })
+
    router.push(role === "doctor" ? "/doctor/dashboard" : APP_ROUTES.DASHBOARD)
   } catch (err: unknown) {
    toast.error(

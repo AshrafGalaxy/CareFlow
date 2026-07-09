@@ -6,6 +6,14 @@ interface User {
  email: string
  name: string
  role: string
+ phone?: string
+ abha_id?: string
+ date_of_birth?: string
+ blood_group?: string
+ state_residence?: string
+ emergency_contact_name?: string
+ emergency_contact_phone?: string
+ push_subscription?: string
 }
 
 interface AuthStore {

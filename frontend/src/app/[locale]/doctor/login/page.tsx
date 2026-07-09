@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ChevronRight, Activity, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ChevronRight, Activity, CheckCircle, Stethoscope } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
@@ -58,6 +58,14 @@ export default function ProviderLogin() {
      duration: 3000,
     }
    )
+
+   // Add login notification to store
+   const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
+   store.addNotification({
+    title: "New Login Detected",
+    message: `You successfully logged in to CareFlow Provider Portal on a new device/session.`,
+    type: "security"
+   })
    
    router.push("/doctor/dashboard")
   } catch (err: any) {
