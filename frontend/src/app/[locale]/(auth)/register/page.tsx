@@ -9,7 +9,7 @@ import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
 import { API_ROUTES, APP_ROUTES } from "@/lib/constants"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import Image from "next/image"
 
 type FormData = {
  name: string
@@ -103,11 +103,10 @@ export default function RegisterPage() {
    {/* Floating Controls */}
    <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
     <ThemeToggle />
-    <LanguageSwitcher />
    </div>
 
    {/* LEFT SIDE - VISUAL PANEL */}
-   <div className={`hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 text-white overflow-hidden transition-all duration-700 ${role === "patient" ? "bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-700 dark:from-sky-900 dark:via-sky-950 dark:to-indigo-950" : "bg-gradient-to-br from-indigo-800 via-blue-900 to-slate-900 dark:from-indigo-950 dark:via-blue-950 dark:to-slate-950"}`}>
+   <div className={`hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 text-white overflow-hidden transition-all duration-700 ${role === "patient" ? "bg-gradient-to-br from-sky-400 via-sky-500 to-sky-600 dark:from-sky-800 dark:via-sky-900 dark:to-slate-900" : "bg-gradient-to-br from-sky-600 via-sky-700 to-slate-800 dark:from-sky-900 dark:via-slate-900 dark:to-slate-950"}`}>
     {/* Abstract Background SVG / Shapes */}
     <div className="absolute inset-0 opacity-20 dark:opacity-30 pointer-events-none">
       <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -123,14 +122,12 @@ export default function RegisterPage() {
     </div>
     
     <div className="absolute -top-32 -left-32 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
-    <div className="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-indigo-400 opacity-20 rounded-full blur-3xl"></div>
+    <div className="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-sky-300 opacity-20 rounded-full blur-3xl"></div>
 
     <div className="relative z-10">
-     <div className="flex items-center gap-2 mb-16">
-      <div className="h-10 w-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-xl">
-       <Activity className="h-6 w-6 text-white" />
-      </div>
-      <span className="font-heading font-bold text-2xl tracking-tight">CareFlow<span className="text-sky-200">AI</span></span>
+     <div className="flex items-center gap-2.5 mb-16">
+      <Image src="/favicon.svg" alt="CareFlow Logo" width={40} height={40} className="drop-shadow-lg" />
+      <span className="font-heading font-bold text-2xl tracking-tight">CareFlow</span>
      </div>
      
      <div className="max-w-md mt-12 space-y-6">

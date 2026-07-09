@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/authStore"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import Image from "next/image"
 
 export default function ProviderLogin() {
  const [showPassword, setShowPassword] = useState(false)
@@ -68,11 +68,10 @@ export default function ProviderLogin() {
    {/* Floating Controls */}
    <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
     <ThemeToggle />
-    <LanguageSwitcher />
    </div>
 
    {/* LEFT SIDE - VISUAL PANEL (DOCTOR THEME) */}
-   <div className="hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-indigo-800 via-blue-900 to-slate-900 dark:from-indigo-950 dark:via-blue-950 dark:to-slate-950 text-white overflow-hidden">
+   <div className="hidden md:flex w-full md:w-5/12 lg:w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-sky-600 via-sky-700 to-slate-800 dark:from-sky-900 dark:via-slate-900 dark:to-slate-950 text-white overflow-hidden">
     {/* Abstract Background SVG / Shapes */}
     <div className="absolute inset-0 opacity-20 pointer-events-none">
       <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -88,14 +87,12 @@ export default function ProviderLogin() {
       </svg>
     </div>
     
-    <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+    <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-sky-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
     <div className="relative z-10">
-     <div className="flex items-center gap-2 mb-16">
-      <div className="h-10 w-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-xl">
-       <BriefcaseMedical className="h-6 w-6 text-indigo-200" />
-      </div>
-      <span className="font-heading font-bold text-2xl tracking-tight text-white">CareFlow<span className="text-indigo-300">Provider</span></span>
+     <div className="flex items-center gap-2.5 mb-16">
+      <Image src="/favicon.svg" alt="CareFlow Logo" width={40} height={40} className="drop-shadow-lg" />
+      <span className="font-heading font-bold text-2xl tracking-tight text-white">CareFlow</span>
      </div>
      
      <div className="max-w-md mt-12 space-y-6">
@@ -105,15 +102,15 @@ export default function ProviderLogin() {
       </div>
       <h1 className="text-4xl lg:text-5xl font-heading font-bold leading-tight">
        Modern Care, <br />
-       <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-sky-200">Elevated.</span>
+       <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-200 to-slate-200">Elevated.</span>
       </h1>
-      <p className="text-indigo-100/80 text-lg leading-relaxed font-medium">
+      <p className="text-sky-100/80 text-lg leading-relaxed font-medium">
        Securely access patient records, review AI-analyzed labs, and manage prescriptions seamlessly from your clinical dashboard.
       </p>
      </div>
     </div>
     
-    <div className="relative z-10 flex items-center gap-4 text-sm font-medium text-indigo-200/60">
+    <div className="relative z-10 flex items-center gap-4 text-sm font-medium text-sky-200/60">
       <span>CareFlow for Providers v2.0 • EMR Compliant</span>
     </div>
    </div>
@@ -150,7 +147,7 @@ export default function ProviderLogin() {
        <input
         type="email"
         placeholder="doctor@hospital.org"
-        className={`w-full h-12 px-4 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm ${
+        className={`w-full h-12 px-4 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-600 focus:border-sky-600 shadow-sm ${
          errors.email ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-white dark:bg-slate-900"
         }`}
         {...register("email", { required: "Email is required" })}
@@ -174,7 +171,7 @@ export default function ProviderLogin() {
         <input
          type={showPassword ? "text" : "password"}
          placeholder="••••••••"
-         className={`w-full h-12 pl-4 pr-11 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm ${
+         className={`w-full h-12 pl-4 pr-11 rounded-xl border text-foreground text-sm placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-600 focus:border-sky-600 shadow-sm ${
           errors.password ? "border-red-400 bg-red-50 dark:bg-red-950/50" : "border-border bg-white dark:bg-slate-900"
          }`}
          {...register("password", { required: "Password is required" })}
@@ -192,7 +189,7 @@ export default function ProviderLogin() {
       <button
        type="submit"
        disabled={isLoading}
-       className="w-full h-12 mt-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 transform hover:-translate-y-0.5 active:translate-y-0"
+       className="w-full h-12 mt-4 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-sky-600/20 hover:shadow-lg hover:shadow-sky-600/30 transform hover:-translate-y-0.5 active:translate-y-0"
       >
        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Access Dashboard <ChevronRight className="h-4 w-4" /></>}
       </button>
@@ -216,7 +213,7 @@ export default function ProviderLogin() {
        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-2">
         <Activity className="w-4 h-4" />
         Are you a patient?
-        <Link href="/login" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline underline-offset-4">
+        <Link href="/login" className="text-sky-600 dark:text-sky-400 font-bold hover:underline underline-offset-4">
          Patient Portal
         </Link>
        </p>
