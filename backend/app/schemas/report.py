@@ -26,6 +26,7 @@ class ReportResponse(ReportBase):
     processing_status: str
     processing_progress: str | None = None
     uploaded_at: datetime
+    analyzed_at: datetime | None = None
 
     class Config:
         from_attributes = True

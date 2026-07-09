@@ -1,5 +1,6 @@
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import date
 from app.ai.ocr import extract_text_from_file
 from app.ai.report_analyzer import analyze_report
@@ -67,6 +68,7 @@ async def process_report_ai(
         analysis = await analyze_report(ocr_text)
         report.ai_summary = analysis.get("summary", "")
         report.ai_highlights = analysis.get("highlights", [])
+        report.actionable_insights = analysis.get("actionable_insights", [])
         report.abnormal_values = analysis.get("abnormal_values", [])
         report.questions_for_doctor = analysis.get("questions_for_doctor", [])
         report.processing_progress = "Generating health timeline..."
@@ -89,6 +91,7 @@ async def process_report_ai(
         # Step 4: Add to health timeline
         report.processing_progress = "Done"
         report.processing_status = "done"
+        report.analyzed_at = func.now()
         db.commit()
 
         await add_timeline_event(
@@ -134,6 +137,7 @@ async def reanalyze_report_ai(report_id: str):
         analysis = await analyze_report(report.ocr_text)
         report.ai_summary = analysis.get("summary", "")
         report.ai_highlights = analysis.get("highlights", [])
+        report.actionable_insights = analysis.get("actionable_insights", [])
         report.abnormal_values = analysis.get("abnormal_values", [])
         report.questions_for_doctor = analysis.get("questions_for_doctor", [])
         
@@ -152,6 +156,7 @@ async def reanalyze_report_ai(report_id: str):
             print(f"Warning: Failed to embed report {report_id} into FAISS during re-analysis: {embed_err}")
 
         report.processing_status = "done"
+        report.analyzed_at = func.now()
         db.commit()
 
     except Exception as e:

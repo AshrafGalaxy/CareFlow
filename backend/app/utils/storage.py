@@ -19,3 +19,19 @@ async def upload_file(file_bytes: bytes, filename: str, folder: str = "careflow/
         public_id=f"{folder}/{filename}"
     )
     return result["secure_url"]
+
+async def delete_file(file_url: str):
+    """Delete a file from Cloudinary using its URL."""
+    try:
+        folder = "careflow/reports"
+        idx = file_url.find(folder)
+        if idx != -1:
+            public_id = file_url[idx:]
+            public_id_no_ext = public_id.rsplit('.', 1)[0]
+            
+            # Destroy using raw and image resource types to ensure it's deleted regardless of how Cloudinary categorized it
+            cloudinary.uploader.destroy(public_id, resource_type="raw")
+            cloudinary.uploader.destroy(public_id_no_ext, resource_type="image")
+    except Exception as e:
+        print(f"Failed to delete file from cloud: {e}")
+
