@@ -49,7 +49,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
 
  if (pathname.endsWith("/doctor/login")) {
   return (
-   <div className="min-h-screen bg-slate-50 dark:bg-background font-sans">
+   <div className="font-sans">
     <ErrorBoundary>{children}</ErrorBoundary>
    </div>
   )

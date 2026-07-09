@@ -102,14 +102,14 @@ export default function ProviderLogin() {
     </div>
 
     {/* Floating Glassmorphism Cards */}
-    <div className="absolute top-1/4 right-8 z-10 animate-float" style={{ animationDuration: '7s' }}>
+    <div className="hidden lg:flex absolute top-32 right-8 xl:right-12 z-10 animate-float" style={{ animationDuration: '7s' }}>
       <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <Stethoscope className="w-4 h-4 text-emerald-500" />
         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Provider Network</span>
       </div>
     </div>
     
-    <div className="absolute bottom-1/3 left-12 z-10 animate-float" style={{ animationDuration: '9s', animationDelay: '2s' }}>
+    <div className="hidden lg:flex absolute bottom-48 right-8 xl:right-12 z-10 animate-float" style={{ animationDuration: '9s', animationDelay: '2s' }}>
       <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <ShieldCheck className="w-4 h-4 text-sky-500" />
         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Encrypted</span>
@@ -122,7 +122,7 @@ export default function ProviderLogin() {
        <div className="absolute inset-0 bg-sky-200 dark:bg-sky-400 blur-md opacity-40 group-hover:opacity-70 transition-opacity"></div>
        <Image src="/favicon.svg" alt="CareFlow Logo" width={44} height={44} className="relative drop-shadow-sm dark:drop-shadow-xl" />
       </div>
-      <span className="font-heading font-bold text-3xl tracking-tight text-slate-900 dark:text-white">CareFlow</span>
+      <span className="font-brand font-bold text-3xl tracking-tight text-slate-900 dark:text-white">CareFlow <span className="text-sky-500">AI</span></span>
      </Link>
      
      <div className="max-w-md mt-20 space-y-6">
