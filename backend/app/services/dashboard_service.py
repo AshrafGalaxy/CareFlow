@@ -72,7 +72,14 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
     start_of_day = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc)
     end_of_day = datetime.combine(today, datetime.max.time(), tzinfo=timezone.utc)
     
-    patient_meds = db.query(Medication).filter(Medication.user_id == patient.id, Medication.is_active == True).all()
+    # Only active medications that have started and haven't ended
+    patient_meds = db.query(Medication).filter(
+        Medication.user_id == patient.id, 
+        Medication.is_active == True,
+        Medication.start_date <= today,
+    ).all()
+    # Filter by end_date in python
+    patient_meds = [m for m in patient_meds if not m.end_date or m.end_date >= today]
     patient_med_ids = [m.id for m in patient_meds]
     
     medications_today_total = 0
@@ -85,21 +92,41 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
             MedicationLog.medication_id.in_(patient_med_ids),
             MedicationLog.scheduled_time >= start_of_day,
             MedicationLog.scheduled_time <= end_of_day
-        ).order_by(MedicationLog.scheduled_time.asc()).all()
+        ).all()
         
-        medications_today_total = len(today_logs)
-        medications_today_taken = sum(1 for log in today_logs if log.status == "taken")
+        # Build dynamic schedule
+        schedule = []
+        for m in patient_meds:
+            medications_today_total += len(m.times_of_day or [])
+            for t_str in (m.times_of_day or []):
+                try:
+                    t_obj = datetime.strptime(t_str, "%H:%M").time()
+                    dt = datetime.combine(today, t_obj, tzinfo=timezone.utc)
+                    # Check if there is a log for this specific med and time (within 1 hr window for matching)
+                    log = next((l for l in today_logs if l.medication_id == m.id and abs((l.scheduled_time - dt).total_seconds()) < 3600), None)
+                    status = log.status if log else "scheduled"
+                    if status == "taken":
+                        medications_today_taken += 1
+                        
+                    schedule.append({
+                        "med": m,
+                        "scheduled_time": dt,
+                        "status": status
+                    })
+                except Exception:
+                    pass
+                    
+        schedule.sort(key=lambda x: x["scheduled_time"])
         
-        # Find the next scheduled medication that is not taken/skipped
-        for log in today_logs:
-            if log.status == "pending" or log.status is None or log.status == "scheduled":
-                med = next((m for m in patient_meds if m.id == log.medication_id), None)
-                if med:
+        for item in schedule:
+            if item["status"] in ["scheduled", "pending"]:
+                # Only show if it's the next one upcoming today
+                if item["scheduled_time"] >= now_utc or item["status"] == "scheduled":
                     next_medication = NextMedication(
-                        id=str(med.id),
-                        name=med.name,
-                        scheduled_time=log.scheduled_time,
-                        status=log.status or "scheduled"
+                        id=str(item["med"].id),
+                        name=item["med"].name,
+                        scheduled_time=item["scheduled_time"],
+                        status=item["status"]
                     )
                     break
 

@@ -28,6 +28,22 @@ Analyze this report and return ONLY this exact JSON structure:
   "abnormal_values": [
     {{"label": "Hemoglobin", "value": "10.2 g/dL", "reference_range": "12.0 - 15.5 g/dL", "concern": "Lower than typical range. Your doctor may want to discuss this with you."}}
   ],
+  "actionable_insights": [
+    {{
+      "type": "action_required",
+      "title": "Action Required",
+      "content_technical": "Your LDL Cholesterol was marked as High (160 mg/dL). The AI recommends scheduling a follow-up to discuss statin adjustments.",
+      "content_simple": "Your bad cholesterol (LDL) is higher than normal. The AI suggests booking an appointment to talk about adjusting your medication.",
+      "action_label": "Schedule Follow-up"
+    }},
+    {{
+      "type": "on_track",
+      "title": "On Track",
+      "content_technical": "Your HbA1c is 5.4%, indicating optimal glycemic control.",
+      "content_simple": "Your blood sugar levels are looking great over the last 3 months.",
+      "action_label": null
+    }}
+  ],
   "questions_for_doctor": [
     "Can you explain what my hemoglobin level of 10.2 means for me personally?",
     "Do I need any follow-up tests?",
@@ -38,6 +54,7 @@ Analyze this report and return ONLY this exact JSON structure:
 Rules:
 - status must be one of: "normal", "low", "high", "borderline"
 - Include 3-8 highlights
+- Include 1-3 actionable_insights, with type being one of: "action_required", "on_track", "warning". Use null for action_label if no action is needed.
 - Include 2-5 questions
 - If the report type is unclear, note that in the summary
 - NEVER include a diagnosis in any field
