@@ -71,28 +71,30 @@ export function TopNav() {
        )}
       </AnimatePresence>
      </PopoverTrigger>
-     <PopoverContent className="w-[340px] p-0 mr-6 mt-2 shadow-2xl border-white/40 dark:border-white/10 backdrop-blur-2xl bg-white/80 dark:bg-slate-900/80 rounded-2xl overflow-hidden" align="end">
-      <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-       <h3 className="font-brand font-bold text-foreground text-base tracking-tight">Notifications</h3>
+     <PopoverContent className="w-[380px] p-0 mr-6 mt-2 shadow-2xl border-border backdrop-blur-3xl bg-white/95 dark:bg-slate-950/95 rounded-2xl overflow-hidden" align="end">
+      <div className="p-4 border-b border-border flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+       <h3 className="font-heading font-bold text-foreground text-lg tracking-tight">Notifications</h3>
        {unreadCount > 0 && (
-        <span className="text-xs font-bold text-sky-600 bg-sky-100 dark:bg-sky-900/40 dark:text-sky-400 px-2.5 py-0.5 rounded-full ring-1 ring-sky-200 dark:ring-sky-800/50 shadow-inner">
+        <span className="text-xs font-bold text-sky-600 bg-sky-100 dark:bg-sky-900/40 dark:text-sky-400 px-3 py-1 rounded-full ring-1 ring-sky-200 dark:ring-sky-800/50 shadow-inner">
          {unreadCount} New
         </span>
        )}
       </div>
-      <div className="flex flex-col max-h-[360px] overflow-y-auto">
+      <div className="flex flex-col max-h-[400px] overflow-y-auto overflow-x-hidden">
        <AnimatePresence initial={false}>
         {_hasHydrated && notifications.length === 0 ? (
          <motion.div 
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
-          className="p-8 flex flex-col items-center justify-center text-center gap-3"
+          className="p-10 flex flex-col items-center justify-center text-center gap-4"
          >
-          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
-           <Bell className="w-5 h-5 opacity-50" />
+          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400 dark:text-slate-500 shadow-inner">
+           <Bell className="w-7 h-7 opacity-50" />
           </div>
-          <p className="text-sm font-semibold text-foreground">You're all caught up!</p>
-          <p className="text-xs text-slate-500 font-medium">No new notifications right now.</p>
+          <div>
+           <p className="text-base font-semibold text-foreground">You're all caught up!</p>
+           <p className="text-sm text-slate-500 mt-1">No new notifications right now.</p>
+          </div>
          </motion.div>
         ) : (
          notifications.map((notif) => (
@@ -103,26 +105,26 @@ export function TopNav() {
            animate={{ opacity: 1, y: 0 }}
            exit={{ opacity: 0, scale: 0.95 }}
            onClick={() => !notif.isRead && markAsRead(notif.id)}
-           className={`p-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer flex gap-4 ${
-            !notif.isRead ? 'bg-sky-50/30 dark:bg-sky-900/10' : ''
+           className={`p-4 border-b border-border hover:bg-slate-50/80 dark:hover:bg-slate-900/60 transition-all cursor-pointer flex gap-4 w-full ${
+            !notif.isRead ? 'bg-sky-50/40 dark:bg-sky-950/20' : ''
            }`}
           >
-           <div className={`mt-0.5 h-9 w-9 rounded-full flex items-center justify-center shrink-0 shadow-sm ${colorMap[notif.type]}`}>
+           <div className={`mt-0.5 h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-white/20 dark:border-white/5 ${colorMap[notif.type]}`}>
             {iconMap[notif.type]}
            </div>
            <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-0.5">
-            <div className="flex items-start justify-between gap-2">
-             <p className={`text-sm font-semibold leading-tight truncate ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
+            <div className="flex items-start justify-between gap-3 w-full">
+             <p className={`text-sm font-semibold leading-snug break-words ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
               {notif.title}
              </p>
-             {!notif.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_5px_rgba(14,165,233,0.5)] shrink-0" />}
+             {!notif.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)] shrink-0" />}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pr-2 line-clamp-2">
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed break-words w-full">
              {notif.message}
             </p>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wide">
-             <span className="uppercase">{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</span>
-             <span className="opacity-70">{new Date(notif.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-2 tracking-wider w-full">
+             <span className="uppercase bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</span>
+             <span className="opacity-60">{new Date(notif.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>
             </div>
            </div>
           </motion.div>
@@ -131,10 +133,10 @@ export function TopNav() {
        </AnimatePresence>
       </div>
       {notifications.length > 0 && (
-       <div className="p-3 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-950/80 text-center backdrop-blur-md">
+       <div className="p-3 border-t border-border bg-slate-50 dark:bg-slate-950 text-center">
         <button 
          onClick={markAllAsRead}
-         className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors w-full py-1.5"
+         className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors w-full py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900"
         >
          Mark all as read
         </button>
