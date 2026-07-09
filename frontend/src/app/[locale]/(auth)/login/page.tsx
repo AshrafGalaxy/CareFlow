@@ -31,6 +31,7 @@ export default function LoginPage() {
    toast.success("Login Successful", {
     description: `Welcome back, ${res.data.user.name.split(" ")[0]}! Securing your connection...`,
     duration: 3000,
+    icon: <ShieldCheck className="w-5 h-5 text-emerald-500" />,
    })
 
    // Load this user's saved notifications (preserves history across sessions)

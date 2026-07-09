@@ -40,6 +40,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   toast.success("Signed Out", {
    description: "You have securely exited the clinical portal.",
    duration: 3000,
+   icon: <LogOut className="w-5 h-5 text-sky-500" />
   })
   router.replace("/doctor/login")
  }

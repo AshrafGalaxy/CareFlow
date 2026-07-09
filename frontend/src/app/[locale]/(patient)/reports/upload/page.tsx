@@ -9,6 +9,7 @@ import api from "@/lib/api"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { formatFileSize } from "@/lib/formatters"
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_LABEL, ACCEPTED_FILE_LABELS, API_ROUTES } from "@/lib/constants"
+import { useNotificationStore } from "@/store/notificationStore"
 
 type UploadState = "idle" | "hover" | "selected" | "uploading" | "success" | "error"
 
@@ -60,6 +61,17 @@ export default function ReportUploadPage() {
     },
    })
    setStatus("success")
+   toast.success("Upload Successful", {
+    description: "Your report is securely uploaded. Analyzing now...",
+    icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+   })
+   useNotificationStore.getState().addNotification({
+    title: "Report Uploaded",
+    message: `Your document "${file.name}" was successfully uploaded and is being analyzed.`,
+    type: "system",
+    isRead: false,
+    timestamp: new Date().toISOString()
+   })
    setTimeout(() => router.push(`/reports/${res.data.id}`), 1500)
   } catch (error: unknown) {
    toast.error((error as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Failed to upload report")

@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { FileText, AlertCircle, CheckCircle, MessageSquare } from 'lucide-react'
+import { FileText, AlertCircle, CheckCircle, MessageSquare, BrainCircuit } from 'lucide-react'
 import api from '@/lib/api'
 import { AbnormalValueBadge } from '@/components/reports/AbnormalValueBadge'
 import { DoctorQuestions } from '@/components/reports/DoctorQuestions'
 import { useAuthStore } from '@/store/authStore'
+import { toast } from 'sonner'
+import { useNotificationStore } from '@/store/notificationStore'
 
 interface Highlight {
  label: string
@@ -156,7 +158,22 @@ export default function ReportDetailPage() {
         
         if (data.status === 'done' || data.status === 'failed') {
          // Final fetch to get all generated data
-         api.get(`/api/reports/${id}`).then(res => setReport(res.data))
+         api.get(`/api/reports/${id}`).then(res => {
+          setReport(res.data)
+          if (data.status === 'done') {
+           toast.success("Analysis Complete", {
+            description: "CareFlow AI has finished analyzing your medical report.",
+            icon: <BrainCircuit className="w-5 h-5 text-purple-500" />
+           })
+           useNotificationStore.getState().addNotification({
+            title: "Analysis Complete",
+            message: `AI has extracted insights from "${res.data.original_filename}".`,
+            type: "system",
+            isRead: false,
+            timestamp: new Date().toISOString()
+           })
+          }
+         })
          setReanalyzing(false)
          controller.abort()
          return

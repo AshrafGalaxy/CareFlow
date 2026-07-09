@@ -47,6 +47,7 @@ export function PatientSidebar() {
   toast.success("Signed Out", {
    description: "You have been securely logged out.",
    duration: 3000,
+   icon: <LogOut className="w-5 h-5 text-sky-500" />
   })
   window.location.href = "/login"
  }

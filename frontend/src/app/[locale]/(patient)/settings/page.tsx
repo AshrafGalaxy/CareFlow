@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Lock, AlertTriangle, Settings, Bell, Palette } from "lucide-react"
+import { Lock, AlertTriangle, Settings, Bell, Palette, CheckCircle2 } from "lucide-react"
 import api from "@/lib/api"
 import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
+import { useNotificationStore } from "@/store/notificationStore"
 
 // Utility to convert VAPID key
 function urlBase64ToUint8Array(base64String: string) {
@@ -50,7 +51,17 @@ export default function SettingsPage() {
         current_password: currentPassword,
         new_password: newPassword
       })
-      toast.success("Password changed successfully")
+      toast.success("Password changed successfully", {
+        description: "Your account security has been updated.",
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+      })
+      useNotificationStore.getState().addNotification({
+        title: "Security Update",
+        message: "Your password was changed successfully.",
+        type: "security",
+        isRead: false,
+        timestamp: new Date().toISOString()
+      })
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")

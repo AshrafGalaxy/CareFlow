@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { User, Lock, AlertTriangle } from "lucide-react"
+import { User, Lock, AlertTriangle, CheckCircle2 } from "lucide-react"
 import api from "@/lib/api"
 import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
+import { useNotificationStore } from "@/store/notificationStore"
 
 export default function ProfilePage() {
  const user = useAuthStore((state) => state.user)
@@ -45,7 +46,17 @@ export default function ProfilePage() {
         emergency_contact_phone: emergencyContactPhone
       })
       useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
-      toast.success("Profile updated successfully")
+      toast.success("Profile updated successfully", {
+        description: "Your personal details have been saved.",
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+      })
+      useNotificationStore.getState().addNotification({
+        title: "Profile Updated",
+        message: "Your personal information was updated successfully.",
+        type: "system",
+        isRead: false,
+        timestamp: new Date().toISOString()
+      })
     } catch (error: any) {
       toast.error(error.response?.data?.detail || "Failed to update profile")
     } finally {

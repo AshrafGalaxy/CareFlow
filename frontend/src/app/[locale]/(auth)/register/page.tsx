@@ -90,6 +90,7 @@ export default function RegisterPage() {
    toast.success("Registration Successful", {
     description: "Welcome to CareFlow! Loading your secure environment...",
     duration: 3000,
+    icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
    })
 
    // New account — loadForUser first (starts fresh), then add welcome notification

@@ -51,6 +51,7 @@ export default function ProviderLogin() {
    toast.success("Login Successful", {
     description: `Welcome back, Dr. ${user.name.split(" ")[0]}! Securing clinical portal...`,
     duration: 3000,
+    icon: <ShieldCheck className="w-5 h-5 text-indigo-500" />,
    })
 
    // Load this doctor's saved notifications, then add login event

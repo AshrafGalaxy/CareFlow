@@ -8,7 +8,7 @@ import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
-import { formatDistanceToNow } from "date-fns"
+import { RelativeTime } from "@/components/ui/relative-time"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect } from "react"
 
@@ -41,7 +41,7 @@ const colorMap = {
 export function TopNav() {
  const user = useAuthStore((state) => state.user)
  const authHydrated = useAuthStore((state) => state._hasHydrated)
- const { notifications, markAllAsRead, markAsRead, _hasHydrated, currentUserId, loadForUser } = useNotificationStore()
+ const { notifications, markAllAsRead, markAsRead, _hasHydrated, currentUserId, loadForUser, clearAll } = useNotificationStore()
  const pathname = usePathname()
 
  // Handle page refresh: auth store hydrates from localStorage but notification
@@ -81,13 +81,29 @@ export function TopNav() {
        )}
       </AnimatePresence>
      </PopoverTrigger>
-     <PopoverContent className="w-[380px] p-0 mr-6 mt-2 shadow-2xl border-border backdrop-blur-3xl bg-white/95 dark:bg-slate-950/95 rounded-2xl overflow-hidden" align="end">
-      <div className="p-4 border-b border-border flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-       <h3 className="font-heading font-bold text-foreground text-lg tracking-tight">Notifications</h3>
-       {unreadCount > 0 && (
-        <span className="text-xs font-bold text-sky-600 bg-sky-100 dark:bg-sky-900/40 dark:text-sky-400 px-3 py-1 rounded-full ring-1 ring-sky-200 dark:ring-sky-800/50 shadow-inner">
-         {unreadCount} New
-        </span>
+     <PopoverContent className="w-[380px] p-0 mr-6 mt-2 shadow-2xl border-border/40 dark:border-[#27272a] backdrop-blur-3xl bg-white/95 dark:bg-black/95 rounded-2xl overflow-hidden" align="end">
+      <div className="p-4 border-b border-border/50 dark:border-[#27272a] flex items-center justify-between bg-slate-50/50 dark:bg-black/50">
+       <div className="flex items-center gap-3">
+        <h3 className="font-heading font-bold text-foreground text-lg tracking-tight">Notifications</h3>
+        {unreadCount > 0 && (
+         <span className="text-xs font-bold text-sky-600 bg-sky-100 dark:bg-sky-900/40 dark:text-sky-400 px-3 py-1 rounded-full ring-1 ring-sky-200 dark:ring-sky-800/50 shadow-inner">
+          {unreadCount} New
+         </span>
+        )}
+       </div>
+       {notifications.length > 0 && (
+        <button 
+         onClick={() => {
+           clearAll()
+           const notifStore = useNotificationStore.getState()
+           if (notifStore.currentUserId) {
+             localStorage.setItem(`careflow-notifications-${notifStore.currentUserId}`, JSON.stringify([]))
+           }
+         }}
+         className="text-[11px] font-semibold text-muted-foreground hover:text-red-500 dark:hover:text-red-400 transition-colors uppercase tracking-wider"
+        >
+         Clear All
+        </button>
        )}
       </div>
       <div className="flex flex-col max-h-[400px] overflow-y-auto overflow-x-hidden">
@@ -108,36 +124,36 @@ export function TopNav() {
          </motion.div>
         ) : (
          notifications.map((notif) => (
-          <motion.div
-           key={notif.id}
-           layout
-           initial={{ opacity: 0, y: -10 }}
-           animate={{ opacity: 1, y: 0 }}
-           exit={{ opacity: 0, scale: 0.95 }}
-           onClick={() => !notif.isRead && markAsRead(notif.id)}
-           className={`p-4 border-b border-border hover:bg-slate-50/80 dark:hover:bg-slate-900/60 transition-all cursor-pointer flex gap-4 w-full ${
-            !notif.isRead ? 'bg-sky-50/40 dark:bg-sky-950/20' : ''
-           }`}
-          >
-           <div className={`mt-0.5 h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-white/20 dark:border-white/5 ${colorMap[notif.type]}`}>
-            {iconMap[notif.type]}
-           </div>
-           <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-0.5">
-            <div className="flex items-start justify-between gap-3 w-full">
-             <p className={`text-sm font-semibold leading-snug break-words ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
-              {notif.title}
+           <motion.div
+            key={notif.id}
+            layout
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            onClick={() => !notif.isRead && markAsRead(notif.id)}
+            className={`p-4 border-b border-border/40 dark:border-[#27272a]/50 hover:bg-slate-50/80 dark:hover:bg-[#18181b]/80 transition-all cursor-pointer flex gap-4 w-full ${
+             !notif.isRead ? 'bg-sky-50/40 dark:bg-sky-950/10' : ''
+            }`}
+           >
+            <div className={`mt-0.5 h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-white/20 dark:border-white/5 ${colorMap[notif.type]}`}>
+             {iconMap[notif.type]}
+            </div>
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-0.5">
+             <div className="flex items-start justify-between gap-3 w-full">
+              <p className={`text-sm font-semibold leading-snug break-words ${!notif.isRead ? 'text-foreground' : 'text-slate-600 dark:text-slate-300'}`}>
+               {notif.title}
+              </p>
+              {!notif.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)] shrink-0" />}
+             </div>
+             <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed break-words w-full">
+              {notif.message}
              </p>
-             {!notif.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)] shrink-0" />}
+             <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-2 tracking-wider w-full">
+              <RelativeTime timestamp={notif.timestamp} className="uppercase bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-md" />
+              <span className="opacity-60">{new Date(notif.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>
+             </div>
             </div>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed break-words w-full">
-             {notif.message}
-            </p>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-2 tracking-wider w-full">
-             <span className="uppercase bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</span>
-             <span className="opacity-60">{new Date(notif.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>
-            </div>
-           </div>
-          </motion.div>
+           </motion.div>
          ))
         )}
        </AnimatePresence>
