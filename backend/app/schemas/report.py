@@ -18,13 +18,15 @@ class ReportResponse(ReportBase):
     file_url: str
     ocr_text: Optional[str] = None
     ai_summary: Optional[str] = None
-    ai_highlights: List[Any] = []
-    abnormal_values: List[Any] = []
-    questions_for_doctor: List[Any] = []
-    report_date: date | None = None
+    ai_highlights: Optional[List[Any]] = []
+    actionable_insights: Optional[List[Any]] = []
+    abnormal_values: Optional[List[Any]] = []
+    questions_for_doctor: Optional[List[Any]] = []
+    report_date: Optional[date] = None
     processing_status: str
     processing_progress: str | None = None
     uploaded_at: datetime
+    analyzed_at: datetime | None = None
 
     class Config:
         from_attributes = True

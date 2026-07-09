@@ -92,7 +92,8 @@ def get_adherence(
     db: Session = Depends(get_db)
 ):
     """Calculate medication adherence for the last N days."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    now_utc = datetime.now(timezone.utc)
+    cutoff = now_utc - timedelta(days=days)
 
     # Get all user medications
     user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
@@ -110,34 +111,62 @@ def get_adherence(
         MedicationLog.scheduled_time >= cutoff
     ).all()
 
-    total = len(logs)
-    taken = sum(1 for l in logs if l.status == "taken")
-    missed = sum(1 for l in logs if l.status == "missed")
-    skipped = sum(1 for l in logs if l.status == "skipped")
-    adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
-
     # Breakdown by medication
-    med_map = {str(m.id): m for m in user_meds}
     by_med: dict[str, dict] = {}
+    for m in user_meds:
+        mid = str(m.id)
+        
+        # Calculate expected historical doses for this medication dynamically
+        # Start from the later of (start_date, cutoff.date())
+        # End at today.date()
+        m_start = m.start_date
+        c_start = cutoff.date()
+        effective_start = max(m_start, c_start)
+        
+        m_end = m.end_date if m.end_date else now_utc.date()
+        effective_end = min(m_end, now_utc.date())
+        
+        expected_doses = 0
+        if effective_start <= effective_end:
+            days_active = (effective_end - effective_start).days + 1
+            daily_doses = len(m.times_of_day or [])
+            expected_doses = days_active * daily_doses
+            
+        by_med[mid] = {"total": expected_doses, "taken": 0, "missed": 0, "skipped": 0, "med": m}
+
     for log in logs:
         mid = str(log.medication_id)
-        if mid not in by_med:
-            by_med[mid] = {"total": 0, "taken": 0, "missed": 0, "skipped": 0}
-        by_med[mid]["total"] += 1
-        by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
+        if mid in by_med:
+            # Only count statuses towards actuals
+            if log.status in ["taken", "missed", "skipped"]:
+                by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
+
+    total = sum(d["total"] for d in by_med.values())
+    taken = sum(d["taken"] for d in by_med.values())
+    missed = sum(d["missed"] for d in by_med.values())
+    skipped = sum(d["skipped"] for d in by_med.values())
+    
+    # If the user has "missed" logs but we want to infer missed from total:
+    # A user might not click "missed", so inferred missed = total - taken - skipped
+    inferred_missed = max(0, total - taken - skipped)
+    
+    adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
 
     by_medication = []
     for mid, counts in by_med.items():
-        med_obj = med_map.get(mid)
+        med_obj = counts["med"]
         t = counts["total"]
         tak = counts.get("taken", 0)
+        skip = counts.get("skipped", 0)
+        # Infer missed for the individual medication
+        inf_miss = max(0, t - tak - skip)
         by_medication.append(AdherenceByMedication(
             medication_id=mid,
             medication_name=med_obj.name if med_obj else "Unknown",
             total=t,
             taken=tak,
-            missed=counts.get("missed", 0),
-            skipped=counts.get("skipped", 0),
+            missed=inf_miss,
+            skipped=skip,
             adherence_rate=round((tak / t * 100), 1) if t > 0 else 0.0
         ))
 

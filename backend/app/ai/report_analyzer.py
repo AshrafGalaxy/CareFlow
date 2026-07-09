@@ -63,23 +63,18 @@ async def analyze_report(ocr_text: str) -> dict:
         HumanMessage(content=REPORT_ANALYSIS_USER_PROMPT.format(ocr_text=ocr_text[:4000]))
     ]
 
-    # Use Groq (fast, reliable, high limits) with Gemini as fallback
+    # Use Groq exclusively
     groq_api_key = os.getenv("GROQ_API_KEY")
-    if groq_api_key and groq_api_key.strip():
-        from langchain_groq import ChatGroq
-        llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
-            api_key=groq_api_key,
-            temperature=0.1,
-            max_retries=1
-        )
-    else:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
-            temperature=0.1,
-            max_retries=1
-        )
+    if not groq_api_key or groq_api_key.strip() == "":
+        raise ValueError("GROQ_API_KEY is missing. Analysis cannot function.")
+        
+    from langchain_groq import ChatGroq
+    llm = ChatGroq(
+        model="llama-3.3-70b-versatile",
+        api_key=groq_api_key,
+        temperature=0.1,
+        max_retries=1
+    )
 
     try:
         response = await llm.ainvoke(messages)
@@ -88,6 +83,7 @@ async def analyze_report(ocr_text: str) -> dict:
         return {
             "summary": result.get("summary", "Analysis complete. Please see highlights below."),
             "highlights": result.get("highlights", []),
+            "actionable_insights": result.get("actionable_insights", []),
             "abnormal_values": result.get("abnormal_values", []),
             "questions_for_doctor": result.get("questions_for_doctor", [])
         }
@@ -111,6 +107,7 @@ async def analyze_report(ocr_text: str) -> dict:
         return {
             "summary": summary_text,
             "highlights": [],
+            "actionable_insights": [],
             "abnormal_values": [],
             "questions_for_doctor": []
         }

@@ -8,10 +8,11 @@ from app.models.user import User
 from app.models.report import Report
 from app.schemas.report import ReportResponse
 from app.middleware.auth_middleware import get_current_user
-from app.utils.storage import upload_file
+from app.utils.storage import upload_file, delete_file
 from app.utils.file_processor import validate_file
 from app.services.report_service import process_report_ai, reanalyze_report_ai
 import uuid
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -86,7 +87,7 @@ def get_report(
 
 
 @router.delete("/{id}")
-def delete_report(
+async def delete_report(
     id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -96,6 +97,10 @@ def delete_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
     if report.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    
+    # Delete file from cloud storage
+    if report.file_url:
+        await delete_file(report.file_url)
     
     db.delete(report)
     db.commit()
@@ -140,6 +145,9 @@ async def report_progress(
                     
                     if current_status in ["done", "failed"]:
                         break
+                else:
+                    # Send a heartbeat every second to keep the connection alive
+                    yield ": heartbeat\n\n"
             finally:
                 local_db.close()
                     
@@ -166,17 +174,49 @@ async def reanalyze_report(
 
     # Reset to processing state immediately
     report.processing_status = "processing"
+    report.processing_progress = "Starting re-analysis..."
     report.ai_highlights = []
     report.abnormal_values = []
     report.questions_for_doctor = []
     db.commit()
     db.refresh(report)
 
-    # Fast re-analysis: only the AI step (skips OCR, embedding, timeline)
-    background_tasks.add_task(
-        reanalyze_report_ai,
-        report_id=str(report.id)
-    )
+    background_tasks.add_task(reanalyze_report_ai, str(report.id))
 
     return report
 
+
+class FeedbackPayload(BaseModel):
+    feedback: str # "up" or "down"
+
+@router.post("/{id}/insights/{index}/feedback")
+def submit_insight_feedback(
+    id: uuid.UUID,
+    index: int,
+    payload: FeedbackPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Submit thumbs up/down feedback for a specific actionable insight."""
+    report = db.query(Report).filter(Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    insights = list(report.actionable_insights or [])
+    if index < 0 or index >= len(insights):
+        raise HTTPException(status_code=400, detail="Invalid insight index")
+        
+    # Python lists of dicts from JSONB require assignment to save
+    insights[index]["feedback"] = payload.feedback
+    
+    # SQLAlchemy JSONB mutation trick
+    report.actionable_insights = insights
+    # Or db.execute(update...) if the above doesn't trigger a change, but flag_modified works:
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(report, "actionable_insights")
+    
+    db.commit()
+    
+    return {"status": "success"}

@@ -27,6 +27,17 @@ export default function LoginPage() {
   setIsLoading(true)
   try {
    const res = await api.post(API_ROUTES.AUTH.LOGIN, data)
+   
+   if (res.data.user.role === "doctor" || res.data.user.role === "provider") {
+    toast.error("Access Denied", {
+     description: "You are attempting to sign in to the Patient Portal with a Provider account. Please use the Provider login page.",
+     duration: 5000,
+     icon: <AlertCircle className="w-5 h-5 text-rose-500" />,
+    })
+    setIsLoading(false)
+    return
+   }
+
    setAuth(res.data.user, res.data.access_token, res.data.refresh_token)
    toast.success("Login Successful", {
     description: `Welcome back, ${res.data.user.name.split(" ")[0]}! Securing your connection...`,
