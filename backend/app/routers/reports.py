@@ -12,6 +12,7 @@ from app.utils.storage import upload_file
 from app.utils.file_processor import validate_file
 from app.services.report_service import process_report_ai, reanalyze_report_ai
 import uuid
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -173,10 +174,45 @@ async def reanalyze_report(
     db.refresh(report)
 
     # Fast re-analysis: only the AI step (skips OCR, embedding, timeline)
-    background_tasks.add_task(
-        reanalyze_report_ai,
-        report_id=str(report.id)
-    )
+    report.processing_status = "reanalyzing"
+    db.commit()
+
+    background_tasks.add_task(reanalyze_report_ai, str(report.id))
 
     return report
 
+
+class FeedbackPayload(BaseModel):
+    feedback: str # "up" or "down"
+
+@router.post("/{id}/insights/{index}/feedback")
+def submit_insight_feedback(
+    id: uuid.UUID,
+    index: int,
+    payload: FeedbackPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Submit thumbs up/down feedback for a specific actionable insight."""
+    report = db.query(Report).filter(Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    insights = list(report.actionable_insights or [])
+    if index < 0 or index >= len(insights):
+        raise HTTPException(status_code=400, detail="Invalid insight index")
+        
+    # Python lists of dicts from JSONB require assignment to save
+    insights[index]["feedback"] = payload.feedback
+    
+    # SQLAlchemy JSONB mutation trick
+    report.actionable_insights = insights
+    # Or db.execute(update...) if the above doesn't trigger a change, but flag_modified works:
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(report, "actionable_insights")
+    
+    db.commit()
+    
+    return {"status": "success"}
