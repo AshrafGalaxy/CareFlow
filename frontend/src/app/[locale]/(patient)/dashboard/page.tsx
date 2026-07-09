@@ -16,6 +16,7 @@ import useSWR from "swr"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
+import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 
 interface Report {
  id: string
@@ -23,6 +24,8 @@ interface Report {
  processing_status: ReportStatus
  uploaded_at: string
  ai_highlights?: any[]
+ file_url?: string
+ file_type?: string
 }
 
 interface DashboardKPIs {
@@ -51,6 +54,7 @@ export default function DashboardPage() {
  const firstName = user?.name?.split(" ")[0] || "there"
  const greeting = t("greeting") || getGreeting()
  const [explainSimply, setExplainSimply] = useState(false)
+ const [viewingReport, setViewingReport] = useState<Report | null>(null)
 
  const { data, error, isLoading } = useSWR<Report[]>(
   API_ROUTES.REPORTS.LIST, 
@@ -249,23 +253,23 @@ export default function DashboardPage() {
 
    {/* Recent AI Insights */}
    {!isLoading && reports[0]?.processing_status === 'done' && (
-    <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950 rounded-2xl border border-indigo-500/20 shadow-lg p-6 relative overflow-hidden">
-     <div className="absolute top-0 right-0 p-8 opacity-10">
-      <BrainCircuit className="w-48 h-48 text-indigo-300" />
+    <div className="bg-white dark:bg-card rounded-2xl border border-border shadow-md p-6 relative overflow-hidden">
+     <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-10">
+      <BrainCircuit className="w-48 h-48 text-foreground" />
      </div>
      <div className="relative z-10">
       <div className="flex items-center justify-between mb-4">
        <div className="flex items-center gap-2">
-        <BrainCircuit className="w-5 h-5 text-indigo-400" />
-        <h2 className="text-lg font-bold text-white">Latest AI Insights</h2>
-        <span className="text-indigo-300/80 text-sm ml-2 hidden sm:inline">— from {reports[0].original_filename}</span>
+        <BrainCircuit className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+        <h2 className="text-lg font-bold text-foreground">Latest AI Insights</h2>
+        <span className="text-muted-foreground text-sm ml-2 hidden sm:inline">— from {reports[0].original_filename}</span>
        </div>
        <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1.5 border border-white/10">
-         <span className="text-xs text-indigo-200 font-medium">Explain Simply</span>
+        <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5 border border-border">
+         <span className="text-xs text-muted-foreground font-medium">Explain Simply</span>
          <button 
           onClick={() => setExplainSimply(!explainSimply)}
-          className={cn("w-8 h-4 rounded-full relative transition-colors duration-200", explainSimply ? "bg-indigo-500" : "bg-indigo-950 border border-white/20")}
+          className={cn("w-8 h-4 rounded-full relative transition-colors duration-200", explainSimply ? "bg-indigo-500" : "bg-slate-300 dark:bg-slate-700")}
          >
           <span className={cn("absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform duration-200", explainSimply ? "left-4" : "left-1")} />
          </button>
@@ -275,48 +279,48 @@ export default function DashboardPage() {
       
        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Insight 1 */}
-        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+        <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col justify-between group">
          <div>
           <div className="flex items-center justify-between mb-2">
            <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400" />
-            <h3 className="text-sm font-semibold text-rose-100">Action Required</h3>
+            <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+            <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400">Action Required</h3>
            </div>
            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsUp className="w-3.5 h-3.5" /></button>
-            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsDown className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsUp className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsDown className="w-3.5 h-3.5" /></button>
            </div>
           </div>
-          <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
            {explainSimply 
             ? "Your bad cholesterol (LDL) is higher than normal. The AI suggests booking an appointment to talk about adjusting your medication."
-            : <span>Your LDL Cholesterol was marked as <span className="text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.</span>
+            : <span>Your LDL Cholesterol was marked as <span className="text-rose-600 dark:text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.</span>
            }
           </p>
          </div>
-         <button className="flex items-center justify-center gap-2 w-full py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold rounded-lg border border-rose-500/30 transition-colors">
+         <button className="flex items-center justify-center gap-2 w-full py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-lg border border-rose-200 dark:border-rose-500/20 transition-colors">
           <Calendar className="w-3.5 h-3.5" />
           Schedule Follow-up
          </button>
         </div>
         
         {/* Insight 2 */}
-        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex flex-col justify-between group">
+        <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col justify-between group">
          <div>
           <div className="flex items-center justify-between mb-2">
            <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-semibold text-emerald-100">On Track</h3>
+            <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+            <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">On Track</h3>
            </div>
            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsUp className="w-3.5 h-3.5" /></button>
-            <button className="p-1 text-indigo-300 hover:text-white rounded hover:bg-white/10"><ThumbsDown className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsUp className="w-3.5 h-3.5" /></button>
+            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsDown className="w-3.5 h-3.5" /></button>
            </div>
           </div>
-          <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
            {explainSimply 
             ? "Your 3-month average blood sugar is completely normal! Keep up the great work with your diet."
-            : <span>Your HbA1c levels have improved to <span className="text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!</span>
+            : <span>Your HbA1c levels have improved to <span className="text-emerald-600 dark:text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!</span>
            }
           </p>
          </div>
@@ -390,19 +394,23 @@ export default function DashboardPage() {
          <div className="flex items-center gap-4 shrink-0">
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
            <Link 
-            href={`${APP_ROUTES.CHAT}?reportId=${report.id}`}
+            href={`${APP_ROUTES.CHAT}?prefill=${encodeURIComponent(`@${report.original_filename} Please provide a detailed, in-depth explanation of this lab report. Break down the key findings, highlight any abnormal values (like high or low markers), and explain what they mean for my health in simple, concise terms. What are the most important takeaways?`)}`}
             className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors group/btn relative"
            >
             <BrainCircuit className="w-4 h-4" />
             <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">Ask AI</span>
            </Link>
-           <Link 
-            href={APP_ROUTES.REPORT_DETAIL(report.id)}
+           <button 
+            onClick={(e) => {
+             e.preventDefault()
+             e.stopPropagation()
+             setViewingReport(report)
+            }}
             className="p-1.5 text-muted-foreground hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg transition-colors group/btn relative"
            >
             <Eye className="w-4 h-4" />
             <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">View PDF</span>
-           </Link>
+           </button>
           </div>
           
           <div className="w-24 flex justify-end">
@@ -431,6 +439,15 @@ export default function DashboardPage() {
      {t("chatWithAIBtn")}
     </Link>
    </div>
+   {viewingReport && (
+    <ReportViewerModal
+     isOpen={!!viewingReport}
+     onClose={() => setViewingReport(null)}
+     fileUrl={viewingReport.file_url || ""}
+     fileType={viewingReport.file_type || "application/pdf"}
+     fileName={viewingReport.original_filename}
+    />
+   )}
   </div>
  )
 }
