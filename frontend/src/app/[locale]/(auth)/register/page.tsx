@@ -329,7 +329,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex items-start gap-3 py-2 pl-1">
-         <div className="relative flex items-center justify-center mt-1">
+         <div className="relative flex items-center justify-center shrink-0 mt-0.5">
           <input
            type="checkbox"
            id="terms"
@@ -338,7 +338,7 @@ export default function RegisterPage() {
           />
           <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" strokeWidth={3} />
          </div>
-         <label htmlFor="terms" className="text-[13px] font-medium text-slate-600 dark:text-slate-400 cursor-pointer leading-tight">
+         <label htmlFor="terms" className="text-[13px] font-medium text-slate-600 dark:text-slate-400 cursor-pointer leading-relaxed pt-[2px]">
           I agree to CareFlow's <Link href="#" className="text-sky-600 dark:text-sky-400 font-bold hover:text-sky-500 transition-colors">Terms of Service</Link> and <Link href="#" className="text-sky-600 dark:text-sky-400 font-bold hover:text-sky-500 transition-colors">Privacy Policy</Link>.
          </label>
         </div>
