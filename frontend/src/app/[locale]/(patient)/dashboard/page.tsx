@@ -18,12 +18,13 @@ import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 
-interface Report {
- id: string
- original_filename: string
- processing_status: ReportStatus
- uploaded_at: string
- ai_highlights?: any[]
+ interface Report {
+  id: string
+  original_filename: string
+  processing_status: ReportStatus
+  uploaded_at: string
+  ai_highlights?: any[]
+  actionable_insights?: any[]
  file_url?: string
  file_type?: string
 }
@@ -56,7 +57,7 @@ export default function DashboardPage() {
  const [explainSimply, setExplainSimply] = useState(false)
  const [viewingReport, setViewingReport] = useState<Report | null>(null)
 
- const { data, error, isLoading } = useSWR<Report[]>(
+ const { data, error, isLoading, mutate } = useSWR<Report[]>(
   API_ROUTES.REPORTS.LIST, 
   fetcher, 
   { refreshInterval: 0, revalidateOnFocus: true }
@@ -278,53 +279,74 @@ export default function DashboardPage() {
       </div>
       
        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Insight 1 */}
-        <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col justify-between group">
-         <div>
-          <div className="flex items-center justify-between mb-2">
-           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-            <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400">Action Required</h3>
+        {reports[0].actionable_insights && reports[0].actionable_insights.length > 0 ? (
+         reports[0].actionable_insights.map((insight, index) => {
+          const isWarning = insight.type === 'action_required' || insight.type === 'warning'
+          return (
+           <div key={index} className="bg-muted/30 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col justify-between group">
+            <div>
+             <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+               {isWarning ? (
+                <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+               ) : (
+                <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+               )}
+               <h3 className={cn("text-sm font-semibold", isWarning ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400")}>
+                {insight.title}
+               </h3>
+              </div>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               <button 
+                onClick={async () => {
+                 try {
+                  await api.post(`/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'up' })
+                  toast.success("Feedback submitted. Thank you!")
+                  mutate()
+                 } catch (e) {
+                  toast.error("Failed to submit feedback")
+                 }
+                }}
+                className={cn("p-1 rounded hover:bg-muted transition-colors", insight.feedback === 'up' ? "text-emerald-500" : "text-muted-foreground hover:text-foreground")}
+               >
+                <ThumbsUp className="w-3.5 h-3.5" />
+               </button>
+               <button 
+                onClick={async () => {
+                 try {
+                  await api.post(`/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'down' })
+                  toast.success("Feedback submitted. Thank you!")
+                  mutate()
+                 } catch (e) {
+                  toast.error("Failed to submit feedback")
+                 }
+                }}
+                className={cn("p-1 rounded hover:bg-muted transition-colors", insight.feedback === 'down' ? "text-rose-500" : "text-muted-foreground hover:text-foreground")}
+               >
+                <ThumbsDown className="w-3.5 h-3.5" />
+               </button>
+              </div>
+             </div>
+             <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+              {explainSimply ? insight.content_simple : insight.content_technical}
+             </p>
+            </div>
+            {insight.action_label && (
+             <button 
+              onClick={() => toast.success(`Opening ${insight.action_label} scheduler...`)}
+              className="mt-auto flex items-center justify-center gap-2 w-full py-2 bg-background border border-border hover:bg-muted rounded-lg text-sm font-medium transition-colors text-foreground"
+             >
+              {insight.action_label}
+             </button>
+            )}
            </div>
-           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsUp className="w-3.5 h-3.5" /></button>
-            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsDown className="w-3.5 h-3.5" /></button>
-           </div>
-          </div>
-          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-           {explainSimply 
-            ? "Your bad cholesterol (LDL) is higher than normal. The AI suggests booking an appointment to talk about adjusting your medication."
-            : <span>Your LDL Cholesterol was marked as <span className="text-rose-600 dark:text-rose-400 font-medium border-b border-rose-400/30 pb-0.5">High (160 mg/dL)</span>. The AI recommends scheduling a follow-up to discuss statin adjustments.</span>
-           }
-          </p>
+          )
+         })
+        ) : (
+         <div className="col-span-1 sm:col-span-2 text-center py-6 text-muted-foreground text-sm">
+          No actionable insights generated for this report yet.
          </div>
-         <button className="flex items-center justify-center gap-2 w-full py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-lg border border-rose-200 dark:border-rose-500/20 transition-colors">
-          <Calendar className="w-3.5 h-3.5" />
-          Schedule Follow-up
-         </button>
-        </div>
-        
-        {/* Insight 2 */}
-        <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col justify-between group">
-         <div>
-          <div className="flex items-center justify-between mb-2">
-           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-            <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">On Track</h3>
-           </div>
-           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsUp className="w-3.5 h-3.5" /></button>
-            <button className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted"><ThumbsDown className="w-3.5 h-3.5" /></button>
-           </div>
-          </div>
-          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-           {explainSimply 
-            ? "Your 3-month average blood sugar is completely normal! Keep up the great work with your diet."
-            : <span>Your HbA1c levels have improved to <span className="text-emerald-600 dark:text-emerald-400 font-medium">5.4%</span> (Normal). Great job adhering to the new diet plan!</span>
-           }
-          </p>
-         </div>
-        </div>
+        )}
        </div>
      </div>
     </div>
