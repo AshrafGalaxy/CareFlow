@@ -29,7 +29,7 @@ class ChatMessageResponse(BaseModel):
     role: str
     content: str
     image_url: Optional[str] = None
-    metadata: Optional[dict] = None
+    metadata_json: Optional[dict] = None
     tokens_used: Optional[int] = None
     timestamp: datetime
 
