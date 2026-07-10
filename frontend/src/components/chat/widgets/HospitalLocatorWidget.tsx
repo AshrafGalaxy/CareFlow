@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import { HospitalData } from './HospitalMap'
 
+import { useChatStore } from '@/store/chatStore'
+
 // Dynamically import the map component with SSR disabled
 const HospitalMap = dynamic(() => import('./HospitalMap'), { 
   ssr: false,
@@ -25,12 +27,30 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export function HospitalLocatorWidget() {
+  const { activeSession } = useChatStore()
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [hospitals, setHospitals] = useState<HospitalData[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const cacheKey = `careflow_hospitals_${activeSession?.id || 'default'}`
+    const cachedData = sessionStorage.getItem(cacheKey)
+
+    if (cachedData) {
+      try {
+        const { loc, items } = JSON.parse(cachedData)
+        if (items && items.length > 0 && loc) {
+          setLocation(loc)
+          setHospitals(items)
+          setLoading(false)
+          return
+        }
+      } catch (e) {
+        console.error('Failed to parse cached hospital data', e)
+      }
+    }
+
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser.')
       setLoading(false)
@@ -41,11 +61,12 @@ export function HospitalLocatorWidget() {
       async (position) => {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
-        setLocation({ lat, lng })
+        const userLoc = { lat, lng }
+        setLocation(userLoc)
         
         try {
-          // Fetch real hospitals from Overpass API (OpenStreetMap)
-          const query = `[out:json];(node["amenity"~"hospital|clinic"](around:5000,${lat},${lng}););out 5;`
+          // Fetch real hospitals from Overpass API (OpenStreetMap) within 10km
+          const query = `[out:json];(node["amenity"~"hospital|clinic"](around:10000,${lat},${lng}););out 10;`
           const response = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
             body: query
@@ -78,12 +99,12 @@ export function HospitalLocatorWidget() {
             // Sort by distance
             fetchedHospitals.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
             setHospitals(fetchedHospitals)
+            sessionStorage.setItem(cacheKey, JSON.stringify({ loc: userLoc, items: fetchedHospitals }))
           } else {
-            setError('No hospitals found within 5km radius.')
+            setError('No hospitals found within 10km radius.')
           }
         } catch (err) {
           // Instead of crashing or showing a hard error, fallback to mock data
-          // so the user can still experience the widget's functionality.
           const fallbackHospitals: HospitalData[] = [
             { id: 'mock-1', name: 'City Central Hospital', distance: '1.2 km', type: 'General & Emergency', lat: lat + 0.01, lng: lng + 0.01, phone: '+1234567890' },
             { id: 'mock-2', name: 'Apex Multi-specialty Clinic', distance: '2.5 km', type: 'Specialty Care', lat: lat - 0.015, lng: lng + 0.02, phone: '+1987654321' },
@@ -91,6 +112,7 @@ export function HospitalLocatorWidget() {
             { id: 'mock-4', name: 'Carewell Emergency Center', distance: '4.1 km', type: '24/7 Trauma Center', lat: lat - 0.02, lng: lng - 0.02, phone: '+1122334455' },
           ]
           setHospitals(fallbackHospitals)
+          sessionStorage.setItem(cacheKey, JSON.stringify({ loc: userLoc, items: fallbackHospitals }))
         } finally {
           setLoading(false)
         }
@@ -101,7 +123,7 @@ export function HospitalLocatorWidget() {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     )
-  }, [])
+  }, [activeSession?.id])
 
   const handleNavigate = (hospital: HospitalData) => {
     if (!location) return

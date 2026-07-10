@@ -5,6 +5,8 @@ import { MapPin, Navigation, Phone, ExternalLink, Pill, Store, Search, AlertTria
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
 
+import { useChatStore } from '@/store/chatStore'
+
 // Dynamically import map to prevent SSR issues with Leaflet
 const PharmacyMap = dynamic(() => import('./PharmacyMap'), { 
   ssr: false,
@@ -23,12 +25,15 @@ interface Pharmacy {
 
 const ECOMMERCE_LINKS = [
   { name: '1mg', url: 'https://www.1mg.com/search/all?name=', color: 'bg-[#ff6f61] hover:bg-[#e05d50]' },
-  { name: 'Apollo Pharmacy', url: 'https://www.apollopharmacy.in/search-medicines/', color: 'bg-[#008f75] hover:bg-[#00735e]' },
+  { name: 'Apollo', url: 'https://www.apollopharmacy.in/search-medicines/', color: 'bg-[#008f75] hover:bg-[#00735e]' },
+  { name: 'PharmEasy', url: 'https://pharmeasy.in/search/all?name=', color: 'bg-[#10847e] hover:bg-[#0c6b66]' },
+  { name: 'Netmeds', url: 'https://www.netmeds.com/catalogsearch/result?q=', color: 'bg-[#24aeb1] hover:bg-[#1c9295]' },
   { name: 'Blinkit', url: 'https://blinkit.com/s/?q=', color: 'bg-[#f8cb46] hover:bg-[#e0b430] text-slate-900' },
-  { name: 'Amazon Pharmacy', url: 'https://www.amazon.in/s?k=pharmacy+', color: 'bg-[#ff9900] hover:bg-[#e68a00] text-slate-900' },
+  { name: 'Flipkart Health', url: 'https://healthplus.flipkart.com/search?keyword=', color: 'bg-[#2874f0] hover:bg-[#1c5dcf]' },
 ]
 
 export function PharmacyLocatorWidget() {
+  const { activeSession } = useChatStore()
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +43,23 @@ export function PharmacyLocatorWidget() {
   const [searchQuery, setSearchQuery] = useState('Paracetamol') 
 
   useEffect(() => {
+    const cacheKey = `careflow_pharmacy_cache_${activeSession?.id || 'default'}`
+    const cachedData = sessionStorage.getItem(cacheKey)
+
+    if (cachedData) {
+      try {
+        const { loc, items } = JSON.parse(cachedData)
+        if (items && items.length > 0 && loc) {
+          setUserLoc(loc)
+          setPharmacies(items)
+          setLoading(false)
+          return
+        }
+      } catch (e) {
+        console.error('Failed to parse cached pharmacy data', e)
+      }
+    }
+
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser")
       setLoading(false)
@@ -47,14 +69,15 @@ export function PharmacyLocatorWidget() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-        setUserLoc({ lat: latitude, lon: longitude })
+        const loc = { lat: latitude, lon: longitude }
+        setUserLoc(loc)
         
         try {
-          // Overpass API for pharmacies within 3km
+          // Overpass API for pharmacies within 7km
           const query = `
             [out:json][timeout:25];
             (
-              node["amenity"="pharmacy"](around:3000,${latitude},${longitude});
+              node["amenity"="pharmacy"](around:7000,${latitude},${longitude});
             );
             out body;
             >;
@@ -85,25 +108,30 @@ export function PharmacyLocatorWidget() {
               }
             })
             .sort((a: any, b: any) => a.rawDist - b.rawDist)
-            .slice(0, 4)
+            .slice(0, 6)
 
           if (formattedPharmacies.length > 0) {
             setPharmacies(formattedPharmacies)
+            sessionStorage.setItem(cacheKey, JSON.stringify({ loc, items: formattedPharmacies }))
           } else {
              // Mock fallback if empty
-             setPharmacies([
+             const mocks = [
                { id: '1', name: 'Apollo Pharmacy', distance: '300m', address: 'Main Street', lat: latitude + 0.002, lon: longitude + 0.002 },
                { id: '2', name: 'Wellness Medical', distance: '800m', address: 'Market Road', lat: latitude - 0.005, lon: longitude + 0.001 }
-             ])
+             ]
+             setPharmacies(mocks)
+             sessionStorage.setItem(cacheKey, JSON.stringify({ loc, items: mocks }))
           }
           setLoading(false)
         } catch (err) {
           console.error("Overpass error:", err)
           // Fallback to local mock data
-          setPharmacies([
+          const fallbackMocks = [
             { id: '1', name: 'Apollo Pharmacy (Mock)', distance: '300m', address: 'Main Street', lat: latitude + 0.002, lon: longitude + 0.002 },
             { id: '2', name: 'Wellness Medical (Mock)', distance: '800m', address: 'Market Road', lat: latitude - 0.005, lon: longitude + 0.001 }
-          ])
+          ]
+          setPharmacies(fallbackMocks)
+          sessionStorage.setItem(cacheKey, JSON.stringify({ loc, items: fallbackMocks }))
           setLoading(false)
         }
       },
@@ -112,7 +140,7 @@ export function PharmacyLocatorWidget() {
         setLoading(false)
       }
     )
-  }, [])
+  }, [activeSession?.id])
 
   function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
     const R = 6371
