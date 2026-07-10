@@ -72,9 +72,25 @@ export default function MedicationsPage() {
    }
   }, [hasHydrated])
 
- const activeMeds = medications.filter(m => m.is_active)
- const inactiveMeds = medications.filter(m => !m.is_active)
+  const todayStr = new Date().toISOString().split('T')[0]
+  
+  const activeMeds = medications.filter(m => 
+    m.is_active && m.start_date <= todayStr && (!m.end_date || m.end_date >= todayStr)
+  )
+  const upcomingMeds = medications.filter(m => 
+    m.is_active && m.start_date > todayStr
+  )
+  const inactiveMeds = medications.filter(m => 
+    !m.is_active || (m.end_date && m.end_date < todayStr)
+  )
 
+  const getStreak = (medId: string) => {
+    if (!adherence) return 0
+    const match = adherence.by_medication?.find((b: any) => b.medication_id === medId)
+    if (!match) return 0
+    // Simple mock streak calculation for UI purposes based on taken ratio
+    return Math.max(0, Math.floor(match.taken / Math.max(1, match.total / 30)))
+  }
  return (
   <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-background">
    <div className="max-w-6xl mx-auto space-y-8">
@@ -162,13 +178,30 @@ export default function MedicationsPage() {
                 visible: { opacity: 1, y: 0 }
               }}
             >
-              <MedicationCard medication={med} onLogSuccess={loadData} />
+              <MedicationCard medication={med} streak={getStreak(med.id)} onLogSuccess={loadData} />
             </motion.div>
            ))}
           </motion.div>
          </>
         )}
        </section>
+
+       {/* Upcoming Medications */}
+       {upcomingMeds.length > 0 && (
+        <section className="pt-8 border-t border-border">
+         <h2 className="text-xl font-bold font-heading text-foreground flex items-center gap-2 mb-4">
+          Scheduled & Upcoming
+          <span className="text-xs font-semibold bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full">
+           {upcomingMeds.length}
+          </span>
+         </h2>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {upcomingMeds.map(med => (
+           <MedicationCard key={med.id} medication={med} streak={0} onLogSuccess={loadData} />
+          ))}
+         </div>
+        </section>
+       )}
 
        {/* Inactive Medications */}
        {inactiveMeds.length > 0 && (
@@ -181,7 +214,7 @@ export default function MedicationsPage() {
          </h2>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-80 grayscale-[0.5]">
           {inactiveMeds.map(med => (
-           <MedicationCard key={med.id} medication={med} onLogSuccess={loadData} />
+           <MedicationCard key={med.id} medication={med} streak={getStreak(med.id)} onLogSuccess={loadData} />
           ))}
          </div>
         </section>
