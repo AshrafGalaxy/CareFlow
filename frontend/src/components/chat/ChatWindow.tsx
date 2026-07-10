@@ -200,7 +200,10 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
     }
    }
   } catch (err: any) {
-   const errorMessage = err.message || 'Failed to get AI response. Please try again.'
+   let errorMessage = err.message || 'Failed to get AI response. Please try again.'
+   if (errorMessage.includes('Session not found')) {
+    errorMessage = 'This conversation session has expired. Please refresh the page or start a new conversation.'
+   }
    setError(errorMessage)
    console.error('Chat error:', err)
   } finally {

@@ -126,7 +126,7 @@ export function PharmacyLocatorWidget() {
           setLoading(false)
         } catch (err) {
           console.warn("Overpass API rate limit or error triggered fallback data.")
-          toast.info("Map service is currently busy. Showing sample data.", { id: "pharma-fallback" })
+          toast.info("Try again after some time", { id: "pharma-fallback" })
           
           // Fallback to local mock data
           const fallbackMocks = [

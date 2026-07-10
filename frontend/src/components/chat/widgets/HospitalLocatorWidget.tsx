@@ -106,7 +106,7 @@ export function HospitalLocatorWidget() {
           }
         } catch (err) {
           console.warn("Overpass API fallback triggered.")
-          toast.info("Map service is currently busy. Showing sample data.", { id: "hosp-fallback" })
+          toast.info("Try again after some time", { id: "hosp-fallback" })
           
           const fallbackHospitals: HospitalData[] = [
             { id: 'mock-1', name: 'City Central Hospital', distance: '1.2 km', type: 'General & Emergency', lat: lat + 0.01, lng: lng + 0.01, phone: '+1234567890' },
