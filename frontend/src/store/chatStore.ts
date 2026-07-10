@@ -50,7 +50,7 @@ export const useChatStore = create<ChatStore>((set) => ({
    const msgs = [...state.messages]
    if (msgs.length === 0) return state
    const last = msgs[msgs.length - 1]
-   if (last.role === 'assistant') {
+   if (last.role === 'assistant' && !last.content.startsWith('[[WIDGET:')) {
     msgs[msgs.length - 1] = { ...last, content: last.content + token }
    } else {
     msgs.push({

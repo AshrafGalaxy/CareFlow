@@ -146,6 +146,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
     <AnimatePresence initial={false}>
      {messages.length === 0 && (
       <motion.div 
+       key="empty-state"
        initial={{ opacity: 0, y: 20 }}
        animate={{ opacity: 1, y: 0 }}
        className="flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto py-12"
@@ -192,7 +193,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      })}
 
      {isStreaming && (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
+      <motion.div key="typing-indicator" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
        <CareBotAvatar size={40} className="mr-4 mt-1" />
        <div className="px-5 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl rounded-bl-sm flex items-center gap-3 shadow-sm min-w-[120px]">
         <div className="flex space-x-1.5">
@@ -206,7 +207,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      )}
 
      {error && !isStreaming && (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
+      <motion.div key="error-message" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
         <AlertCircle size={20} />
        </div>
@@ -227,9 +228,9 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
        </div>
       </motion.div>
      )}
-
-     {messages.length > 0 && <div ref={bottomRef} className="h-4" />}
     </AnimatePresence>
+
+    {messages.length > 0 && <div ref={bottomRef} className="h-4 shrink-0" />}
    </div>
 
    <div className="border-t border-border bg-card p-4 md:p-6">
