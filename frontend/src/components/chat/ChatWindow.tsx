@@ -14,6 +14,10 @@ import { EmergencyWidget } from './widgets/EmergencyWidget'
 import { HospitalLocatorWidget } from './widgets/HospitalLocatorWidget'
 import { SchedulingWidget } from './widgets/SchedulingWidget'
 import { MedicationWidget } from './widgets/MedicationWidget'
+import { PharmacyLocatorWidget } from './widgets/PharmacyLocatorWidget'
+import { TriageWidget } from './widgets/TriageWidget'
+import { NutritionWidget } from './widgets/NutritionWidget'
+import { AdherenceWidget } from './widgets/AdherenceWidget'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const CopyButton = ({ text }: { text: string }) => {
@@ -215,12 +219,20 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       const hasHospital = displayContent.includes('[[WIDGET:HOSPITAL]]')
       const hasSchedule = displayContent.includes('[[WIDGET:SCHEDULE]]')
       const hasMedication = displayContent.includes('[[WIDGET:MEDICATION]]')
+      const hasPharmacy = displayContent.includes('[[WIDGET:PHARMACY]]')
+      const hasTriage = displayContent.includes('[[WIDGET:TRIAGE]]')
+      const hasNutrition = displayContent.includes('[[WIDGET:NUTRITION]]')
+      const hasAdherence = displayContent.includes('[[WIDGET:ADHERENCE]]')
 
       displayContent = displayContent
         .replace('[[WIDGET:EMERGENCY]]', '')
         .replace('[[WIDGET:HOSPITAL]]', '')
         .replace('[[WIDGET:SCHEDULE]]', '')
         .replace('[[WIDGET:MEDICATION]]', '')
+        .replace('[[WIDGET:PHARMACY]]', '')
+        .replace('[[WIDGET:TRIAGE]]', '')
+        .replace('[[WIDGET:NUTRITION]]', '')
+        .replace('[[WIDGET:ADHERENCE]]', '')
         .trim()
 
       const isLatestMessage = index === messages.length - 1
@@ -263,12 +275,16 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
         </div>
         
         {/* Render Widgets below the message text ONLY if it's the latest message */}
-        {msg.role === 'assistant' && isLatestMessage && (hasEmergency || hasHospital || hasSchedule || hasMedication) && (
+        {msg.role === 'assistant' && isLatestMessage && (hasEmergency || hasHospital || hasSchedule || hasMedication || hasPharmacy || hasTriage || hasNutrition || hasAdherence) && (
          <div className={`mt-4 w-full ${displayContent ? 'ml-14' : ''}`}>
           {hasEmergency && <EmergencyWidget />}
           {hasHospital && <HospitalLocatorWidget />}
           {hasSchedule && <SchedulingWidget />}
           {hasMedication && <MedicationWidget />}
+          {hasPharmacy && <PharmacyLocatorWidget />}
+          {hasTriage && <TriageWidget />}
+          {hasNutrition && <NutritionWidget />}
+          {hasAdherence && <AdherenceWidget />}
          </div>
         )}
        </motion.div>
