@@ -54,10 +54,6 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
   if (!activeSession || isStreaming) return
   setError(null)
 
-  const triggersEmergency = /emergency|hospital/i.test(content)
-  const triggersSchedule = /schedule|appointment/i.test(content)
-  const triggersMedication = /medicine|medication/i.test(content)
-
   // Add user message locally
   addMessage({
    id: `user-${Date.now()}`,
@@ -67,14 +63,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
    image_base64: imageBase64,
   })
 
-  // Inject widget locally if triggered
-  if (triggersEmergency) {
-   addMessage({ id: `widget-${Date.now()}-em`, role: 'assistant', content: '[[WIDGET:EMERGENCY]]', timestamp: new Date().toISOString() })
-  } else if (triggersSchedule) {
-   addMessage({ id: `widget-${Date.now()}-sch`, role: 'assistant', content: '[[WIDGET:SCHEDULE]]', timestamp: new Date().toISOString() })
-  } else if (triggersMedication) {
-   addMessage({ id: `widget-${Date.now()}-med`, role: 'assistant', content: '[[WIDGET:MEDICATION]]', timestamp: new Date().toISOString() })
-  }
+  // Removed local widget injection. We now rely on the AI emitting the widget tokens.
 
   setStreaming(true)
 
@@ -161,42 +150,65 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      )}
 
      {messages.map((msg) => {
-      if (msg.content === '[[WIDGET:EMERGENCY]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><EmergencyWidget /></motion.div>
-      if (msg.content === '[[WIDGET:HOSPITAL]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><HospitalLocatorWidget /></motion.div>
-      if (msg.content === '[[WIDGET:SCHEDULE]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><SchedulingWidget /></motion.div>
-      if (msg.content === '[[WIDGET:MEDICATION]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><MedicationWidget /></motion.div>
+      // Clean content by removing widget tokens for text display
+      let displayContent = msg.content
+      const hasEmergency = displayContent.includes('[[WIDGET:EMERGENCY]]')
+      const hasHospital = displayContent.includes('[[WIDGET:HOSPITAL]]')
+      const hasSchedule = displayContent.includes('[[WIDGET:SCHEDULE]]')
+      const hasMedication = displayContent.includes('[[WIDGET:MEDICATION]]')
+
+      displayContent = displayContent
+        .replace('[[WIDGET:EMERGENCY]]', '')
+        .replace('[[WIDGET:HOSPITAL]]', '')
+        .replace('[[WIDGET:SCHEDULE]]', '')
+        .replace('[[WIDGET:MEDICATION]]', '')
+        .trim()
 
       return (
        <motion.div
         key={msg.id}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex items-start max-w-3xl mb-8 ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
+        className={`flex flex-col max-w-3xl mb-8 ${msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'}`}
        >
-        {msg.role === 'assistant' && (
-         <CareBotAvatar size={40} className="mr-4 mt-1" />
-        )}
-        <div className="group relative max-w-full">
-         <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4 font-medium' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm prose prose-sm prose-slate dark:prose-invert max-w-none'}`}>
-          {msg.role === 'user' ? (
-           <div className="flex flex-col gap-2">
-            {(msg as any).image_base64 && (
-             <img src={(msg as any).image_base64} alt="User uploaded" className="max-w-[200px] rounded-lg border border-sky-400/30 object-cover shadow-sm" />
+        <div className={`flex items-start max-w-full ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+         {msg.role === 'assistant' && (
+          <CareBotAvatar size={40} className="mr-4 mt-1 shrink-0" />
+         )}
+         <div className="group relative max-w-full flex-1 min-w-0">
+          {displayContent && (
+           <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4 font-medium' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm prose prose-sm prose-slate dark:prose-invert max-w-none'}`}>
+            {msg.role === 'user' ? (
+             <div className="flex flex-col gap-2">
+              {(msg as any).image_base64 && (
+               <img src={(msg as any).image_base64} alt="User uploaded" className="max-w-[200px] rounded-lg border border-sky-400/30 object-cover shadow-sm" />
+              )}
+              <span className="whitespace-pre-wrap">{displayContent}</span>
+             </div>
+            ) : (
+             <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {displayContent}
+             </ReactMarkdown>
             )}
-            <span className="whitespace-pre-wrap">{msg.content}</span>
            </div>
-          ) : (
-           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {msg.content}
-           </ReactMarkdown>
+          )}
+          {msg.role === 'assistant' && displayContent && (
+           <div className="absolute -bottom-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+            <CopyButton text={displayContent} />
+           </div>
           )}
          </div>
-         {msg.role === 'assistant' && (
-          <div className="absolute -bottom-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-           <CopyButton text={msg.content} />
-          </div>
-         )}
         </div>
+        
+        {/* Render Widgets below the message text if present */}
+        {msg.role === 'assistant' && (hasEmergency || hasHospital || hasSchedule || hasMedication) && (
+         <div className={`mt-4 w-full ${displayContent ? 'ml-14' : ''}`}>
+          {hasEmergency && <EmergencyWidget />}
+          {hasHospital && <HospitalLocatorWidget />}
+          {hasSchedule && <SchedulingWidget />}
+          {hasMedication && <MedicationWidget />}
+         </div>
+        )}
        </motion.div>
       )
      })}

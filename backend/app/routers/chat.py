@@ -128,10 +128,21 @@ async def send_message(
             
             local_db = SessionLocal()
             try:
+                metadata_json = None
+                if "[[WIDGET:HOSPITAL]]" in full_response:
+                    metadata_json = {"widget_type": "hospital"}
+                elif "[[WIDGET:EMERGENCY]]" in full_response:
+                    metadata_json = {"widget_type": "emergency"}
+                elif "[[WIDGET:SCHEDULE]]" in full_response:
+                    metadata_json = {"widget_type": "schedule"}
+                elif "[[WIDGET:MEDICATION]]" in full_response:
+                    metadata_json = {"widget_type": "medication"}
+
                 ai_msg = ChatMessage(
                     session_id=uuid_lib2.UUID(session_id),
                     role="assistant",
-                    content=full_response
+                    content=full_response,
+                    metadata_json=metadata_json
                 )
                 local_db.add(ai_msg)
                 
