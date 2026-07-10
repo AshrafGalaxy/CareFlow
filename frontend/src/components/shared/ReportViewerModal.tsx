@@ -97,7 +97,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
         className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10"
        >
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
-        <p className="text-sm text-foreground font-semibold animate-pulse tracking-tight">Preparing your report...</p>
+        <p className="text-sm text-foreground font-semibold animate-pulse tracking-tight">Loading your report...</p>
        </motion.div>
       )}
      </AnimatePresence>
