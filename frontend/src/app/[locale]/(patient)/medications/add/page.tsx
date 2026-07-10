@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { CustomCalendar } from '@/components/shared/CustomCalendar'
 
 const FREQUENCIES = [
   "Once Daily",
@@ -24,10 +25,13 @@ const FREQUENCIES = [
 
 const DOSAGE_UNITS = [
   "mg", "g", "mcg", "ml", "pills", "tablets", "capsules", 
-  "drops", "tsp", "tbsp", "units", "puffs", "patches", "scoops"
+  "drops", "tsp", "tbsp", "units", "puffs", "patches", "scoops",
+  "sprays", "sachets", "ampoules", "suppositories", "IU", "mEq"
 ]
 
 const DURATIONS = [
+  "1 Day",
+  "2 Days",
   "3 Days",
   "5 Days",
   "1 Week",
@@ -131,7 +135,9 @@ export default function AddMedicationPage() {
     let end = null
     if (form.duration_preset !== 'Ongoing') {
       end = new Date(start)
-      if (form.duration_preset === '3 Days') end.setDate(end.getDate() + 3)
+      if (form.duration_preset === '1 Day') end.setDate(end.getDate() + 1)
+      else if (form.duration_preset === '2 Days') end.setDate(end.getDate() + 2)
+      else if (form.duration_preset === '3 Days') end.setDate(end.getDate() + 3)
       else if (form.duration_preset === '5 Days') end.setDate(end.getDate() + 5)
       else if (form.duration_preset === '1 Week') end.setDate(end.getDate() + 7)
       else if (form.duration_preset === '10 Days') end.setDate(end.getDate() + 10)
@@ -164,6 +170,12 @@ export default function AddMedicationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (form.frequency === "Custom" && !form.custom_frequency.trim()) {
+      toast.error("Please provide a valid custom frequency.")
+      return
+    }
+
     if (dateError) {
       toast.error(dateError)
       return
@@ -322,9 +334,9 @@ export default function AddMedicationPage() {
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -5 }}
-                          className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-30"
+                          className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-30 overflow-hidden"
                         >
-                          <div className="max-h-48 overflow-y-auto py-1">
+                          <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
                             {DOSAGE_UNITS.map(unit => (
                               <div 
                                 key={unit}
@@ -361,9 +373,9 @@ export default function AddMedicationPage() {
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -5 }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
+                      className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-20 overflow-hidden"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1">
+                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
                         {FREQUENCIES.map(freq => (
                           <div 
                             key={freq}
@@ -381,21 +393,24 @@ export default function AddMedicationPage() {
                   )}
                 </AnimatePresence>
                 
-                {form.frequency === "Custom" && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="pt-2 overflow-hidden"
-                  >
-                    <input
-                      type="text"
-                      value={form.custom_frequency}
-                      onChange={e => setForm({ ...form, custom_frequency: e.target.value })}
-                      placeholder="e.g., Every 3 days, On weekends"
-                      className="w-full px-3 py-2.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm text-foreground placeholder:text-muted-foreground shadow-sm"
-                    />
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {form.frequency === "Custom" && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pt-2 p-1 -m-1 overflow-hidden"
+                    >
+                      <input
+                        type="text"
+                        value={form.custom_frequency}
+                        onChange={e => setForm({ ...form, custom_frequency: e.target.value })}
+                        placeholder="e.g., Every 3 days, On weekends"
+                        className={`w-full px-3 py-2.5 bg-background border rounded-xl focus:ring-2 transition-all text-sm text-foreground placeholder:text-muted-foreground shadow-sm ${form.frequency === "Custom" && !form.custom_frequency.trim() && loading ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border focus:ring-sky-500/20 focus:border-sky-500'}`}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -479,7 +494,11 @@ export default function AddMedicationPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                     <Calendar size={16} />
                   </div>
-                  <span className="truncate">{form.start_date_preset}</span>
+                  <span className="truncate">
+                    {form.start_date_preset === 'Custom Date' 
+                      ? new Date(form.start_date_custom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : form.start_date_preset}
+                  </span>
                   <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showStartDateDropdown ? 'rotate-180' : ''}`} />
                 </div>
                 
@@ -491,7 +510,7 @@ export default function AddMedicationPage() {
                       exit={{ opacity: 0, y: -5 }}
                       className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1">
+                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
                         {START_DATES.map(preset => (
                           <div 
                             key={preset}
@@ -509,21 +528,21 @@ export default function AddMedicationPage() {
                   )}
                 </AnimatePresence>
                 
-                {form.start_date_preset === "Custom Date" && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="pt-2 overflow-hidden"
-                  >
-                    <input
-                      type="date"
-                      value={form.start_date_custom}
-                      onChange={e => setForm({ ...form, start_date_custom: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm text-foreground shadow-sm [color-scheme:light] dark:[color-scheme:dark]"
-                      required
-                    />
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {form.start_date_preset === "Custom Date" && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pt-2 p-1 -m-1 overflow-hidden"
+                    >
+                      <CustomCalendar
+                        selectedDate={form.start_date_custom}
+                        onSelect={(date) => setForm({ ...form, start_date_custom: date })}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* End Date (Duration) Dropdown */}
@@ -536,7 +555,11 @@ export default function AddMedicationPage() {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                     <Calendar size={16} />
                   </div>
-                  <span className="truncate">{form.duration_preset}</span>
+                  <span className="truncate">
+                    {form.duration_preset === 'Custom Date' && form.end_date_custom
+                      ? new Date(form.end_date_custom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : form.duration_preset === 'Custom Date' ? 'Select date...' : form.duration_preset}
+                  </span>
                   <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showDurationDropdown ? 'rotate-180' : ''}`} />
                 </div>
                 
@@ -548,7 +571,7 @@ export default function AddMedicationPage() {
                       exit={{ opacity: 0, y: -5 }}
                       className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1">
+                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
                         {DURATIONS.map(preset => (
                           <div 
                             key={preset}
@@ -566,20 +589,22 @@ export default function AddMedicationPage() {
                   )}
                 </AnimatePresence>
                 
-                {form.duration_preset === "Custom Date" && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="pt-2 overflow-hidden"
-                  >
-                    <input
-                      type="date"
-                      value={form.end_date_custom}
-                      onChange={e => setForm({ ...form, end_date_custom: e.target.value })}
-                      className={`w-full px-3 py-2.5 bg-background border rounded-xl focus:ring-2 focus:ring-sky-500/20 transition-all text-sm text-foreground shadow-sm [color-scheme:light] dark:[color-scheme:dark] ${dateError ? 'border-rose-500 focus:border-rose-500' : 'border-border focus:border-sky-500'}`}
-                    />
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {form.duration_preset === "Custom Date" && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pt-2 p-1 -m-1 overflow-hidden"
+                    >
+                      <CustomCalendar
+                        selectedDate={form.end_date_custom}
+                        minDate={calculateDates().startDateStr}
+                        onSelect={(date) => setForm({ ...form, end_date_custom: date })}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {dateError && <p className="text-xs text-rose-500 mt-1">{dateError}</p>}
               </div>
             </div>
