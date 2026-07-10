@@ -26,3 +26,4 @@ class TimelineListResponse(BaseModel):
 
 class TimelineSummaryResponse(BaseModel):
     summary: str
+    last_updated: Optional[datetime] = None

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.models.timeline import HealthTimelineEvent
+from app.models.timeline import HealthTimelineEvent, HealthTimelineSummary
 from app.schemas.timeline import TimelineListResponse, TimelineEventResponse, TimelineSummaryResponse
 from app.middleware.auth_middleware import get_current_user
 from app.ai.prompts import TIMELINE_SUMMARY_PROMPT
@@ -35,10 +35,11 @@ def get_timeline(
 
 @router.get("/summary", response_model=TimelineSummaryResponse)
 async def get_timeline_summary(
+    force_refresh: bool = False,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Generate an AI summary of the patient's health journey."""
+    """Generate an AI summary of the patient's health journey with smart caching."""
     import os
     from langchain_core.messages import HumanMessage
 
@@ -46,9 +47,23 @@ async def get_timeline_summary(
         HealthTimelineEvent.user_id == user.id
     ).order_by(HealthTimelineEvent.event_date.asc()).limit(50).all()
 
-    if not events:
+    current_event_count = len(events)
+
+    if current_event_count == 0:
         return TimelineSummaryResponse(
-            summary="No health events recorded yet. Start by uploading a medical report or adding a medication to track your health journey."
+            summary="No health events recorded yet. Start by uploading a medical report or adding a medication to track your health journey.",
+            last_updated=None
+        )
+
+    # Check for existing cached summary
+    cached_summary = db.query(HealthTimelineSummary).filter(
+        HealthTimelineSummary.user_id == user.id
+    ).first()
+
+    if not force_refresh and cached_summary and cached_summary.event_count == current_event_count:
+        return TimelineSummaryResponse(
+            summary=cached_summary.summary_text,
+            last_updated=cached_summary.last_updated
         )
 
     # Format events as text for the LLM
@@ -70,6 +85,27 @@ async def get_timeline_summary(
         response = await llm.ainvoke([HumanMessage(content=prompt)])
         summary_text = response.content.strip()
     except Exception:
-        summary_text = f"Your health journey includes {len(events)} events. Keep up the great work tracking your health!"
+        if cached_summary and cached_summary.summary_text:
+            summary_text = cached_summary.summary_text
+        else:
+            summary_text = f"Your health journey includes {current_event_count} events. Keep up the great work tracking your health!"
 
-    return TimelineSummaryResponse(summary=summary_text)
+    # Save to database
+    if not cached_summary:
+        cached_summary = HealthTimelineSummary(
+            user_id=user.id,
+            summary_text=summary_text,
+            event_count=current_event_count
+        )
+        db.add(cached_summary)
+    else:
+        cached_summary.summary_text = summary_text
+        cached_summary.event_count = current_event_count
+    
+    db.commit()
+    db.refresh(cached_summary)
+
+    return TimelineSummaryResponse(
+        summary=cached_summary.summary_text,
+        last_updated=cached_summary.last_updated
+    )
