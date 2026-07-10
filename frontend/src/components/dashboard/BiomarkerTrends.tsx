@@ -211,6 +211,7 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
           />
           <Tooltip 
            content={<CustomTooltip />}
+           isAnimationActive={false}
            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
           />
           {refMin !== undefined && refMax !== undefined && (
