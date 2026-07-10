@@ -8,7 +8,7 @@ interface CareBotAvatarProps {
 export function CareBotAvatar({ className, size = 40 }: CareBotAvatarProps) {
   return (
     <div 
-      className={cn("relative flex-shrink-0 flex items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-sky-600 shadow-sm overflow-hidden", className)}
+      className={cn("relative flex-shrink-0 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm overflow-hidden", className)}
       style={{ width: size, height: size }}
     >
       <svg 

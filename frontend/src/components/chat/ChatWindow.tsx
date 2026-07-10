@@ -142,13 +142,13 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
 
  return (
   <div className="flex flex-col h-full absolute inset-0">
-   <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-card">
+   <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-card flex flex-col">
     <AnimatePresence initial={false}>
      {messages.length === 0 && (
       <motion.div 
        initial={{ opacity: 0, y: 20 }}
        animate={{ opacity: 1, y: 0 }}
-       className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto"
+       className="flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto py-12"
       >
        <CareBotAvatar size={100} className="mb-6 opacity-90 shadow-xl" />
        <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">CareFlow AI is ready</h3>
@@ -166,7 +166,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
         key={msg.id}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex items-start max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
+        className={`flex items-start max-w-3xl mb-8 ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
        >
         {msg.role === 'assistant' && (
          <CareBotAvatar size={40} className="mr-4 mt-1" />
@@ -192,7 +192,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      })}
 
      {isStreaming && (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
        <CareBotAvatar size={40} className="mr-4 mt-1" />
        <div className="px-5 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl rounded-bl-sm flex items-center gap-3 shadow-sm min-w-[120px]">
         <div className="flex space-x-1.5">
@@ -206,7 +206,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      )}
 
      {error && !isStreaming && (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start max-w-3xl mr-auto mt-4 mb-8">
        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center text-sm font-bold flex-shrink-0 mr-4 shadow-sm">
         <AlertCircle size={20} />
        </div>
@@ -228,7 +228,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       </motion.div>
      )}
 
-     <div ref={bottomRef} className="h-4" />
+     {messages.length > 0 && <div ref={bottomRef} className="h-4" />}
     </AnimatePresence>
    </div>
 
