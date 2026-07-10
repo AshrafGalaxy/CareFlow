@@ -400,7 +400,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
          animate={{ opacity: 1, y: 0, scale: 1 }}
          exit={{ opacity: 0, y: 10, scale: 0.9 }}
          onClick={scrollToBottom}
-         className="absolute bottom-[100px] right-8 w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-full text-slate-500 hover:text-sky-500 z-50 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
+         className="absolute bottom-36 right-8 w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-full text-slate-500 hover:text-sky-500 z-50 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
        >
          <ArrowDown size={18} />
        </motion.button>
