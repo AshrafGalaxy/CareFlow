@@ -175,13 +175,20 @@ def get_adherence(
             if log.status in ["taken", "missed", "skipped"]:
                 by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
 
+    # Cap the values per medication so percentages never exceed 100%
+    for mid, counts in by_med.items():
+        t = counts["total"]
+        tak = min(counts.get("taken", 0), t)
+        skip = min(counts.get("skipped", 0), t - tak)
+        counts["taken"] = tak
+        counts["skipped"] = skip
+
     total = sum(d["total"] for d in by_med.values())
     taken = sum(d["taken"] for d in by_med.values())
     missed = sum(d["missed"] for d in by_med.values())
     skipped = sum(d["skipped"] for d in by_med.values())
     
-    # If the user has "missed" logs but we want to infer missed from total:
-    # A user might not click "missed", so inferred missed = total - taken - skipped
+    # Infer missed if not manually logged
     inferred_missed = max(0, total - taken - skipped)
     
     adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
@@ -355,6 +362,25 @@ def update_medication_log(
         log.taken_at = None
 
     db.commit()
-    db.refresh(log)
+    db.commit()
     db.refresh(log)
     return log
+
+@router.delete("/logs/{log_id}")
+def delete_medication_log(
+    log_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a specific medication log (Undo action)."""
+    log = db.query(MedicationLog).join(Medication).filter(
+        MedicationLog.id == log_id,
+        Medication.user_id == user.id
+    ).first()
+    
+    if not log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log not found")
+
+    db.delete(log)
+    db.commit()
+    return {"message": "log deleted"}
