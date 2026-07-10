@@ -6,7 +6,13 @@ import json
 from app.database import get_db
 from app.models.user import User
 from app.models.chat import ChatSession, ChatMessage
-from app.schemas.chat import ChatSessionResponse, MessageRequest, ChatMessageResponse
+from app.schemas.chat import (
+    ChatSessionResponse, 
+    MessageRequest, 
+    ChatMessageResponse,
+    ChatFeedbackRequest,
+    ChatFeedbackResponse
+)
 from app.middleware.auth_middleware import get_current_user
 from app.ai.chat_chain import get_streaming_response, generate_chat_title
 
@@ -205,3 +211,53 @@ async def delete_session(
     db.commit()
     
     return {"status": "success", "message": "Session deleted successfully"}
+
+
+@router.post("/messages/{message_id}/feedback", response_model=ChatFeedbackResponse)
+async def submit_feedback(
+    message_id: str,
+    feedback: ChatFeedbackRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Submit RLHF feedback for an AI message."""
+    import uuid as uuid_lib
+    from app.models.chat import ChatFeedback
+    
+    # Verify the message exists and belongs to the user
+    message = db.query(ChatMessage).join(ChatSession).filter(
+        ChatMessage.id == uuid_lib.UUID(message_id),
+        ChatSession.user_id == user.id
+    ).first()
+    
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+        
+    if message.role != "assistant":
+        raise HTTPException(status_code=400, detail="Can only provide feedback for AI messages")
+        
+    # Check if feedback already exists
+    existing = db.query(ChatFeedback).filter(
+        ChatFeedback.message_id == message.id,
+        ChatFeedback.user_id == user.id
+    ).first()
+    
+    if existing:
+        # Update existing feedback
+        existing.is_positive = 1 if feedback.is_positive else 0
+        existing.feedback_text = feedback.feedback_text
+        db.commit()
+        db.refresh(existing)
+        return existing
+        
+    # Create new feedback
+    new_feedback = ChatFeedback(
+        message_id=message.id,
+        user_id=user.id,
+        is_positive=1 if feedback.is_positive else 0,
+        feedback_text=feedback.feedback_text
+    )
+    db.add(new_feedback)
+    db.commit()
+    db.refresh(new_feedback)
+    return new_feedback

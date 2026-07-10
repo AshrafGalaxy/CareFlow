@@ -11,3 +11,5 @@ from .memo import PatientMemo
 from .analytics import PatientAnalytics
 from .provider_profile import ProviderProfile
 from .audit import AuditLog
+from .appointment import Appointment
+from .order import Order

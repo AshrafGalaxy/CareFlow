@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.routers import auth, reports, chat, medications, follow_ups, insurance, timeline, dashboard, notifications
+from app.routers import auth, reports, chat, medications, follow_ups, insurance, timeline, dashboard, notifications, appointment, order
 from app.scheduler import start_scheduler
 from app.middleware.audit_middleware import AuditMiddleware
 
@@ -36,6 +36,8 @@ app.include_router(insurance.router, prefix="/api/insurance", tags=["insurance"]
 app.include_router(timeline.router, prefix="/api/timeline", tags=["timeline"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
+app.include_router(appointment.router, prefix="/api/appointments", tags=["appointments"])
+app.include_router(order.router, prefix="/api/orders", tags=["orders"])
 
 @app.get("/api/health")
 def health():

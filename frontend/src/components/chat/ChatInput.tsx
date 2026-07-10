@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react'
 import { Send, Paperclip, Mic, X, Image as ImageIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ChatInputProps {
  onSend: (message: string, imageBase64?: string) => void
@@ -37,7 +38,11 @@ export function ChatInput({ onSend, disabled, initialValue = '' }: ChatInputProp
         }
 
         recognition.onerror = (event: any) => {
-          console.error("Speech recognition error", event.error)
+          if (event.error === 'not-allowed') {
+            toast.error("Microphone access denied. Please allow microphone permissions in your browser to use voice input.")
+          } else if (event.error !== 'no-speech') {
+            toast.error(`Speech recognition failed: ${event.error}`)
+          }
           setIsListening(false)
         }
 

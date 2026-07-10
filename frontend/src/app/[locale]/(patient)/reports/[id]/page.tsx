@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { Link, useRouter } from '@/i18n/routing'
 import { FileText, AlertCircle, CheckCircle, MessageSquare, BrainCircuit, ChevronLeft, RefreshCw, Activity, AlertTriangle } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import api from '@/lib/api'
 import { AbnormalValueBadge } from '@/components/reports/AbnormalValueBadge'
 import { DoctorQuestions } from '@/components/reports/DoctorQuestions'
@@ -94,24 +96,26 @@ export default function ReportDetailPage() {
    }
  }
 
- useEffect(() => {
-  if (!id) return
-  
-  const fetchReport = async () => {
-   try {
-    const res = await api.get(`/api/reports/${id}`)
-    setReport(res.data)
-    if (res.data.processing_status === 'done' || res.data.processing_status === 'failed') {
-     setReanalyzing(false)
-    }
-   } catch {
-    setError('Could not load this report.')
-   }
-  }
+  const hasHydrated = useAuthStore(state => state._hasHydrated)
 
-  // Fetch immediately
-  fetchReport()
- }, [id])
+  useEffect(() => {
+   if (!id || !hasHydrated) return
+   
+   const fetchReport = async () => {
+    try {
+     const res = await api.get(`/api/reports/${id}`)
+     setReport(res.data)
+     if (res.data.processing_status === 'done' || res.data.processing_status === 'failed') {
+      setReanalyzing(false)
+     }
+    } catch {
+     setError('Could not load this report.')
+    }
+   }
+
+   // Fetch immediately
+   fetchReport()
+  }, [id, hasHydrated])
 
   // SSE Streaming for processing updates
   useEffect(() => {

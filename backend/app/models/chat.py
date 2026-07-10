@@ -21,3 +21,12 @@ class ChatMessage(Base):
     metadata_json = Column(JSONB, nullable=True)
     tokens_used = Column(Integer)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+class ChatFeedback(Base):
+    __tablename__ = "chat_feedback"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id = Column(UUID(as_uuid=True), ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    is_positive = Column(Integer, nullable=False) # 1 for thumbs up, 0 for thumbs down
+    feedback_text = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

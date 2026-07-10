@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Pill, Clock, Calendar, CheckCircle, XCircle, AlertCircle, Save, Stethoscope, FileText } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 
@@ -39,26 +40,30 @@ export default function MedicationDoctorViewPage() {
 
  const [hospitalNotes, setHospitalNotes] = useState("")
  const [savingNotes, setSavingNotes] = useState(false)
+ const hasHydrated = useAuthStore(state => state._hasHydrated)
+
+ const fetchData = async () => {
+  try {
+   const [medRes, logsRes] = await Promise.all([
+    api.get(`/api/medications/${medicationId}`),
+    api.get(`/api/medications/${medicationId}/logs?limit=50`)
+   ])
+   setMedication(medRes.data)
+   setHospitalNotes(medRes.data.hospital_notes || "")
+   setLogs(logsRes.data)
+  } catch (error) {
+   console.error(error)
+   toast.error("Failed to load medication details")
+  } finally {
+   setLoading(false)
+  }
+ }
 
  useEffect(() => {
-  const fetchData = async () => {
-   try {
-    const [medRes, logsRes] = await Promise.all([
-     api.get(`/api/medications/${medicationId}`),
-     api.get(`/api/medications/${medicationId}/logs?limit=50`)
-    ])
-    setMedication(medRes.data)
-    setHospitalNotes(medRes.data.hospital_notes || "")
-    setLogs(logsRes.data)
-   } catch (error) {
-    console.error(error)
-    toast.error("Failed to load medication details")
-   } finally {
-    setLoading(false)
-   }
+  if (hasHydrated) {
+   fetchData()
   }
-  fetchData()
- }, [medicationId])
+ }, [medicationId, hasHydrated])
 
  const handleSaveNotes = async () => {
   setSavingNotes(true)

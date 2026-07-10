@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { FileText, Pill, Calendar, Shield, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 
 interface TimelineEvent {
  id: string
@@ -59,10 +60,14 @@ export default function TimelinePage() {
   }
  }
 
- useEffect(() => {
-  loadTimeline()
-  loadSummary()
- }, [])
+  const hasHydrated = useAuthStore(state => state._hasHydrated)
+
+  useEffect(() => {
+   if (hasHydrated) {
+    loadTimeline()
+    loadSummary()
+   }
+  }, [hasHydrated])
 
  const getEventLink = (event: TimelineEvent): string | null => {
   if (event.reference_table === 'reports' && event.reference_id) {

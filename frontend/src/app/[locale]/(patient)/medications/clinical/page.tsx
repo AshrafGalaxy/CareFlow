@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { ArrowLeft, Clock, Save, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Filter, Play, Square } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -73,9 +74,13 @@ export default function ClinicalChartPage() {
   }
  }
 
- useEffect(() => {
-  loadData()
- }, [])
+  const hasHydrated = useAuthStore(state => state._hasHydrated)
+
+  useEffect(() => {
+   if (hasHydrated) {
+    loadData()
+   }
+  }, [hasHydrated])
 
  const handleSave = async (id: string) => {
   setSaving(id)

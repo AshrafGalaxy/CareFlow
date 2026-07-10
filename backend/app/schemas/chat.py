@@ -35,3 +35,20 @@ class ChatMessageResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChatFeedbackRequest(BaseModel):
+    is_positive: bool
+    feedback_text: Optional[str] = None
+
+
+class ChatFeedbackResponse(BaseModel):
+    id: UUID
+    message_id: UUID
+    user_id: UUID
+    is_positive: int
+    feedback_text: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

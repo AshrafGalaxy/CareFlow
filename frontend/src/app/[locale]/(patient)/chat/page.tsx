@@ -50,9 +50,13 @@ interface ChatSession {
   }
  }
 
- useEffect(() => {
-  loadSessions()
- }, [])
+  const hasHydrated = useAuthStore(state => state._hasHydrated)
+
+  useEffect(() => {
+   if (hasHydrated) {
+    loadSessions()
+   }
+  }, [hasHydrated])
 
  const selectSession = async (session: ChatSession) => {
   setActiveSession(session)

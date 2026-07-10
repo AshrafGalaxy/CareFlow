@@ -37,6 +37,65 @@ const CopyButton = ({ text }: { text: string }) => {
  )
 }
 
+import { ThumbsUp, ThumbsDown } from 'lucide-react'
+
+const FeedbackButton = ({ messageId, token }: { messageId: string, token: string | null }) => {
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
+  
+  const submitFeedback = async (isPositive: boolean) => {
+    if (feedback !== null || !token) return
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/chat/messages/${messageId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_positive: isPositive }),
+      })
+      
+      if (response.ok) {
+        setFeedback(isPositive ? 'positive' : 'negative')
+        toast.success("Feedback recorded. Thank you!")
+      } else {
+        throw new Error('Failed to submit feedback')
+      }
+    } catch (err) {
+      toast.error("Could not submit feedback")
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => submitFeedback(true)}
+        disabled={feedback !== null}
+        className={cn(
+          "p-1.5 rounded-md transition-colors",
+          feedback === 'positive' ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" : "text-muted-foreground hover:text-emerald-500 hover:bg-slate-200 dark:hover:bg-slate-700",
+          feedback === 'negative' && "opacity-50 cursor-not-allowed"
+        )}
+        title="Helpful"
+      >
+        <ThumbsUp size={14} />
+      </button>
+      <button
+        onClick={() => submitFeedback(false)}
+        disabled={feedback !== null}
+        className={cn(
+          "p-1.5 rounded-md transition-colors",
+          feedback === 'negative' ? "text-rose-500 bg-rose-50 dark:bg-rose-950/30" : "text-muted-foreground hover:text-rose-500 hover:bg-slate-200 dark:hover:bg-slate-700",
+          feedback === 'positive' && "opacity-50 cursor-not-allowed"
+        )}
+        title="Not helpful"
+      >
+        <ThumbsDown size={14} />
+      </button>
+    </div>
+  )
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export function ChatWindow({ initialValue }: { initialValue?: string }) {
@@ -149,7 +208,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       </motion.div>
      )}
 
-     {messages.map((msg) => {
+     {messages.map((msg, index) => {
       // Clean content by removing widget tokens for text display
       let displayContent = msg.content
       const hasEmergency = displayContent.includes('[[WIDGET:EMERGENCY]]')
@@ -163,6 +222,8 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
         .replace('[[WIDGET:SCHEDULE]]', '')
         .replace('[[WIDGET:MEDICATION]]', '')
         .trim()
+
+      const isLatestMessage = index === messages.length - 1
 
       return (
        <motion.div
@@ -195,13 +256,14 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
           {msg.role === 'assistant' && displayContent && (
            <div className="absolute -bottom-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
             <CopyButton text={displayContent} />
+            <FeedbackButton messageId={msg.id} token={token} />
            </div>
           )}
          </div>
         </div>
         
-        {/* Render Widgets below the message text if present */}
-        {msg.role === 'assistant' && (hasEmergency || hasHospital || hasSchedule || hasMedication) && (
+        {/* Render Widgets below the message text ONLY if it's the latest message */}
+        {msg.role === 'assistant' && isLatestMessage && (hasEmergency || hasHospital || hasSchedule || hasMedication) && (
          <div className={`mt-4 w-full ${displayContent ? 'ml-14' : ''}`}>
           {hasEmergency && <EmergencyWidget />}
           {hasHospital && <HospitalLocatorWidget />}

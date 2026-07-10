@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Pill, CalendarCheck, Clock, ClipboardList, ChevronDown, ChevronUp, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { MedicationCard } from '@/components/medications/MedicationCard'
 import { AdherenceChart } from '@/components/medications/AdherenceChart'
 import { format, parseISO } from 'date-fns'
@@ -62,9 +63,13 @@ export default function MedicationsPage() {
   }
  }
 
- useEffect(() => {
-  loadData()
- }, [])
+  const hasHydrated = useAuthStore(state => state._hasHydrated)
+
+  useEffect(() => {
+   if (hasHydrated) {
+    loadData()
+   }
+  }, [hasHydrated])
 
  const activeMeds = medications.filter(m => m.is_active)
  const inactiveMeds = medications.filter(m => !m.is_active)
