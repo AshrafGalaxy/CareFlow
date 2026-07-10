@@ -10,9 +10,10 @@ import { Copy, Check, RefreshCcw, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { CareBotAvatar } from './CareBotAvatar'
-import { EmergencyWidget } from './widgets/EmergencyWidget'
-import { SchedulingWidget } from './widgets/SchedulingWidget'
-import { MedicationWidget } from './widgets/MedicationWidget'
+import { EmergencyWidget } from './EmergencyWidget'
+import { HospitalLocatorWidget } from './HospitalLocatorWidget'
+import { SchedulingWidget } from './SchedulingWidget'
+import { MedicationWidget } from './MedicationWidget'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const CopyButton = ({ text }: { text: string }) => {
@@ -49,22 +50,21 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
   bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
  }, [messages])
 
- const sendMessage = async (content: string) => {
+ const sendMessage = async (content: string, imageBase64?: string) => {
   if (!activeSession || isStreaming) return
   setError(null)
 
-  // Keyword Interception Engine
-  const lowerContent = content.toLowerCase()
-  const triggersEmergency = /(emergency|urgent|ambulance|sos|heart attack)/i.test(lowerContent)
-  const triggersSchedule = /(schedule|appointment|book|calendar)/i.test(lowerContent)
-  const triggersMedication = /(medication|pill|prescribe|drug)/i.test(lowerContent)
+  const triggersEmergency = /emergency|hospital/i.test(content)
+  const triggersSchedule = /schedule|appointment/i.test(content)
+  const triggersMedication = /medicine|medication/i.test(content)
 
-  // Add user message immediately
+  // Add user message locally
   addMessage({
    id: `user-${Date.now()}`,
    role: 'user',
-   content,
+   content: content || 'Uploaded an image',
    timestamp: new Date().toISOString(),
+   image_base64: imageBase64,
   })
 
   // Inject widget locally if triggered
@@ -87,7 +87,10 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
      },
-     body: JSON.stringify({ content }),
+     body: JSON.stringify({ 
+       content: content || 'Please analyze this image.', 
+       image_base64: imageBase64 
+     }),
     }
    )
 
@@ -159,6 +162,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
 
      {messages.map((msg) => {
       if (msg.content === '[[WIDGET:EMERGENCY]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><EmergencyWidget /></motion.div>
+      if (msg.content === '[[WIDGET:HOSPITAL]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><HospitalLocatorWidget /></motion.div>
       if (msg.content === '[[WIDGET:SCHEDULE]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><SchedulingWidget /></motion.div>
       if (msg.content === '[[WIDGET:MEDICATION]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><MedicationWidget /></motion.div>
 
@@ -175,7 +179,12 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
         <div className="group relative max-w-full">
          <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4 font-medium' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm prose prose-sm prose-slate dark:prose-invert max-w-none'}`}>
           {msg.role === 'user' ? (
-           <p className="whitespace-pre-wrap">{msg.content}</p>
+           <div className="flex flex-col gap-2">
+            {(msg as any).image_base64 && (
+             <img src={(msg as any).image_base64} alt="User uploaded" className="max-w-[200px] rounded-lg border border-sky-400/30 object-cover shadow-sm" />
+            )}
+            <span className="whitespace-pre-wrap">{msg.content}</span>
+           </div>
           ) : (
            <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {msg.content}
@@ -233,7 +242,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
     {messages.length > 0 && <div ref={bottomRef} className="h-4 shrink-0" />}
    </div>
 
-   <div className="border-t border-border bg-card p-4 md:p-6">
+   <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 md:p-6 pb-6 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)]">
     <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} initialValue={initialValue} />
    </div>
   </div>

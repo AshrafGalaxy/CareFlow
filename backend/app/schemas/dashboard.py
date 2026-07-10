@@ -15,8 +15,17 @@ class NextMedication(BaseModel):
     scheduled_time: datetime
     status: str
 
+class ActionItem(BaseModel):
+    title: str
+    description: str
+    type: str  # "urgent", "warning", "info"
+    action_url: Optional[str] = None
+    action_label: Optional[str] = None
+
 class DashboardKPIsResponse(BaseModel):
     medications_today_total: int
     medications_today_taken: int
+    health_score: int
+    action_items: list[ActionItem]
     next_medication: Optional[NextMedication] = None
     next_appointment: Optional[NextAppointment] = None

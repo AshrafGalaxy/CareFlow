@@ -20,6 +20,7 @@ class ChatSessionResponse(BaseModel):
 
 class MessageRequest(BaseModel):
     content: str
+    image_base64: Optional[str] = None
 
 
 class ChatMessageResponse(BaseModel):
@@ -27,6 +28,8 @@ class ChatMessageResponse(BaseModel):
     session_id: UUID
     role: str
     content: str
+    image_url: Optional[str] = None
+    metadata: Optional[dict] = None
     tokens_used: Optional[int] = None
     timestamp: datetime
 

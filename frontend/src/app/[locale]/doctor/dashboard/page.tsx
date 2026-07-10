@@ -165,6 +165,12 @@ export default function DoctorDashboardPage() {
      {/* Patient list header */}
      <div className="flex items-center justify-between">
       <h2 className="text-xl font-bold text-foreground">Your Patients</h2>
+      <Link
+       href="/doctor/patients"
+       className="text-sm font-medium text-sky-500 hover:text-sky-600 flex items-center gap-1 group"
+      >
+       View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+      </Link>
      </div>
 
      <PatientList

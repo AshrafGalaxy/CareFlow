@@ -5,6 +5,7 @@ interface ChatMessage {
  role: 'user' | 'assistant'
  content: string
  timestamp: string
+ image_base64?: string
 }
 
 interface ChatSession {

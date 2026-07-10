@@ -37,6 +37,33 @@ async def get_sessions(
     ).order_by(ChatSession.created_at.desc()).all()
 
 
+import base64
+import os
+import uuid as uuid_lib
+
+def save_chat_image(base64_str: str) -> str | None:
+    if not base64_str:
+        return None
+    try:
+        if "," in base64_str:
+            base64_str = base64_str.split(",")[1]
+        
+        img_data = base64.b64decode(base64_str)
+        filename = f"{uuid_lib.uuid4().hex}.jpg"
+        
+        # Path to frontend public folder
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "frontend", "public", "uploads", "chat_images")
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(img_data)
+            
+        return f"/uploads/chat_images/{filename}"
+    except Exception as e:
+        print(f"Failed to save image: {e}")
+        return None
+
 @router.post("/{session_id}/message")
 async def send_message(
     session_id: str,
@@ -46,9 +73,6 @@ async def send_message(
 ):
     """
     Send a message and stream the AI response via SSE.
-    Response format: text/event-stream
-    Each event: data: {"token": "..."}\n\n
-    Final event: data: [DONE]\n\n
     """
     import uuid as uuid_lib
     # Verify session ownership
@@ -59,11 +83,14 @@ async def send_message(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    image_url = save_chat_image(body.image_base64) if getattr(body, "image_base64", None) else None
+
     # Save user message
     user_msg = ChatMessage(
         session_id=uuid_lib.UUID(session_id),
         role="user",
-        content=body.content
+        content=body.content,
+        image_url=image_url
     )
     db.add(user_msg)
     db.commit()

@@ -11,7 +11,7 @@ from app.models.follow_up import FollowUp
 from app.models.report import Report
 from app.models.memo import PatientMemo
 from app.models.analytics import PatientAnalytics
-from app.schemas.dashboard import DashboardKPIsResponse, NextMedication, NextAppointment
+from app.schemas.dashboard import DashboardKPIsResponse, NextMedication, NextAppointment, ActionItem
 
 
 def _sync_patient_analytics(patient_id: uuid.UUID, db: Session):
@@ -148,9 +148,71 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
             status=next_follow_up.status
         )
 
+    # 3. Health Score & Action Items
+    action_items = []
+    
+    analytics = db.query(PatientAnalytics).filter(PatientAnalytics.patient_id == patient.id).first()
+    if not analytics:
+        analytics = _sync_patient_analytics(patient.id, db)
+        
+    adherence_score = analytics.adherence_rate_30d * 0.5
+    if not patient_med_ids:
+        adherence_score = 50.0 # No meds = perfect adherence score
+        
+    recent_report = db.query(Report).filter(
+        Report.user_id == patient.id,
+        Report.processing_status == 'done'
+    ).order_by(Report.uploaded_at.desc()).first()
+    
+    biomarker_score = 50.0
+    if recent_report and recent_report.ai_highlights:
+        highlights = recent_report.ai_highlights
+        total_biomarkers = len(highlights)
+        if total_biomarkers > 0:
+            normal_biomarkers = sum(1 for h in highlights if h.get("status", "normal").lower() == "normal")
+            biomarker_score = (normal_biomarkers / total_biomarkers) * 50.0
+            
+        # Action items from report
+        if recent_report.actionable_insights:
+            for insight in recent_report.actionable_insights:
+                if insight.get("type") in ["warning", "action_required"]:
+                    action_items.append(ActionItem(
+                        title=insight.get("title", "Health Alert"),
+                        description=insight.get("content_simple", "Please review your recent report."),
+                        type="warning",
+                        action_url=f"/reports/{recent_report.id}",
+                        action_label="View Report"
+                    ))
+                    
+    health_score = int(adherence_score + biomarker_score)
+    
+    # Action item for adherence
+    if analytics.adherence_rate_30d > 0 and analytics.adherence_rate_30d < 80 and patient_med_ids:
+        action_items.append(ActionItem(
+            title="Medication Adherence Low",
+            description=f"Your recent adherence is {analytics.adherence_rate_30d}%. Please make sure to take your medications on time.",
+            type="warning",
+            action_url="/medications",
+            action_label="View Schedule"
+        ))
+        
+    # Action item for appointments
+    if next_follow_up:
+        days_until = (next_follow_up.appointment_date - now_utc).days
+        if 0 <= days_until <= 3:
+            action_items.append(ActionItem(
+                title="Upcoming Appointment",
+                description=f"You have an appointment with Dr. {next_follow_up.doctor_name} in {days_until} day(s).",
+                type="info",
+                action_url="/dashboard",
+                action_label="View Details"
+            ))
+
     return DashboardKPIsResponse(
         medications_today_total=medications_today_total,
         medications_today_taken=medications_today_taken,
+        health_score=health_score,
+        action_items=action_items,
         next_medication=next_medication,
         next_appointment=next_appointment
     )

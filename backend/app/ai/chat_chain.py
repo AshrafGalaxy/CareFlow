@@ -11,7 +11,8 @@ async def get_streaming_response(
     message: str,
     session_id: str,
     user_id: str,
-    chat_history: list[dict]  # [{"role": "user"|"assistant", "content": str}]
+    chat_history: list[dict],  # [{"role": "user"|"assistant", "content": str}]
+    image_base64: str | None = None
 ) -> AsyncGenerator[str, None]:
     """
     Yields response tokens one by one for Server-Sent Events streaming.
@@ -28,8 +29,9 @@ async def get_streaming_response(
     if not groq_api_key or groq_api_key.strip() == "":
         raise ValueError("GROQ_API_KEY is missing. Chat cannot function.")
         
+    model_name = "llama-3.2-90b-vision-preview" if image_base64 else "llama-3.3-70b-versatile"
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         api_key=groq_api_key,
         temperature=0.3,
         max_retries=1
@@ -39,6 +41,18 @@ async def get_streaming_response(
     for msg in chat_history[-10:]:
         role = "ai" if msg["role"] == "assistant" else "human"
         history_messages.append((role, msg["content"]))
+
+    # Prepare current user message
+    if image_base64:
+        # Ensure it has the data URI prefix for base64 if it doesn't already
+        img_url = image_base64 if image_base64.startswith("data:image") else f"data:image/jpeg;base64,{image_base64}"
+        human_content = [
+            {"type": "text", "text": message},
+            {"type": "image_url", "image_url": {"url": img_url}}
+        ]
+        current_msg = ("human", human_content)
+    else:
+        current_msg = ("human", message)
 
     if retriever:
         try:
@@ -72,7 +86,7 @@ async def get_streaming_response(
     messages = [
         ("system", CHAT_SYSTEM_PROMPT.format(context=context)),
         *history_messages,
-        ("human", message)
+        current_msg
     ]
         
     async for chunk in llm.astream(messages):
