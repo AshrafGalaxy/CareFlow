@@ -28,14 +28,9 @@ export default function ProviderLogin() {
       setIsLoading(true)
       setError("")
 
-      const formData = new URLSearchParams()
-      formData.append("username", data.email) // Email is used as username
-      formData.append("password", data.password)
-
-      const response = await api.post("/api/auth/token", formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+      const response = await api.post("/api/auth/login", {
+        email: data.email,
+        password: data.password
       })
 
       const { access_token, user } = response.data
