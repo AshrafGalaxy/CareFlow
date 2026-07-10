@@ -11,6 +11,7 @@ import { APP_ROUTES } from '@/lib/constants'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { CareBotAvatar } from '@/components/chat/CareBotAvatar'
 
 interface ChatSession {
  id: string
@@ -183,12 +184,10 @@ interface ChatSession {
      <ChatWindow initialValue={prefill || ''} />
     ) : (
      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background/50">
-      <div className="w-20 h-20 bg-gradient-to-tr from-sky-500/20 to-indigo-500/10 rounded-3xl shadow-sm flex items-center justify-center text-sky-500 mb-6 border border-sky-500/20">
-       <MessageSquare size={36} />
-      </div>
+      <CareBotAvatar size={100} className="mb-6 opacity-90 shadow-xl" />
       <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Welcome to CareFlow AI</h2>
       <p className="text-muted-foreground max-w-md mb-8 text-lg leading-relaxed">Your AI-powered health companion. Ask questions about your reports, medications, or anything health-related.</p>
-      <button className="px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md" onClick={createNewSession}>
+      <button className="px-8 py-4 bg-sky-500 text-white font-semibold rounded-xl hover:bg-sky-600 hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md" onClick={createNewSession}>
        Start a conversation
       </button>
      </div>
