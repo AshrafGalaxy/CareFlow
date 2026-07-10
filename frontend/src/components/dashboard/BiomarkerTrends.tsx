@@ -11,6 +11,10 @@ import {
  ResponsiveContainer,
  Area,
  AreaChart,
+ BarChart,
+ Bar,
+ Cell,
+ ReferenceArea,
 } from "recharts"
 import { format, parseISO } from "date-fns"
 import { Activity, TrendingUp, AlertCircle } from "lucide-react"
@@ -36,15 +40,30 @@ interface BiomarkerTrendsProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    if (data.value === null || data.value === undefined) return null;
+    const statusColor = data.status === 'high' ? 'bg-rose-500' : data.status === 'low' ? 'bg-amber-500' : 'bg-emerald-500';
+    
     return (
-      <div className="bg-black/90 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-xl">
+      <div className="bg-black/90 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-xl min-w-[120px]">
         <p className="text-white/60 text-xs font-medium mb-2">{data.fullTime}</p>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
-          <p className="text-white font-bold text-sm">
-            {data.originalValue}
-          </p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${statusColor} shadow-[0_0_8px_rgba(255,255,255,0.3)]`} />
+            <p className="text-white font-bold text-sm">
+              {data.originalValue}
+            </p>
+          </div>
+          {data.status && data.status !== 'normal' && (
+            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${statusColor} text-white`}>
+              {data.status}
+            </span>
+          )}
         </div>
+        {data.referenceRange && (
+          <p className="text-white/40 text-[10px] mt-1.5 border-t border-white/10 pt-1.5">
+            Ref: {data.referenceRange}
+          </p>
+        )}
       </div>
     );
   }
@@ -54,50 +73,56 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
  const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null)
 
- // Parse and aggregate data
- const chartData = useMemo(() => {
-  if (!reports || reports.length === 0) return []
+  // Parse and aggregate data
+  const chartData = useMemo(() => {
+    if (!reports || reports.length === 0) return [];
 
-  // 1. Sort reports chronologically
-  const sortedReports = [...reports].sort(
-   (a, b) => new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime()
-  )
+    const sortedReports = [...reports].sort(
+      (a, b) => new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime()
+    );
 
-  // 2. Aggregate all biomarkers
-  const biomarkerMap = new Map<string, { date: string; fullTime: string; value: number; originalValue: string }[]>()
+    const timeline = sortedReports.map(r => ({
+      reportId: r.id,
+      date: format(new Date(r.uploaded_at), "MMM d, yyyy"),
+      fullTime: format(new Date(r.uploaded_at), "MMM d, yyyy • h:mm a"),
+      highlights: r.ai_highlights || []
+    }));
 
-  sortedReports.forEach((report) => {
-   if (!report.ai_highlights) return
-   
-   report.ai_highlights.forEach((highlight) => {
-    // Extract numerical value
-     const match = highlight.value.match(/[\d.]+/)
-     if (match) {
-      const numValue = parseFloat(match[0])
-      const label = highlight.label.trim()
-      const dateStr = format(new Date(report.uploaded_at), "MMM d, yyyy")
-      const fullTimeStr = format(new Date(report.uploaded_at), "MMM d, yyyy • h:mm a")
+    const uniqueBiomarkers = new Set<string>();
+    timeline.forEach(t => {
+      t.highlights.forEach((h: any) => {
+        if (h.value.match(/[\d.]+/)) uniqueBiomarkers.add(h.label.trim());
+      });
+    });
 
-     if (!biomarkerMap.has(label)) {
-      biomarkerMap.set(label, [])
-     }
-      biomarkerMap.get(label)!.push({
-       date: dateStr,
-       fullTime: fullTimeStr,
-       value: numValue,
-       originalValue: highlight.value,
-      })
-    }
-   })
-  })
+    const result: [string, any[]][] = [];
+    uniqueBiomarkers.forEach(label => {
+      const dataPoints = timeline.map(t => {
+        const highlight = t.highlights.find((h: any) => h.label.trim() === label);
+        if (highlight) {
+          const match = highlight.value.match(/[\d.]+/);
+          return {
+            date: t.date,
+            fullTime: t.fullTime,
+            value: match ? parseFloat(match[0]) : null,
+            originalValue: highlight.value,
+            status: highlight.status || "normal",
+            referenceRange: highlight.reference_range,
+          };
+        }
+        return {
+          date: t.date,
+          fullTime: t.fullTime,
+          value: null,
+        };
+      });
+      if (dataPoints.some(d => d.value !== null)) {
+        result.push([label, dataPoints]);
+      }
+    });
 
-  // 3. Filter for biomarkers with at least 2 data points (to show a trend)
-  const plotableBiomarkers = Array.from(biomarkerMap.entries())
-   .filter(([_, dataPoints]) => dataPoints.length >= 1) // Even 1 point is fine to show current state, but 2+ is a trend
-   .sort((a, b) => b[1].length - a[1].length) // Sort by most data points
-
-  return plotableBiomarkers
- }, [reports])
+    return result.sort((a, b) => b[1].filter(d => d.value !== null).length - a[1].filter(d => d.value !== null).length);
+  }, [reports])
 
  // Set default selected biomarker
  useEffect(() => {
@@ -110,12 +135,22 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
   return null // Don't show the section if no plotable data exists yet
  }
 
- const activeData = chartData.find((d) => d[0] === selectedBiomarker)?.[1] || []
- 
- // Calculate trend direction for UI
- const trend = activeData.length >= 2 
-    ? activeData[activeData.length - 1].value - activeData[activeData.length - 2].value 
-    : 0
+  const activeData = chartData.find((d) => d[0] === selectedBiomarker)?.[1] || []
+  
+  const validData = activeData.filter((d: any) => d.value !== null);
+  const trend = validData.length >= 2 
+     ? validData[validData.length - 1].value - validData[validData.length - 2].value 
+     : 0;
+
+  let refMin = undefined;
+  let refMax = undefined;
+  if (validData.length > 0 && validData[validData.length - 1].referenceRange) {
+    const rangeMatch = validData[validData.length - 1].referenceRange.match(/([\d.]+)\s*-\s*([\d.]+)/);
+    if (rangeMatch) {
+      refMin = parseFloat(rangeMatch[1]);
+      refMax = parseFloat(rangeMatch[2]);
+    }
+  }
 
  return (
   <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mb-8">
@@ -157,42 +192,78 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
       {/* Chart Area */}
       <div className="w-full lg:w-3/4 h-[300px]">
        <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-         <defs>
-          <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-           <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
-           <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
-          </linearGradient>
-         </defs>
-         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
-         <XAxis 
-          dataKey="date" 
-          axisLine={false}
-          tickLine={false}
-          tick={{ fontSize: 12 }}
-          className="text-muted-foreground"
-          dy={10}
-         />
-         <YAxis 
-          axisLine={false}
-          tickLine={false}
-          tick={{ fontSize: 12 }}
-          className="text-muted-foreground"
-         />
-         <Tooltip 
-          content={<CustomTooltip />}
-          cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }}
-         />
-         <Area 
-          type="monotone" 
-          dataKey="value" 
-          stroke="#0ea5e9" 
-          strokeWidth={3}
-          fillOpacity={1} 
-          fill="url(#colorValue)" 
-          activeDot={{ r: 6, fill: "#0ea5e9", stroke: "#0284c7", strokeWidth: 2 }}
-         />
-        </AreaChart>
+        {validData.length === 1 ? (
+         <BarChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
+          <XAxis 
+           dataKey="date" 
+           axisLine={false}
+           tickLine={false}
+           tick={{ fontSize: 12 }}
+           className="text-muted-foreground"
+           dy={10}
+          />
+          <YAxis 
+           axisLine={false}
+           tickLine={false}
+           tick={{ fontSize: 12 }}
+           className="text-muted-foreground"
+          />
+          <Tooltip 
+           content={<CustomTooltip />}
+           cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+          />
+          {refMin !== undefined && refMax !== undefined && (
+            <ReferenceArea y1={refMin} y2={refMax} fill="rgba(16, 185, 129, 0.1)" strokeOpacity={0} />
+          )}
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={60}>
+            {activeData.map((entry: any, index: number) => (
+              <Cell key={`cell-${index}`} fill="#0ea5e9" />
+            ))}
+          </Bar>
+         </BarChart>
+        ) : (
+         <AreaChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+           <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+           </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
+          <XAxis 
+           dataKey="date" 
+           axisLine={false}
+           tickLine={false}
+           tick={{ fontSize: 12 }}
+           className="text-muted-foreground"
+           dy={10}
+          />
+          <YAxis 
+           axisLine={false}
+           tickLine={false}
+           tick={{ fontSize: 12 }}
+           className="text-muted-foreground"
+          />
+          <Tooltip 
+           content={<CustomTooltip />}
+           cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }}
+          />
+          {refMin !== undefined && refMax !== undefined && (
+            <ReferenceArea y1={refMin} y2={refMax} fill="rgba(16, 185, 129, 0.1)" strokeOpacity={0} />
+          )}
+          <Area 
+           connectNulls
+           type="monotone" 
+           dataKey="value" 
+           stroke="#0ea5e9" 
+           strokeWidth={3}
+           fillOpacity={1} 
+           fill="url(#colorValue)" 
+           activeDot={{ r: 6, fill: "#0ea5e9", stroke: "#0284c7", strokeWidth: 2 }}
+          />
+         </AreaChart>
+        )}
        </ResponsiveContainer>
       </div>
 
@@ -202,16 +273,24 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
         <p className="text-sm font-medium text-muted-foreground mb-1">Latest {selectedBiomarker}</p>
         <div className="flex items-baseline gap-2">
          <span className="text-4xl font-bold text-foreground">
-          {activeData[activeData.length - 1].value}
+          {validData[validData.length - 1].value}
          </span>
          <span className="text-sm font-medium text-muted-foreground">
-          {activeData[activeData.length - 1].originalValue.replace(/[\d.]+/, "").trim()}
+          {validData[validData.length - 1].originalValue.replace(/[\d.]+/, "").trim()}
          </span>
         </div>
        </div>
 
-       {activeData.length >= 2 && (
+       {validData.length >= 2 && (
         <div className="pt-4 border-t border-border/50">
+         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+          {validData[validData.length - 1].status === 'normal' 
+            ? `Your ${selectedBiomarker} is in the healthy range.`
+            : validData[validData.length - 1].status === 'high'
+              ? `Your ${selectedBiomarker} is above the recommended range.`
+              : `Your ${selectedBiomarker} is below the recommended range.`} 
+          {trend !== 0 && ` It has gone ${trend > 0 ? 'up' : 'down'} since your last tested report.`}
+         </p>
          <div className="flex items-center gap-2">
           {trend < 0 ? (
            <div className="flex items-center gap-1 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md text-sm font-medium">
@@ -228,12 +307,12 @@ export function BiomarkerTrends({ reports }: BiomarkerTrendsProps) {
             <span>Stable</span>
            </div>
           )}
-          <span className="text-xs text-muted-foreground">vs last report</span>
+          <span className="text-xs text-muted-foreground">vs last test</span>
          </div>
         </div>
        )}
 
-       {activeData.length === 1 && (
+       {validData.length === 1 && (
         <div className="pt-4 border-t border-border/50 flex gap-2 text-amber-600 dark:text-amber-400">
          <AlertCircle className="w-5 h-5 shrink-0" />
          <p className="text-xs">Upload another report containing {selectedBiomarker} to see your trend over time.</p>
