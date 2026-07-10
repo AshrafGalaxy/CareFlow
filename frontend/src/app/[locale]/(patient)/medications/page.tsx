@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Pill, CalendarCheck, Clock, ClipboardList, ChevronDown, ChevronUp, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Plus, Pill, CalendarCheck, Clock, ClipboardList, ChevronDown, ChevronUp, CheckCircle, XCircle, AlertCircle, Flame } from 'lucide-react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { MedicationCard } from '@/components/medications/MedicationCard'
@@ -130,18 +131,34 @@ export default function MedicationsPage() {
           </Link>
          </div>
         ) : (
-         <>
+          <>
           <h2 className="text-xl font-bold font-heading text-foreground flex items-center gap-2 mb-4">
            Active Medications 
            <span className="text-xs font-semibold bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full">
             {activeMeds.length}
            </span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
            {activeMeds.map(med => (
-            <MedicationCard key={med.id} medication={med} onLogSuccess={loadData} />
+            <motion.div 
+              key={med.id}
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 }
+              }}
+            >
+              <MedicationCard medication={med} onLogSuccess={loadData} />
+            </motion.div>
            ))}
-          </div>
+          </motion.div>
          </>
         )}
        </section>
@@ -167,10 +184,18 @@ export default function MedicationsPage() {
       {/* Right Column: Adherence Summary */}
       <div className="lg:col-span-1">
        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm sticky top-8">
-        <h2 className="text-lg font-bold font-heading text-foreground mb-6 flex items-center gap-2">
-         <CalendarCheck size={20} className="text-sky-500" />
-         30-Day Adherence
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+         <h2 className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
+          <CalendarCheck size={20} className="text-sky-500" />
+          30-Day Adherence
+         </h2>
+         {adherence && adherence.adherence_rate > 80 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full font-bold text-xs shadow-sm">
+           <Flame size={14} className="fill-orange-500 text-orange-500" />
+           {Math.floor(adherence.taken / Math.max(1, adherence.total_doses / 30))} Day Streak!
+          </div>
+         )}
+        </div>
         
         {adherence && (
          <div className="flex flex-col items-center">
