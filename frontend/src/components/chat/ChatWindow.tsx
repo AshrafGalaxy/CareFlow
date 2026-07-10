@@ -10,10 +10,10 @@ import { Copy, Check, RefreshCcw, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { CareBotAvatar } from './CareBotAvatar'
-import { EmergencyWidget } from './EmergencyWidget'
-import { HospitalLocatorWidget } from './HospitalLocatorWidget'
-import { SchedulingWidget } from './SchedulingWidget'
-import { MedicationWidget } from './MedicationWidget'
+import { EmergencyWidget } from './widgets/EmergencyWidget'
+import { HospitalLocatorWidget } from './widgets/HospitalLocatorWidget'
+import { SchedulingWidget } from './widgets/SchedulingWidget'
+import { MedicationWidget } from './widgets/MedicationWidget'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const CopyButton = ({ text }: { text: string }) => {
@@ -161,10 +161,10 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      )}
 
      {messages.map((msg) => {
-      if (msg.content === '[[WIDGET:EMERGENCY]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><EmergencyWidget /></motion.div>
-      if (msg.content === '[[WIDGET:HOSPITAL]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><HospitalLocatorWidget /></motion.div>
-      if (msg.content === '[[WIDGET:SCHEDULE]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><SchedulingWidget /></motion.div>
-      if (msg.content === '[[WIDGET:MEDICATION]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}><MedicationWidget /></motion.div>
+      if (msg.content === '[[WIDGET:EMERGENCY]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><EmergencyWidget /></motion.div>
+      if (msg.content === '[[WIDGET:HOSPITAL]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><HospitalLocatorWidget /></motion.div>
+      if (msg.content === '[[WIDGET:SCHEDULE]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><SchedulingWidget /></motion.div>
+      if (msg.content === '[[WIDGET:MEDICATION]]') return <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="my-6"><MedicationWidget /></motion.div>
 
       return (
        <motion.div
