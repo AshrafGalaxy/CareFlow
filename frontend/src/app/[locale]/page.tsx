@@ -24,7 +24,6 @@ import {
 import { LandingNavbar } from "@/components/layout/LandingNavbar"
 import { LandingFooter } from "@/components/layout/LandingFooter"
 import { LandingBackground } from "@/components/layout/LandingBackground"
-import { InteractiveBot } from "@/components/layout/InteractiveBot"
 import { TiltFeatureCard } from "@/components/ui/TiltFeatureCard"
 import { FAQAccordion } from "@/components/ui/FAQAccordion"
 import { EcgLineAnimation } from "@/components/ui/EcgLineAnimation"
@@ -101,7 +100,6 @@ export default function LandingPage() {
   <div className="min-h-screen font-sans relative overflow-x-hidden">
    <LandingBackground />
    <LandingNavbar />
-   <InteractiveBot />
 
    {/* ── Hero ── */}
    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32">
