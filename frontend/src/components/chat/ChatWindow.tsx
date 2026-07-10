@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, UIEvent } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useChatStore } from '@/store/chatStore'
 import { useAuthStore } from '@/store/authStore'
 import { ChatInput } from './ChatInput'
-import { Copy, Check, RefreshCcw, AlertCircle } from 'lucide-react'
+import { Copy, Check, RefreshCcw, AlertCircle, ThumbsUp, ThumbsDown, FileText, AppWindow, ArrowDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { CareBotAvatar } from './CareBotAvatar'
@@ -40,8 +40,6 @@ const CopyButton = ({ text }: { text: string }) => {
   </button>
  )
 }
-
-import { ThumbsUp, ThumbsDown } from 'lucide-react'
 
 const FeedbackButton = ({ messageId, token }: { messageId: string, token: string | null }) => {
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
@@ -106,16 +104,33 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
  const { messages, isStreaming, activeSession, addMessage, setStreaming, updateLastMessage, updateSessionTitle } = useChatStore()
  const { token } = useAuthStore()
  const bottomRef = useRef<HTMLDivElement>(null)
+ const scrollContainerRef = useRef<HTMLDivElement>(null)
  const [error, setError] = useState<string | null>(null)
+ const [isScrolledUp, setIsScrolledUp] = useState(false)
 
  // Auto-scroll to bottom when messages change
  useEffect(() => {
+  if (!isScrolledUp) {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+ }, [messages, isStreaming])
+
+ const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+  const target = e.target as HTMLDivElement
+  // If user scrolls up more than 100px from the bottom, show the scroll-to-bottom button
+  const isUp = target.scrollHeight - target.scrollTop - target.clientHeight > 100
+  setIsScrolledUp(isUp)
+ }
+
+ const scrollToBottom = () => {
   bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
- }, [messages])
+  setIsScrolledUp(false)
+ }
 
  const sendMessage = async (content: string, imageBase64?: string) => {
   if (!activeSession || isStreaming) return
   setError(null)
+  setIsScrolledUp(false)
 
   // Add user message locally
   addMessage({
@@ -125,8 +140,6 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
    timestamp: new Date().toISOString(),
    image_base64: imageBase64,
   })
-
-  // Removed local widget injection. We now rely on the AI emitting the widget tokens.
 
   setStreaming(true)
 
@@ -197,7 +210,11 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
 
  return (
   <div className="flex flex-col h-full absolute inset-0">
-   <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-card flex flex-col">
+   <div 
+     ref={scrollContainerRef}
+     onScroll={handleScroll}
+     className="flex-1 overflow-y-auto p-4 md:p-8 bg-card flex flex-col relative scroll-smooth"
+   >
     <AnimatePresence initial={false}>
      {messages.length === 0 && (
       <motion.div 
@@ -213,8 +230,17 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      )}
 
      {messages.map((msg, index) => {
-      // Clean content by removing widget tokens for text display
+      // Clean content by extracting widget/report tokens and converting them to Attachment Chips
       let displayContent = msg.content
+      const mentionedReports: string[] = []
+      
+      const reportRegex = /\[Reference Attached Report:\s*([^\]]+)\]/g
+      let match
+      while ((match = reportRegex.exec(displayContent)) !== null) {
+        mentionedReports.push(match[1].trim())
+      }
+      displayContent = displayContent.replace(reportRegex, '').trim()
+
       const hasEmergency = displayContent.includes('[[WIDGET:EMERGENCY]]')
       const hasHospital = displayContent.includes('[[WIDGET:HOSPITAL]]')
       const hasSchedule = displayContent.includes('[[WIDGET:SCHEDULE]]')
@@ -224,15 +250,18 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
       const hasNutrition = displayContent.includes('[[WIDGET:NUTRITION]]')
       const hasAdherence = displayContent.includes('[[WIDGET:ADHERENCE]]')
 
+      const widgetsAttached: string[] = []
+      if (hasEmergency) widgetsAttached.push('Emergency Contacts')
+      if (hasHospital) widgetsAttached.push('Hospital Map')
+      if (hasSchedule) widgetsAttached.push('Doctor Appointments')
+      if (hasMedication) widgetsAttached.push('Order Medicine')
+      if (hasPharmacy) widgetsAttached.push('Pharmacy Locator')
+      if (hasTriage) widgetsAttached.push('Symptom Triage')
+      if (hasNutrition) widgetsAttached.push('Diet Scanner')
+      if (hasAdherence) widgetsAttached.push('Pill Checklist')
+
       displayContent = displayContent
-        .replace('[[WIDGET:EMERGENCY]]', '')
-        .replace('[[WIDGET:HOSPITAL]]', '')
-        .replace('[[WIDGET:SCHEDULE]]', '')
-        .replace('[[WIDGET:MEDICATION]]', '')
-        .replace('[[WIDGET:PHARMACY]]', '')
-        .replace('[[WIDGET:TRIAGE]]', '')
-        .replace('[[WIDGET:NUTRITION]]', '')
-        .replace('[[WIDGET:ADHERENCE]]', '')
+        .replace(/\[\[WIDGET:[A-Z]+\]\]/g, '')
         .trim()
 
       const isLatestMessage = index === messages.length - 1
@@ -248,25 +277,56 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
          {msg.role === 'assistant' && (
           <CareBotAvatar size={40} className="mr-4 mt-1 shrink-0" />
          )}
-         <div className="group relative max-w-full flex-1 min-w-0">
-          {displayContent && (
-           <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4 font-medium' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm prose prose-sm prose-slate dark:prose-invert max-w-none'}`}>
-            {msg.role === 'user' ? (
-             <div className="flex flex-col gap-2">
-              {(msg as any).image_base64 && (
-               <img src={(msg as any).image_base64} alt="User uploaded" className="max-w-[200px] rounded-lg border border-sky-400/30 object-cover shadow-sm" />
-              )}
-              <span className="whitespace-pre-wrap">{displayContent}</span>
-             </div>
-            ) : (
-             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {displayContent}
-             </ReactMarkdown>
+         <div className="group relative max-w-full flex-1 min-w-0 flex flex-col">
+          {(displayContent || mentionedReports.length > 0 || widgetsAttached.length > 0 || (msg as any).image_base64) && (
+           <div className={`px-5 py-4 rounded-3xl text-[15px] leading-relaxed shadow-sm flex flex-col gap-2 ${msg.role === 'user' ? 'bg-sky-500 text-white rounded-br-sm ml-4 font-medium' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm prose prose-sm prose-slate dark:prose-invert max-w-none'}`}>
+            
+            {/* Attachment Chips inside the chat bubble */}
+            {(mentionedReports.length > 0 || widgetsAttached.length > 0) && (
+              <div className="flex flex-wrap gap-2 mb-1">
+                {mentionedReports.map((report, idx) => (
+                  <div key={`report-${idx}`} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-sm ${msg.role === 'user' ? 'bg-sky-400/40 text-white border border-sky-400/50' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-200 dark:border-sky-800'}`}>
+                    <FileText size={12} />
+                    {report}
+                  </div>
+                ))}
+                {widgetsAttached.map((widget, idx) => (
+                  <div key={`widget-${idx}`} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-sm ${msg.role === 'user' ? 'bg-emerald-400/40 text-white border border-emerald-400/50' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'}`}>
+                    <AppWindow size={12} />
+                    {widget}
+                  </div>
+                ))}
+              </div>
             )}
+
+            {/* Image Preview */}
+            {(msg as any).image_base64 && (
+             <img src={(msg as any).image_base64} alt="User uploaded" className="max-w-[200px] rounded-lg border border-sky-400/30 object-cover shadow-sm mb-1" />
+            )}
+
+            {/* Text Content */}
+            {displayContent && (
+             <div className="w-full">
+              {msg.role === 'user' ? (
+               <span className="whitespace-pre-wrap">{displayContent}</span>
+              ) : (
+               <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {displayContent}
+               </ReactMarkdown>
+              )}
+             </div>
+            )}
+
+            {/* Timestamp inside the bubble (bottom right corner) */}
+            <div className={`text-[10px] self-end mt-1 font-medium ${msg.role === 'user' ? 'text-sky-100' : 'text-slate-400'}`}>
+              {new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+            </div>
            </div>
           )}
+          
+          {/* Action buttons (Copy, Feedback) positioned properly below the bubble content to avoid overlapping */}
           {msg.role === 'assistant' && displayContent && (
-           <div className="absolute -bottom-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 self-start ml-2">
             <CopyButton text={displayContent} />
             <FeedbackButton messageId={msg.id} token={token} />
            </div>
@@ -300,7 +360,7 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
          <div className="w-2 h-2 bg-sky-400/80 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
          <div className="w-2 h-2 bg-sky-400/80 rounded-full animate-bounce"></div>
         </div>
-        <span className="text-xs font-medium text-slate-500 animate-pulse">AI is thinking...</span>
+        <span className="text-xs font-medium text-slate-500">Thinking...</span>
        </div>
       </motion.div>
      )}
@@ -330,9 +390,24 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
     </AnimatePresence>
 
     {messages.length > 0 && <div ref={bottomRef} className="h-4 shrink-0" />}
+
+    {/* Scroll to bottom floating button */}
+    <AnimatePresence>
+      {isScrolledUp && (
+        <motion.button
+          initial={{ opacity: 0, y: 10, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.9 }}
+          onClick={scrollToBottom}
+          className="sticky bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-full p-2.5 text-slate-500 hover:text-sky-500 z-10 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          <ArrowDown size={18} />
+        </motion.button>
+      )}
+    </AnimatePresence>
    </div>
 
-   <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 md:p-6 pb-6 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)]">
+   <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 md:p-6 pb-6 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)] z-20 relative">
     <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} initialValue={initialValue} />
    </div>
   </div>

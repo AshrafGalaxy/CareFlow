@@ -146,7 +146,7 @@ interface ChatSession {
        <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate">{session.title}</p>
         <p className="text-xs text-muted-foreground mt-0.5 font-medium">
-         {new Date(session.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+         {new Date(session.created_at).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </p>
        </div>
        <ConfirmDialog
