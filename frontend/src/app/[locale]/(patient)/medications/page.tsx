@@ -92,8 +92,7 @@ export default function MedicationsPage() {
     return Math.max(0, Math.floor(match.taken / Math.max(1, match.total / 30)))
   }
  return (
-  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-background">
-   <div className="max-w-6xl mx-auto space-y-8">
+  <div className="w-full space-y-8">
     
     {/* Header */}
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -347,6 +346,5 @@ export default function MedicationsPage() {
      </div>
     )}
    </div>
-  </div>
- )
+  )
 }
