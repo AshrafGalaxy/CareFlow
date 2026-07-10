@@ -27,7 +27,8 @@ const hospitalIcon = new L.Icon({
 export interface HospitalData {
   id: string
   name: string
-  distance: string
+  address?: string
+  distance?: string // Will be calculated dynamically or left empty
   type: string
   lat: number
   lng: number
@@ -79,7 +80,8 @@ export default function HospitalMap({ userLocation, hospitals, onNavigate }: Hos
               <div className="flex flex-col gap-1 min-w-[150px]">
                 <strong className="text-sm">{hospital.name}</strong>
                 <span className="text-xs text-slate-500">{hospital.type}</span>
-                <span className="text-xs font-semibold text-sky-600">{hospital.distance}</span>
+                {hospital.address && <span className="text-[10px] text-slate-400 mt-0.5 leading-tight">{hospital.address}</span>}
+                {hospital.distance && <span className="text-xs font-semibold text-sky-600 mt-1">{hospital.distance}</span>}
                 
                 <div className="flex gap-2 mt-2">
                   <button 
