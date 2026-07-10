@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { MapPin, Navigation, Phone, ExternalLink, Pill, Store, Search, AlertTriangle, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import { toast } from 'sonner'
 
 import { useChatStore } from '@/store/chatStore'
 
@@ -124,7 +125,9 @@ export function PharmacyLocatorWidget() {
           }
           setLoading(false)
         } catch (err) {
-          console.error("Overpass error:", err)
+          console.warn("Overpass API rate limit or error triggered fallback data.")
+          toast.info("Map service is currently busy. Showing sample data.", { id: "pharma-fallback" })
+          
           // Fallback to local mock data
           const fallbackMocks = [
             { id: '1', name: 'Apollo Pharmacy (Mock)', distance: '300m', address: 'Main Street', lat: latitude + 0.002, lon: longitude + 0.002 },

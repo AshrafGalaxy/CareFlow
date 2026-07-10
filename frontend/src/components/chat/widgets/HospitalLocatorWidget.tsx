@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { MapPin, AlertCircle, Navigation, Building2, Phone } from 'lucide-react'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import { toast } from 'sonner'
 import { HospitalData } from './HospitalMap'
 
 import { useChatStore } from '@/store/chatStore'
@@ -104,7 +105,9 @@ export function HospitalLocatorWidget() {
             setError('No hospitals found within 10km radius.')
           }
         } catch (err) {
-          // Instead of crashing or showing a hard error, fallback to mock data
+          console.warn("Overpass API fallback triggered.")
+          toast.info("Map service is currently busy. Showing sample data.", { id: "hosp-fallback" })
+          
           const fallbackHospitals: HospitalData[] = [
             { id: 'mock-1', name: 'City Central Hospital', distance: '1.2 km', type: 'General & Emergency', lat: lat + 0.01, lng: lng + 0.01, phone: '+1234567890' },
             { id: 'mock-2', name: 'Apex Multi-specialty Clinic', distance: '2.5 km', type: 'Specialty Care', lat: lat - 0.015, lng: lng + 0.02, phone: '+1987654321' },
