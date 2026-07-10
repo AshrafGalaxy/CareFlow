@@ -1,7 +1,7 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
-import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, Calendar, FileDown, Eye, MessageSquare, Flame } from "lucide-react"
+import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, Calendar, FileDown, Eye, MessageSquare, Flame, Activity } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
+import { motion } from "framer-motion"
 
  interface Report {
   id: string
@@ -32,6 +33,14 @@ import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 interface DashboardKPIs {
  medications_today_total: number
  medications_today_taken: number
+ health_score: number
+ action_items: {
+  title: string
+  description: string
+  type: string
+  action_url?: string
+  action_label?: string
+ }[]
  next_medication?: {
   id: string
   name: string
@@ -126,15 +135,24 @@ export default function DashboardPage() {
     apptSub = `Dr. ${kpiData.next_appointment.doctor_name} • ${time}`
   }
 
-  const statCards = [
-   {
-    icon: FileText,
-    label: "Reports Uploaded",
-    value: isLoading ? "—" : String(reports.length),
-    sub: reports.length > 0 ? `Last uploaded ${formatRelativeTime(reports[0]?.uploaded_at)}` : "No reports yet",
-    iconColor: "text-sky-500 dark:text-sky-400",
-    iconBg: "bg-sky-50 dark:bg-sky-900/30",
-   },
+   const statCards = [
+    {
+     icon: Activity,
+     label: "Health Score",
+     value: kpiLoading ? "—" : `${kpiData?.health_score || 0}`,
+     sub: "Based on recent data",
+     iconColor: "text-indigo-500 dark:text-indigo-400",
+     iconBg: "bg-indigo-50 dark:bg-indigo-900/30",
+     progress: kpiData?.health_score,
+    },
+    {
+     icon: FileText,
+     label: "Reports Uploaded",
+     value: isLoading ? "—" : String(reports.length),
+     sub: reports.length > 0 ? `Last uploaded ${formatRelativeTime(reports[0]?.uploaded_at)}` : "No reports yet",
+     iconColor: "text-sky-500 dark:text-sky-400",
+     iconBg: "bg-sky-50 dark:bg-sky-900/30",
+    },
    {
     icon: Pill,
     label: "Medications Today",
@@ -157,24 +175,49 @@ export default function DashboardPage() {
 
  return (
   <div className="space-y-8">
-   {/* Urgent Alerts Banner (Mock) */}
-   <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
-    <div className="absolute top-0 right-0 p-4 opacity-10">
-     <AlertCircle className="w-24 h-24 text-rose-500" />
+   {/* Dynamic Action Items */}
+   {!kpiLoading && kpiData?.action_items && kpiData.action_items.length > 0 && (
+    <div className="space-y-3">
+     {kpiData.action_items.map((item, idx) => (
+      <div key={idx} className={cn(
+       "border rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden",
+       item.type === 'warning' ? "bg-rose-500/10 border-rose-500/20" : "bg-amber-500/10 border-amber-500/20"
+      )}>
+       <div className="absolute top-0 right-0 p-4 opacity-10">
+        <AlertCircle className={cn("w-24 h-24", item.type === 'warning' ? "text-rose-500" : "text-amber-500")} />
+       </div>
+       <div className="flex items-center gap-3 relative z-10">
+        <div className={cn("p-2.5 rounded-xl", item.type === 'warning' ? "bg-rose-500/20" : "bg-amber-500/20")}>
+         <Flame className={cn("w-5 h-5 animate-pulse", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")} />
+        </div>
+        <div>
+         <h3 className={cn("text-sm font-bold", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-700 dark:text-amber-500")}>
+          {item.title}
+         </h3>
+         <p className={cn("text-sm font-medium", item.type === 'warning' ? "text-rose-600/80 dark:text-rose-400/80" : "text-amber-700/80 dark:text-amber-500/80")}>
+          {item.description}
+         </p>
+        </div>
+       </div>
+       {item.action_label && (
+        <button 
+         onClick={() => {
+          if (item.action_url) {
+           window.location.href = item.action_url
+          }
+         }}
+         className={cn(
+          "text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shrink-0 relative z-10 shadow-sm",
+          item.type === 'warning' ? "bg-rose-500 hover:bg-rose-600" : "bg-amber-500 hover:bg-amber-600"
+         )}
+        >
+         {item.action_label}
+        </button>
+       )}
+      </div>
+     ))}
     </div>
-    <div className="flex items-center gap-3 relative z-10">
-     <div className="bg-rose-500/20 p-2.5 rounded-xl">
-      <Flame className="w-5 h-5 text-rose-600 dark:text-rose-400 animate-pulse" />
-     </div>
-     <div>
-      <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400">Action Required: Fasting for Labs</h3>
-      <p className="text-sm text-rose-600/80 dark:text-rose-400/80 font-medium">Please fast for 12 hours before your upcoming lab work tomorrow at 8:00 AM.</p>
-     </div>
-    </div>
-    <button className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shrink-0 relative z-10 shadow-sm">
-     Acknowledge
-    </button>
-   </div>
+   )}
 
    {/* Welcome Banner */}
    <div className="flex items-start justify-between gap-4">
@@ -194,13 +237,18 @@ export default function DashboardPage() {
    </div>
 
    {/* Stat Cards */}
-   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-    {statCards.map((stat) => (
-     <div
+   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    {statCards.map((stat, i) => (
+     <motion.div
       key={stat.label}
-      className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow duration-200 relative overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: i * 0.1 }}
+      whileHover={{ scale: 1.02, y: -4 }}
+      className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
      >
-      <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4 relative z-10`}>
+      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-0 group-hover:opacity-10 transition-all duration-500 blur-2xl ${stat.iconColor.split(' ')[0].replace('text-', 'bg-')}`} />
+      <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform duration-300`}>
        <stat.icon className={`h-5 w-5 ${stat.iconColor} ${stat.urgent ? "animate-pulse" : ""}`} />
       </div>
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 relative z-10">
@@ -224,9 +272,9 @@ export default function DashboardPage() {
       <p className={cn("text-xs relative z-10 font-medium", stat.urgent ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground/80")}>
        {stat.sub}
       </p>
-     </div>
-    ))}
-   </div>
+     </motion.div>
+     ))}
+    </div>
 
    {/* Doctor's Memo */}
    <div className="bg-amber-100/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
@@ -395,22 +443,33 @@ export default function DashboardPage() {
     ) : (
       <div className="divide-y divide-border/50">
        {reports.map((report) => (
-        <div
-         key={report.id}
-         className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-muted/30 transition-colors group"
-        >
-         <Link href={APP_ROUTES.REPORT_DETAIL(report.id)} className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-           <FileText className="h-5 w-5 text-red-500 dark:text-red-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-           <p className="text-sm font-medium text-foreground truncate group-hover:text-sky-500 transition-colors">
-            {report.original_filename}
-           </p>
-           <p className="text-xs text-muted-foreground">
-            {formatRelativeTime(report.uploaded_at)}
-           </p>
-          </div>
+         <div
+          key={report.id}
+          className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-muted/30 transition-all hover:shadow-[inset_4px_0_0_0_#0ea5e9] group"
+         >
+          <Link href={APP_ROUTES.REPORT_DETAIL(report.id)} className="flex items-center gap-4 flex-1 min-w-0 group-hover:translate-x-1 transition-transform">
+           <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+            <FileText className="h-5 w-5 text-red-500 dark:text-red-400" />
+           </div>
+           <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate group-hover:text-sky-500 transition-colors">
+             {report.original_filename}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+             <p className="text-xs text-muted-foreground">
+              {formatRelativeTime(report.uploaded_at)}
+             </p>
+             {report.actionable_insights && report.actionable_insights.length > 0 && (
+               <>
+                 <span className="w-1 h-1 rounded-full bg-border" />
+                 <span className="text-[10px] font-medium text-indigo-500 dark:text-indigo-400 truncate flex items-center gap-1">
+                   <BrainCircuit className="w-3 h-3" />
+                   {report.actionable_insights.length} Insight{report.actionable_insights.length !== 1 ? 's' : ''}
+                 </span>
+               </>
+             )}
+            </div>
+           </div>
          </Link>
          
          <div className="flex items-center gap-4 shrink-0">
@@ -445,22 +504,16 @@ export default function DashboardPage() {
     )}
    </div>
 
-   {/* Quick Actions */}
-   <div className="flex flex-col sm:flex-row gap-4">
-    <Link
-     href={APP_ROUTES.REPORT_UPLOAD}
-     className="btn-glow flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-colors duration-200 flex-1"
-    >
-     <UploadCloud className="h-4 w-4" />
-     {t("uploadReportBtn")}
-    </Link>
-    <Link
-     href={APP_ROUTES.CHAT}
-     className="flex items-center justify-center gap-2 border-2 border-border hover:border-sky-500 text-foreground hover:text-sky-600 font-semibold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 flex-1"
-    >
-     {t("chatWithAIBtn")}
-    </Link>
-   </div>
+
+   {/* Floating AI Button */}
+   <Link
+    href={APP_ROUTES.CHAT}
+    className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-full px-5 py-3 group"
+   >
+    <BrainCircuit className="w-5 h-5 group-hover:animate-pulse" />
+    <span className="font-semibold text-sm">Ask CareFlow AI</span>
+   </Link>
+
    {viewingReport && (
     <ReportViewerModal
      isOpen={!!viewingReport}

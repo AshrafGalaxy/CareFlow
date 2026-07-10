@@ -7,7 +7,6 @@ import { useAuthStore } from "@/store/authStore"
 import { PatientSidebar } from "@/components/layout/PatientSidebar"
 import { TopNav } from "@/components/layout/TopNav"
 import { MobileNav } from "@/components/layout/MobileNav"
-import { SupportBot } from "@/components/layout/SupportBot"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
@@ -69,7 +68,6 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     </main>
    </div>
    <MobileNav />
-   <SupportBot />
   </div>
  )
 }

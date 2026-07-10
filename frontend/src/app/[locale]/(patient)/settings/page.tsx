@@ -11,6 +11,7 @@ import api from "@/lib/api"
 import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 import { useNotificationStore } from "@/store/notificationStore"
+import { SupportBot } from "@/components/layout/SupportBot"
 
 // Utility to convert VAPID key
 function urlBase64ToUint8Array(base64String: string) {
@@ -302,6 +303,7 @@ export default function SettingsPage() {
     </section>
 
    </div>
+   <SupportBot />
   </div>
  )
 }
