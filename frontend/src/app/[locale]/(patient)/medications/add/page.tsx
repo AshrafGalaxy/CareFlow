@@ -71,6 +71,8 @@ export default function AddMedicationPage() {
   const [showUnitDropdown, setShowUnitDropdown] = useState(false)
   const [showDurationDropdown, setShowDurationDropdown] = useState(false)
   const [showStartDateDropdown, setShowStartDateDropdown] = useState(false)
+  const [showStartCalendar, setShowStartCalendar] = useState(false)
+  const [showEndCalendar, setShowEndCalendar] = useState(false)
 
   const [form, setForm] = useState({
     name: '',
@@ -168,18 +170,38 @@ export default function AddMedicationPage() {
     }
   }, [form.start_date_preset, form.start_date_custom, form.duration_preset, form.end_date_custom])
 
+  const validateForm = () => {
+    if (!form.name.trim()) {
+      toast.error('Medication name is required')
+      return false
+    }
+    if (!form.dosage.trim() || Number(form.dosage) <= 0) {
+      toast.error('Please enter a valid dosage amount')
+      return false
+    }
+    if (!form.unit) {
+      toast.error('Please select a dosage unit')
+      return false
+    }
+    if (form.frequency === "Custom" && !form.custom_frequency.trim()) {
+      toast.error("Please provide a valid custom frequency.")
+      return false
+    }
+    if (timesOfDay.length === 0) {
+      toast.error('Please add at least one reminder time')
+      return false
+    }
+    if (dateError) {
+      toast.error(dateError)
+      return false
+    }
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (form.frequency === "Custom" && !form.custom_frequency.trim()) {
-      toast.error("Please provide a valid custom frequency.")
-      return
-    }
-
-    if (dateError) {
-      toast.error(dateError)
-      return
-    }
+    if (!validateForm()) return
     
     setLoading(true)
     try {
@@ -336,7 +358,7 @@ export default function AddMedicationPage() {
                           exit={{ opacity: 0, y: -5 }}
                           className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-30 overflow-hidden"
                         >
-                          <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                          <div className="max-h-48 overflow-y-auto py-1 sky-scrollbar">
                             {DOSAGE_UNITS.map(unit => (
                               <div 
                                 key={unit}
@@ -375,7 +397,7 @@ export default function AddMedicationPage() {
                       exit={{ opacity: 0, y: -5 }}
                       className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-20 overflow-hidden"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                      <div className="max-h-48 overflow-y-auto py-1 sky-scrollbar">
                         {FREQUENCIES.map(freq => (
                           <div 
                             key={freq}
@@ -489,7 +511,15 @@ export default function AddMedicationPage() {
                 <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Start Date</label>
                 <div 
                   className="w-full pl-9 pr-10 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground flex items-center justify-between cursor-pointer shadow-sm transition-all hover:bg-muted relative"
-                  onClick={() => setShowStartDateDropdown(!showStartDateDropdown)}
+                  onClick={() => {
+                    if (form.start_date_preset === 'Custom Date') {
+                      setShowStartCalendar(!showStartCalendar)
+                      setShowStartDateDropdown(false)
+                    } else {
+                      setShowStartDateDropdown(!showStartDateDropdown)
+                      setShowStartCalendar(false)
+                    }
+                  }}
                 >
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                     <Calendar size={16} />
@@ -499,7 +529,7 @@ export default function AddMedicationPage() {
                       ? new Date(form.start_date_custom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                       : form.start_date_preset}
                   </span>
-                  <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showStartDateDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showStartDateDropdown || showStartCalendar ? 'rotate-180' : ''}`} />
                 </div>
                 
                 <AnimatePresence>
@@ -510,7 +540,7 @@ export default function AddMedicationPage() {
                       exit={{ opacity: 0, y: -5 }}
                       className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                      <div className="max-h-48 overflow-y-auto py-1 sky-scrollbar">
                         {START_DATES.map(preset => (
                           <div 
                             key={preset}
@@ -518,6 +548,9 @@ export default function AddMedicationPage() {
                             onClick={() => {
                               setForm({ ...form, start_date_preset: preset })
                               setShowStartDateDropdown(false)
+                              if (preset === 'Custom Date') {
+                                setShowStartCalendar(true)
+                              }
                             }}
                           >
                             {preset}
@@ -529,7 +562,7 @@ export default function AddMedicationPage() {
                 </AnimatePresence>
                 
                 <AnimatePresence>
-                  {form.start_date_preset === "Custom Date" && (
+                  {showStartCalendar && (
                     <motion.div 
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -538,7 +571,14 @@ export default function AddMedicationPage() {
                     >
                       <CustomCalendar
                         selectedDate={form.start_date_custom}
-                        onSelect={(date) => setForm({ ...form, start_date_custom: date })}
+                        onSelect={(date) => {
+                          setForm({ ...form, start_date_custom: date, start_date_preset: 'Custom Date' })
+                          setShowStartCalendar(false)
+                        }}
+                        onClear={() => {
+                          setForm({ ...form, start_date_preset: 'Today' })
+                          setShowStartCalendar(false)
+                        }}
                       />
                     </motion.div>
                   )}
@@ -550,7 +590,15 @@ export default function AddMedicationPage() {
                 <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Duration</label>
                 <div 
                   className={`w-full pl-9 pr-10 py-2.5 bg-background border rounded-xl text-sm text-foreground flex items-center justify-between cursor-pointer shadow-sm transition-all hover:bg-muted relative ${dateError ? 'border-rose-500' : 'border-border'}`}
-                  onClick={() => setShowDurationDropdown(!showDurationDropdown)}
+                  onClick={() => {
+                    if (form.duration_preset === 'Custom Date') {
+                      setShowEndCalendar(!showEndCalendar)
+                      setShowDurationDropdown(false)
+                    } else {
+                      setShowDurationDropdown(!showDurationDropdown)
+                      setShowEndCalendar(false)
+                    }
+                  }}
                 >
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                     <Calendar size={16} />
@@ -560,7 +608,7 @@ export default function AddMedicationPage() {
                       ? new Date(form.end_date_custom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                       : form.duration_preset === 'Custom Date' ? 'Select date...' : form.duration_preset}
                   </span>
-                  <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showDurationDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-muted-foreground transition-transform absolute right-3 ${showDurationDropdown || showEndCalendar ? 'rotate-180' : ''}`} />
                 </div>
                 
                 <AnimatePresence>
@@ -571,7 +619,7 @@ export default function AddMedicationPage() {
                       exit={{ opacity: 0, y: -5 }}
                       className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
                     >
-                      <div className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                      <div className="max-h-48 overflow-y-auto py-1 sky-scrollbar">
                         {DURATIONS.map(preset => (
                           <div 
                             key={preset}
@@ -579,6 +627,9 @@ export default function AddMedicationPage() {
                             onClick={() => {
                               setForm({ ...form, duration_preset: preset })
                               setShowDurationDropdown(false)
+                              if (preset === 'Custom Date') {
+                                setShowEndCalendar(true)
+                              }
                             }}
                           >
                             {preset}
@@ -590,7 +641,7 @@ export default function AddMedicationPage() {
                 </AnimatePresence>
                 
                 <AnimatePresence>
-                  {form.duration_preset === "Custom Date" && (
+                  {showEndCalendar && (
                     <motion.div 
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -600,7 +651,14 @@ export default function AddMedicationPage() {
                       <CustomCalendar
                         selectedDate={form.end_date_custom}
                         minDate={calculateDates().startDateStr}
-                        onSelect={(date) => setForm({ ...form, end_date_custom: date })}
+                        onSelect={(date) => {
+                          setForm({ ...form, end_date_custom: date, duration_preset: 'Custom Date' })
+                          setShowEndCalendar(false)
+                        }}
+                        onClear={() => {
+                          setForm({ ...form, duration_preset: 'Ongoing', end_date_custom: '' })
+                          setShowEndCalendar(false)
+                        }}
                       />
                     </motion.div>
                   )}

@@ -149,6 +149,25 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-slate-400!;
   }
+
+  /* Sky Blue Thin Scrollbar for Dropdowns */
+  .sky-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sky-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sky-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    transition: background-color 0.3s;
+  }
+  .sky-scrollbar:hover::-webkit-scrollbar-thumb {
+    @apply bg-sky-400/80;
+  }
+  .sky-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-sky-500!;
+  }
 }
 
 /* ── CareFlow Micro-animation Utilities ── */
@@ -664,7 +683,7 @@
    ========================================================================== */
 
 .add-medication-page {
-  @apply max-w-2xl mx-auto space-y-6 pb-10;
+  @apply max-w-2xl mx-auto space-y-6 pb-48;
 }
 
 .add-medication-header {
