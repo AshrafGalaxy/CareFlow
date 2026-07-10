@@ -390,22 +390,22 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
     </AnimatePresence>
 
     {messages.length > 0 && <div ref={bottomRef} className="h-4 shrink-0" />}
-
-    {/* Scroll to bottom floating button */}
-    <AnimatePresence>
-      {isScrolledUp && (
-        <motion.button
-          initial={{ opacity: 0, y: 10, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 10, scale: 0.9 }}
-          onClick={scrollToBottom}
-          className="absolute bottom-6 right-8 w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-full text-slate-500 hover:text-sky-500 z-50 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
-        >
-          <ArrowDown size={18} />
-        </motion.button>
-      )}
-    </AnimatePresence>
    </div>
+
+   {/* Scroll to bottom floating button */}
+   <AnimatePresence>
+     {isScrolledUp && (
+       <motion.button
+         initial={{ opacity: 0, y: 10, scale: 0.9 }}
+         animate={{ opacity: 1, y: 0, scale: 1 }}
+         exit={{ opacity: 0, y: 10, scale: 0.9 }}
+         onClick={scrollToBottom}
+         className="absolute bottom-[100px] right-8 w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-full text-slate-500 hover:text-sky-500 z-50 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
+       >
+         <ArrowDown size={18} />
+       </motion.button>
+     )}
+   </AnimatePresence>
 
    <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 md:p-6 pb-6 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)] z-20 relative">
     <ChatInput onSend={sendMessage} disabled={isStreaming || !activeSession} initialValue={initialValue} />
