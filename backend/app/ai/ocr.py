@@ -37,9 +37,21 @@ async def _extract_from_pdf(file_bytes: bytes) -> str:
 
     # If empty (scanned PDF), use Tesseract OCR via page images
     if not text.strip():
-        images = convert_from_bytes(file_bytes, dpi=200)
-        for image in images:
-            text += pytesseract.image_to_string(image, lang='eng') + "\n"
+        try:
+            import fitz
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            for page in doc:
+                pix = page.get_pixmap(dpi=200)
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                img = img.convert('L') # grayscale
+                text += pytesseract.image_to_string(img, lang='eng') + "\n"
+        except ImportError:
+            # Fallback if PyMuPDF somehow fails to import
+            from pdf2image import convert_from_bytes
+            images = convert_from_bytes(file_bytes, dpi=200)
+            for image in images:
+                image = image.convert('L')
+                text += pytesseract.image_to_string(image, lang='eng') + "\n"
 
     return _clean_ocr_text(text)
 

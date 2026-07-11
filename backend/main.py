@@ -10,6 +10,28 @@ from app.middleware.audit_middleware import AuditMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.database import SessionLocal
+    from app.models.report import Report
+    
+    # Clean up any stuck "processing" reports due to previous server restarts
+    db = SessionLocal()
+    try:
+        stuck_reports = db.query(Report).filter(Report.processing_status == "processing").all()
+        for report in stuck_reports:
+            report.processing_status = "failed"
+            report.processing_progress = "Processing interrupted by server restart. Please upload again."
+        
+        stuck_pending = db.query(Report).filter(Report.processing_status == "pending").all()
+        for report in stuck_pending:
+            report.processing_status = "failed"
+            report.processing_progress = "Processing failed to start. Please upload again."
+            
+        db.commit()
+    except Exception as e:
+        print(f"Startup DB cleanup failed: {e}")
+    finally:
+        db.close()
+        
     start_scheduler()
     yield
 
