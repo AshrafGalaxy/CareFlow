@@ -111,21 +111,6 @@ export default async function RootLayout({
  return (
   <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
    <head>
-    <script
-     id="theme-script"
-     dangerouslySetInnerHTML={{
-      __html: `
-       try {
-        const theme = localStorage.getItem('careflow-theme') || 'system';
-        const resolved = theme === 'system'
-         ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-         : theme;
-        document.documentElement.classList.remove('light','dark','warm');
-        document.documentElement.classList.add(resolved);
-       } catch (e) {}
-      `,
-     }}
-    />
      {/* Manual cookie logic removed to prevent overriding Google Translate widget state */}
     <style>{`
      iframe.skiptranslate { display: none !important; }
