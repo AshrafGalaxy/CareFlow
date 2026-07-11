@@ -109,12 +109,27 @@ async def create_medication(
 
 @router.get("/", response_model=list[MedicationResponse])
 def get_medications(
+    patient_id: Optional[uuid.UUID] = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """List all medications for this user, active ones first."""
+    target_user_id = user.id
+    if patient_id:
+        if user.role not in ["doctor", "admin"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+        if user.role == "doctor":
+            is_assigned = db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == user.id,
+                ProviderPatient.patient_id == patient_id,
+                ProviderPatient.is_active == True
+            ).first()
+            if not is_assigned:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned")
+        target_user_id = patient_id
+
     meds = db.query(Medication).filter(
-        Medication.user_id == user.id
+        Medication.user_id == target_user_id
     ).order_by(Medication.is_active.desc(), Medication.start_date.desc()).all()
     return meds
 
@@ -231,12 +246,27 @@ def get_adherence(
 
 @router.get("/logs/all", response_model=list[MedicationLogResponse])
 def get_all_medication_logs(
+    patient_id: Optional[uuid.UUID] = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get all logs for all user medications."""
+    target_user_id = user.id
+    if patient_id:
+        if user.role not in ["doctor", "admin"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+        if user.role == "doctor":
+            is_assigned = db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == user.id,
+                ProviderPatient.patient_id == patient_id,
+                ProviderPatient.is_active == True
+            ).first()
+            if not is_assigned:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned")
+        target_user_id = patient_id
+
     # Get all user medications
-    user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
+    user_meds = db.query(Medication).filter(Medication.user_id == target_user_id).all()
     med_ids = [m.id for m in user_meds]
 
     if not med_ids:
@@ -256,9 +286,7 @@ def get_medication(
     db: Session = Depends(get_db)
 ):
     """Get a single medication."""
-    med = db.query(Medication).filter(
-        Medication.id == id, Medication.user_id == user.id
-    ).first()
+    med = get_medication_for_user(id, user, db)
     if not med:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
     return med

@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { ArrowLeft, Clock, Save, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Filter, Play, Square } from 'lucide-react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { ArrowLeft, Clock, Save, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Filter, Play, Square, Users } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface Medication {
  id: string
@@ -28,6 +29,8 @@ interface MedicationLog {
 }
 
 export default function ClinicalChartPage() {
+ const [patients, setPatients] = useState<any[]>([])
+ const [selectedPatient, setSelectedPatient] = useState<string | null>(null)
  const [medications, setMedications] = useState<Medication[]>([])
  const [logs, setLogs] = useState<MedicationLog[]>([])
  const [loading, setLoading] = useState(true)
@@ -47,11 +50,29 @@ export default function ClinicalChartPage() {
   return Array.from(months).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
  }, [logs])
 
- const loadData = async () => {
+ const loadPatients = async () => {
+  try {
+   const res = await api.get('/api/dashboard/patients')
+   setPatients(res.data)
+   if (res.data.length > 0) {
+    setSelectedPatient(res.data[0].id)
+   } else {
+    setLoading(false)
+   }
+  } catch (e) {
+   console.error(e)
+   toast.error("Failed to load patients")
+   setLoading(false)
+  }
+ }
+
+ const loadData = useCallback(async () => {
+  if (!selectedPatient) return
+  setLoading(true)
   try {
    const [medsRes, logsRes] = await Promise.all([
-    api.get('/api/medications/'),
-    api.get('/api/medications/logs/all'),
+    api.get(`/api/medications/?patient_id=${selectedPatient}`),
+    api.get(`/api/medications/logs/all?patient_id=${selectedPatient}`),
    ])
    
    setMedications(medsRes.data)
@@ -72,15 +93,21 @@ export default function ClinicalChartPage() {
   } finally {
    setLoading(false)
   }
- }
+ }, [selectedPatient])
 
   const hasHydrated = useAuthStore(state => state._hasHydrated)
 
   useEffect(() => {
    if (hasHydrated) {
-    loadData()
+    loadPatients()
    }
   }, [hasHydrated])
+
+  useEffect(() => {
+   if (selectedPatient) {
+    loadData()
+   }
+  }, [selectedPatient, loadData])
 
  const handleSave = async (id: string) => {
   setSaving(id)
@@ -235,19 +262,30 @@ export default function ClinicalChartPage() {
    <div className="max-w-5xl mx-auto space-y-8">
     
     {/* Header */}
-    <div className="flex items-center gap-4">
-     <Link 
-      href="/medications" 
-      className="p-2 bg-card hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-border"
-     >
-      <ArrowLeft size={20} className="text-muted-foreground" />
-     </Link>
-     <div>
-      <h1 className="text-3xl font-bold font-heading text-foreground tracking-tight flex items-center gap-3">
-       <FileText className="text-sky-500" size={28} />
-       Clinical Hospital Chart
-      </h1>
-      <p className="text-muted-foreground mt-1">Unified medication record and historical adherence logs</p>
+    <div className="flex items-center justify-between gap-4">
+     <div className="flex items-center gap-4">
+      <div>
+       <h1 className="text-3xl font-bold font-heading text-foreground tracking-tight flex items-center gap-3">
+        <FileText className="text-sky-500" size={28} />
+        Clinical Hospital Chart
+       </h1>
+       <p className="text-muted-foreground mt-1">Unified medication record and historical adherence logs</p>
+      </div>
+     </div>
+     <div className="w-64">
+      <Select value={selectedPatient || undefined} onValueChange={setSelectedPatient}>
+       <SelectTrigger className="w-full">
+        <div className="flex items-center gap-2">
+         <Users size={16} className="text-sky-500" />
+         <SelectValue placeholder="Select Patient" />
+        </div>
+       </SelectTrigger>
+       <SelectContent>
+        {patients.map(p => (
+         <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+        ))}
+       </SelectContent>
+      </Select>
      </div>
     </div>
 

@@ -127,9 +127,9 @@ export default function MedicationDoctorViewPage() {
     
     {/* Header */}
     <div className="flex items-center gap-4 mb-6">
-     <button onClick={() => router.back()} className="p-2 bg-card hover:bg-muted border border-border rounded-full transition-colors">
+     <Link href="/doctor/medications" className="p-2 bg-card hover:bg-muted border border-border rounded-full transition-colors">
       <ArrowLeft size={20} />
-     </button>
+     </Link>
      <div>
       <h1 className="text-2xl font-bold font-heading text-foreground flex items-center gap-2">
        Doctor View: {medication.name}

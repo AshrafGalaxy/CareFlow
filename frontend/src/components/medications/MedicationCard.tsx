@@ -213,10 +213,6 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content align="end" className="min-w-[160px] bg-card border border-border rounded-lg shadow-xl p-1 z-[100] animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2">
-              <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer outline-none" onClick={() => router.push(`/medications/${medication.id}`)}>
-                <FileText size={14} /> View Details
-              </DropdownMenu.Item>
-              <DropdownMenu.Separator className="h-px bg-border my-1" />
               <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-md cursor-pointer outline-none" onClick={handleDelete}>
                 <Trash2 size={14} /> Delete
               </DropdownMenu.Item>
