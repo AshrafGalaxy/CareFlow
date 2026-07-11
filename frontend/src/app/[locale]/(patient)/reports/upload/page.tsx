@@ -72,7 +72,7 @@ export default function ReportUploadPage() {
     isRead: false,
     timestamp: new Date().toISOString()
    })
-   setTimeout(() => router.push(`/reports/${res.data.id}`), 1500)
+   setTimeout(() => router.push(`/reports/detail/${res.data.id}`), 1500)
   } catch (error: unknown) {
    toast.error((error as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Failed to upload report")
    setStatus("error")

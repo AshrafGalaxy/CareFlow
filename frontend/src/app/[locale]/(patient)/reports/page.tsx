@@ -180,7 +180,7 @@ export default function ReportsListPage() {
           <MessageSquare size={14} /> Ask AI
          </button>
          <Link 
-          href={`/reports/${report.id}`}
+          href={`/reports/detail/${report.id}`}
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
          >
           {report.processing_status === 'done' ? 'View AI Analyzed Report' : 

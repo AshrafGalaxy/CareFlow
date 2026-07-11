@@ -84,7 +84,7 @@ export default function TimelinePage() {
 
  const getEventLink = (event: TimelineEvent): string | null => {
   if (event.reference_table === 'reports' && event.reference_id) {
-   return `/reports/${event.reference_id}`
+   return `/reports/detail/${event.reference_id}`
   }
   if (event.reference_table === 'medications' && event.reference_id) {
    return `/medications`

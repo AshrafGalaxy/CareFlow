@@ -52,7 +52,7 @@ export const APP_ROUTES = {
  DASHBOARD: "/dashboard",
  REPORTS: "/reports",
  REPORT_UPLOAD: "/reports/upload",
- REPORT_DETAIL: (id: string) => `/reports/${id}`,
+ REPORT_DETAIL: (id: string) => `/reports/detail/${id}`,
  CHAT: "/chat",
  MEDICATIONS: "/medications",
  INSURANCE: "/insurance",
