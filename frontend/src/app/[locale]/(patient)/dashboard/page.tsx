@@ -348,7 +348,7 @@ export default function DashboardPage() {
                <button 
                 onClick={async () => {
                  try {
-                  await api.post(`/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'up' })
+                  await api.post(`/api/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'up' })
                   toast.success("Feedback submitted. Thank you!")
                   mutate()
                  } catch (e) {
@@ -362,7 +362,7 @@ export default function DashboardPage() {
                <button 
                 onClick={async () => {
                  try {
-                  await api.post(`/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'down' })
+                  await api.post(`/api/reports/${reports[0].id}/insights/${index}/feedback`, { feedback: 'down' })
                   toast.success("Feedback submitted. Thank you!")
                   mutate()
                  } catch (e) {
