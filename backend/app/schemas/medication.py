@@ -53,6 +53,7 @@ class MedicationResponse(BaseModel):
 
 class MedicationLogCreate(BaseModel):
     status: str  # "taken" | "missed" | "skipped"
+    scheduled_time: datetime
     taken_at: Optional[datetime] = None
 
 

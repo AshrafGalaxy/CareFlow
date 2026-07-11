@@ -162,9 +162,17 @@ def get_adherence(
         
         expected_doses = 0
         if effective_start <= effective_end:
-            days_active = (effective_end - effective_start).days + 1
+            # Days BEFORE today
+            days_before_today = max(0, (effective_end - effective_start).days)
             daily_doses = len(m.times_of_day or [])
-            expected_doses = days_active * daily_doses
+            expected_doses = days_before_today * daily_doses
+            
+            # For TODAY, only count scheduled times that have already passed
+            if effective_start <= now_utc.date() <= effective_end:
+                current_time_str = now_utc.strftime("%H:%M")
+                for t in (m.times_of_day or []):
+                    if t <= current_time_str:
+                        expected_doses += 1
             
         by_med[mid] = {"total": expected_doses, "taken": 0, "missed": 0, "skipped": 0, "med": m}
 
@@ -306,9 +314,23 @@ def log_medication(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medication not found")
 
     now_utc = datetime.now(timezone.utc)
+    
+    # Check if a log already exists for this exact scheduled time to prevent duplicates
+    existing_log = db.query(MedicationLog).filter(
+        MedicationLog.medication_id == id,
+        MedicationLog.scheduled_time == body.scheduled_time
+    ).first()
+
+    if existing_log:
+        existing_log.status = body.status
+        existing_log.taken_at = body.taken_at or (now_utc if body.status == "taken" else None)
+        db.commit()
+        db.refresh(existing_log)
+        return existing_log
+
     log = MedicationLog(
         medication_id=id,
-        scheduled_time=now_utc,
+        scheduled_time=body.scheduled_time,
         taken_at=body.taken_at or (now_utc if body.status == "taken" else None),
         status=body.status
     )

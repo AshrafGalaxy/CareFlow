@@ -35,8 +35,8 @@ interface MedicationCardProps {
 
 export function MedicationCard({ medication, streak = 0, onLogSuccess }: MedicationCardProps) {
   const router = useRouter()
-  const [logging, setLogging] = useState(false)
-  const [todayLog, setTodayLog] = useState<MedicationLog | null>(null)
+  const [loggingTime, setLoggingTime] = useState<string | null>(null)
+  const [todayLogs, setTodayLogs] = useState<Record<string, MedicationLog>>({})
   const [loadingLogs, setLoadingLogs] = useState(true)
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -46,15 +46,20 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
   useEffect(() => {
     const fetchRecentLogs = async () => {
       try {
-        const res = await api.get(`/api/medications/${medication.id}/logs?limit=1`)
-        const logs = res.data
-        if (logs.length > 0) {
-          const logDate = new Date(logs[0].scheduled_time).toDateString()
-          const today = new Date().toDateString()
-          if (logDate === today) {
-            setTodayLog(logs[0])
+        const res = await api.get(`/api/medications/${medication.id}/logs?limit=50`)
+        const logs: MedicationLog[] = res.data
+        const todayLogsMap: Record<string, MedicationLog> = {}
+        const today = new Date().toDateString()
+        
+        for (const log of logs) {
+          const logDateObj = new Date(log.scheduled_time)
+          if (logDateObj.toDateString() === today) {
+            const h = logDateObj.getHours().toString().padStart(2, '0')
+            const m = logDateObj.getMinutes().toString().padStart(2, '0')
+            todayLogsMap[`${h}:${m}`] = log
           }
         }
+        setTodayLogs(todayLogsMap)
       } catch (e) {
         console.error("Failed to fetch logs:", e)
       } finally {
@@ -69,34 +74,47 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
     }
   }, [medication.id, isUpcoming, isInactive])
 
-  const logDose = async (status: 'taken' | 'missed' | 'skipped') => {
-    setLogging(true)
+  const logDose = async (status: 'taken' | 'missed' | 'skipped', timeOfDay: string) => {
+    setLoggingTime(timeOfDay)
     try {
-      const res = await api.post(`/api/medications/${medication.id}/log`, { status })
-      setTodayLog(res.data)
+      const [h, m] = timeOfDay.split(':').map(Number)
+      const scheduledDate = new Date()
+      scheduledDate.setHours(h, m, 0, 0)
+      
+      const res = await api.post(`/api/medications/${medication.id}/log`, { 
+        status,
+        scheduled_time: scheduledDate.toISOString()
+      })
+      
+      setTodayLogs(prev => ({ ...prev, [timeOfDay]: res.data }))
       toast.success(`Dose marked as ${status}`)
       onLogSuccess?.()
     } catch (e) {
       toast.error("Failed to log dose")
       console.error(e)
     } finally {
-      setLogging(false)
+      setLoggingTime(null)
     }
   }
 
-  const undoLog = async () => {
-    if (!todayLog) return
-    setLogging(true)
+  const undoLog = async (timeOfDay: string) => {
+    const log = todayLogs[timeOfDay]
+    if (!log) return
+    setLoggingTime(timeOfDay)
     try {
-      await api.delete(`/api/medications/logs/${todayLog.id}`)
-      setTodayLog(null)
+      await api.delete(`/api/medications/logs/${log.id}`)
+      setTodayLogs(prev => {
+        const next = { ...prev }
+        delete next[timeOfDay]
+        return next
+      })
       toast.success("Dose log undone")
       onLogSuccess?.()
     } catch (e) {
       toast.error("Failed to undo log")
       console.error(e)
     } finally {
-      setLogging(false)
+      setLoggingTime(null)
     }
   }
 
@@ -143,12 +161,13 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
   }
 
   const getNextDoseStr = () => {
-    if (isUpcoming || isInactive || !medication.times_of_day?.length || todayLog?.status === 'taken') return null
+    if (isUpcoming || isInactive || !medication.times_of_day?.length) return null
     const now = new Date()
     const currentMins = now.getHours() * 60 + now.getMinutes()
     let nextTimeStr = null
     let nextMinsDiff = Infinity
     for (const t of medication.times_of_day) {
+      if (todayLogs[t]?.status === 'taken') continue // Skip already taken doses
       const [h, m] = t.split(':').map(Number)
       const totalMins = h * 60 + m
       if (totalMins > currentMins && (totalMins - currentMins) < nextMinsDiff) {
@@ -226,12 +245,6 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
             {daysRemaining} Days Left
           </div>
         )}
-        {medication.times_of_day?.length > 0 && (
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800">
-            <Clock size={13} className="text-emerald-500" />
-            {medication.times_of_day.map(formatTime).join(', ')}
-          </div>
-        )}
       </div>
 
       {medication.notes && (
@@ -250,41 +263,60 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
 
       {!isUpcoming && !isInactive && (
         <div className="mt-2 pt-4 border-t border-border">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-foreground">Today&apos;s dose</p>
-            {todayLog && (
-              <button disabled={logging} onClick={undoLog} className="text-xs flex items-center gap-1 text-muted-foreground hover:text-rose-500 transition-colors disabled:opacity-50" title="Undo / Edit Log">
-                <Undo2 size={12} /> Undo
-              </button>
-            )}
-          </div>
+          <p className="text-sm font-medium text-foreground mb-3">Today&apos;s Doses</p>
 
           {loadingLogs ? (
             <div className="h-[38px] flex items-center justify-center">
               <div className="w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : todayLog ? (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-              ${todayLog.status === 'taken' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900' : ''}
-              ${todayLog.status === 'missed' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200 dark:border-rose-900' : ''}
-              ${todayLog.status === 'skipped' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-900' : ''}
-            `}>
-              {todayLog.status === 'taken' && <><CheckCircle size={16} /> Marked as Taken</>}
-              {todayLog.status === 'missed' && <><XCircle size={16} /> Marked as Missed</>}
-              {todayLog.status === 'skipped' && <><XCircle size={16} /> Skipped</>}
+          ) : medication.times_of_day?.length > 0 ? (
+            <div className="space-y-3">
+              {medication.times_of_day.map((t) => {
+                const log = todayLogs[t]
+                const isLogging = loggingTime === t
+                return (
+                  <div key={t} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-muted/30 border border-border">
+                    <div className="flex items-center gap-2 font-medium text-sm w-24 shrink-0">
+                      <Clock size={14} className="text-muted-foreground" />
+                      {formatTime(t)}
+                    </div>
+                    
+                    <div className="flex-1 flex justify-end">
+                      {log ? (
+                        <div className="flex items-center gap-3">
+                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold
+                            ${log.status === 'taken' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : ''}
+                            ${log.status === 'missed' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400' : ''}
+                            ${log.status === 'skipped' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400' : ''}
+                          `}>
+                            {log.status === 'taken' && <><CheckCircle size={12} /> Taken</>}
+                            {log.status === 'missed' && <><XCircle size={12} /> Missed</>}
+                            {log.status === 'skipped' && <><XCircle size={12} /> Skipped</>}
+                          </div>
+                          <button disabled={loggingTime !== null} onClick={() => undoLog(t)} className="text-xs text-muted-foreground hover:text-rose-500 transition-colors disabled:opacity-50" title="Undo / Edit Log">
+                            <Undo2 size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={() => logDose('taken', t)} disabled={loggingTime !== null} className="flex items-center justify-center py-1.5 px-3 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 rounded-md text-xs font-semibold transition-colors disabled:opacity-50">
+                            {isLogging ? '...' : 'Take'}
+                          </button>
+                          <button onClick={() => logDose('missed', t)} disabled={loggingTime !== null} className="flex items-center justify-center py-1.5 px-3 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60 rounded-md text-xs font-semibold transition-colors disabled:opacity-50">
+                            {isLogging ? '...' : 'Miss'}
+                          </button>
+                          <button onClick={() => logDose('skipped', t)} disabled={loggingTime !== null} className="flex items-center justify-center py-1.5 px-3 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/60 rounded-md text-xs font-semibold transition-colors disabled:opacity-50">
+                            {isLogging ? '...' : 'Skip'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => logDose('taken')} disabled={logging} className="flex items-center justify-center gap-1.5 py-2 px-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50">
-                <CheckCircle size={14} /> Taken
-              </button>
-              <button onClick={() => logDose('missed')} disabled={logging} className="flex items-center justify-center gap-1.5 py-2 px-1 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50">
-                <XCircle size={14} /> Missed
-              </button>
-              <button onClick={() => logDose('skipped')} disabled={logging} className="flex items-center justify-center gap-1.5 py-2 px-1 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/60 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50">
-                Skip
-              </button>
-            </div>
+            <p className="text-sm text-muted-foreground italic">No times scheduled for this medication.</p>
           )}
         </div>
       )}
