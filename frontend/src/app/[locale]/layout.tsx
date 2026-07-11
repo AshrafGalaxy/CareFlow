@@ -111,9 +111,8 @@ export default async function RootLayout({
  return (
   <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
    <head>
-    <Script
+    <script
      id="theme-script"
-     strategy="beforeInteractive"
      dangerouslySetInnerHTML={{
       __html: `
        try {
@@ -133,6 +132,15 @@ export default async function RootLayout({
      body { top: 0px !important; }
      .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
     `}</style>
+   </head>
+   <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} ${notoSansDevanagari.variable} ${notoNastaliqUrdu.variable} ${notoSansTelugu.variable} ${notoSansGujarati.variable} ${notoSansTamil.variable} ${notoSansBengali.variable} ${
+    locale === 'hi' || locale === 'mr' ? 'font-devanagari' : 
+    locale === 'ur' ? 'font-urdu' : 
+    locale === 'te' ? 'font-telugu' :
+    locale === 'gu' ? 'font-gujarati' :
+    locale === 'ta' ? 'font-tamil' :
+    locale === 'bn' ? 'font-bengali' : 'font-sans'
+   } antialiased`} suppressHydrationWarning>
     <Script
      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
      strategy="lazyOnload"
@@ -151,15 +159,6 @@ export default async function RootLayout({
       `,
      }}
     />
-   </head>
-   <body className={`${manrope.variable} ${jakarta.variable} ${jetbrainsMono.variable} ${outfit.variable} ${notoSansDevanagari.variable} ${notoNastaliqUrdu.variable} ${notoSansTelugu.variable} ${notoSansGujarati.variable} ${notoSansTamil.variable} ${notoSansBengali.variable} ${
-    locale === 'hi' || locale === 'mr' ? 'font-devanagari' : 
-    locale === 'ur' ? 'font-urdu' : 
-    locale === 'te' ? 'font-telugu' :
-    locale === 'gu' ? 'font-gujarati' :
-    locale === 'ta' ? 'font-tamil' :
-    locale === 'bn' ? 'font-bengali' : 'font-sans'
-   } antialiased`} suppressHydrationWarning>
     <ThemeProvider
      attribute="class"
      defaultTheme="system"
