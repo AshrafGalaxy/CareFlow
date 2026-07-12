@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
 
+from pydantic import field_validator
+
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://careflow_user:careflow_password@localhost:5432/careflow_db"
     SECRET_KEY: str = "supersecretkey_change_me_in_production"
@@ -14,6 +16,12 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = ""
+
+    @field_validator("DATABASE_URL", mode="before")
+    def assemble_db_connection(cls, v: str | None) -> str:
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
 
     class Config:
         env_file = ".env"
