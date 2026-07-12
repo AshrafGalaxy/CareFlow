@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
+import { RequestFollowUpModal } from "@/components/appointments/RequestFollowUpModal"
 import { motion } from "framer-motion"
 
  interface Report {
@@ -93,6 +94,7 @@ export default function DashboardPage() {
   const [declineId, setDeclineId] = useState<string | null>(null)
   const [declineReason, setDeclineReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
 
   const handleConfirmFollowUp = async (id: string) => {
     try {
@@ -267,6 +269,15 @@ export default function DashboardPage() {
    )}
 
     {/* Pending Follow-ups */}
+    <div className="flex items-center justify-between mt-8 mb-4">
+      <h2 className="text-xl font-bold text-foreground">Appointments & Follow-ups</h2>
+      <button 
+        onClick={() => setIsRequestModalOpen(true)}
+        className="text-sm font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 dark:text-sky-400 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 px-4 py-2 rounded-xl transition-colors"
+      >
+        Request Follow-up
+      </button>
+    </div>
     {pendingFollowUps.length > 0 && (
       <div className="space-y-3">
         {pendingFollowUps.map(fu => (
@@ -635,6 +646,12 @@ export default function DashboardPage() {
      fileName={viewingReport.original_filename}
     />
    )}
+
+   <RequestFollowUpModal
+    isOpen={isRequestModalOpen}
+    onClose={() => setIsRequestModalOpen(false)}
+    onSuccess={() => mutateFollowUps()}
+   />
   </div>
  )
 }

@@ -282,7 +282,7 @@ export default function DoctorDashboardPage() {
 
      {/* Requests Inbox */}
      {(requests.medications.length > 0 || requests.follow_ups.length > 0) && (
-      <Card className="p-6 rounded-2xl border-amber-200/60 dark:border-amber-800 shadow-sm bg-amber-50/50 dark:bg-amber-900/10 space-y-4">
+      <Card id="requests" className="scroll-mt-24 p-6 rounded-2xl border-amber-200/60 dark:border-amber-800 shadow-sm bg-amber-50/50 dark:bg-amber-900/10 space-y-4">
        <div>
         <h2 className="text-lg font-bold font-heading text-amber-900 dark:text-amber-500 flex items-center gap-2">
          <Bell className="w-5 h-5" /> Pending Requests

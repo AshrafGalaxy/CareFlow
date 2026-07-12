@@ -4,13 +4,15 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight, ClipboardList
+ LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight, ClipboardList, CalendarDays
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
 import { useSidebarStore } from "@/store/sidebarStore"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { RequestFollowUpModal } from "@/components/appointments/RequestFollowUpModal"
+import { useState } from "react"
 
 import { useTranslations } from "next-intl"
 
@@ -38,6 +40,7 @@ export function PatientSidebar() {
  const { state: sidebarState, toggle: toggleSidebar } = useSidebarStore()
  const t = useTranslations("Navigation")
  const navItems = getNavItems(t)
+ const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
 
  const initials = getInitials(user?.name)
  const isCollapsed = sidebarState === 'collapsed'
@@ -136,7 +139,34 @@ export function PatientSidebar() {
       </Link>
      )
     })}
+
+    <button
+      onClick={() => setIsRequestModalOpen(true)}
+      title={isCollapsed ? "Request Follow-up" : undefined}
+      className={cn(
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-500/10",
+        isCollapsed && "justify-center px-0"
+      )}
+    >
+      <div className={cn(
+        "flex items-center justify-center rounded-lg transition-colors p-1.5",
+        "bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400",
+        isCollapsed && "p-2"
+      )}>
+        <CalendarDays className="w-5 h-5 shrink-0" />
+      </div>
+      
+      {!isCollapsed && (
+        <span className="truncate">Request Follow-up</span>
+      )}
+    </button>
    </nav>
+
+   <RequestFollowUpModal 
+      isOpen={isRequestModalOpen}
+      onClose={() => setIsRequestModalOpen(false)}
+      onSuccess={() => {}}
+    />
 
    {/* User Block */}
    <div className="border-t border-border p-3 bg-muted/20 shrink-0">

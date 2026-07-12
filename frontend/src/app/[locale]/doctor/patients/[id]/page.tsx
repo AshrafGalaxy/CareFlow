@@ -7,6 +7,7 @@ import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Ac
 import { Link } from "@/i18n/routing";
 import PatientMemo from "@/components/doctor/PatientMemo";
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal";
+import { ScheduleFollowUpModal } from "@/components/appointments/ScheduleFollowUpModal";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -25,12 +26,13 @@ function SkeletonCard() {
  );
 }
 
-export default function PatientDetailPage() {
- const { id } = useParams();
- const [viewingReport, setViewingReport] = useState<any>(null);
- const [patient, setPatient] = useState<any>(null);
- const [isLoading, setIsLoading] = useState(true);
- const [error, setError] = useState("");
+ export default function PatientDetailPage() {
+  const { id } = useParams();
+  const [viewingReport, setViewingReport] = useState<any>(null);
+  const [patient, setPatient] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
  const fetchPatient = async () => {
   try {
@@ -139,6 +141,43 @@ export default function PatientDetailPage() {
    </div>
 
    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {/* Appointments & Follow-ups */}
+    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow">
+     <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+       <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-500">
+        <CalendarDays className="w-5 h-5" />
+       </div>
+       <h2 className="font-semibold text-lg text-foreground">Appointments</h2>
+      </div>
+      <button 
+        onClick={() => setIsScheduleModalOpen(true)}
+        className="text-xs font-semibold px-3 py-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400 dark:hover:bg-sky-500/20 rounded-lg transition-colors"
+      >
+        Schedule
+      </button>
+     </div>
+     
+     <div className="space-y-4">
+      {(!patient.follow_ups || patient.follow_ups.length === 0) ? (
+       <p className="text-sm text-slate-500 dark:text-slate-400">No appointments scheduled.</p>
+      ) : (
+       patient.follow_ups.map((fu: any) => (
+        <div key={fu.id} className={`p-3 rounded-xl border flex flex-col gap-2 ${fu.status === 'requested' ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+         <div className="flex justify-between items-start">
+           <p className="font-medium text-sm text-foreground flex items-center gap-2">
+            {new Date(fu.appointment_date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+            {fu.status === 'requested' && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">Request</span>}
+            {fu.status === 'declined' && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400">Declined</span>}
+           </p>
+         </div>
+         {fu.notes && <p className="text-xs text-slate-500 dark:text-slate-400 italic">"{fu.notes}"</p>}
+        </div>
+       ))
+      )}
+     </div>
+    </Card>
+
     {/* Medications */}
     <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow">
      <div className="flex items-center gap-3 mb-6">
@@ -262,10 +301,21 @@ export default function PatientDetailPage() {
 
     {/* Clinical Notes / Memos */}
     <div className="md:col-span-2 lg:col-span-3 xl:col-span-1">
-     <PatientMemo patientId={patient.id} memos={patient.memos} />
+      <PatientMemo 
+       patientId={patient.id} 
+       memos={patient.memos || []} 
+      />
+     </div>
     </div>
    </div>
+
+   <ScheduleFollowUpModal
+    isOpen={isScheduleModalOpen}
+    onClose={() => setIsScheduleModalOpen(false)}
+    onSuccess={() => fetchPatient()}
+    patientId={patient.id}
+    patientName={patient.name}
+   />
   </div>
- </div>
-);
+ );
 }
