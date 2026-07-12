@@ -51,7 +51,11 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
             user_id=new_user.id,
             nmc_registration_number=user_in.nmc_registration_number,
             medical_council=user_in.medical_council,
-            qualification_degree=user_in.qualification_degree
+            qualification_degree=user_in.qualification_degree,
+            specialization=getattr(user_in, 'specialization', None),
+            hospital_affiliation=getattr(user_in, 'hospital_affiliation', None),
+            experience_years=getattr(user_in, 'experience_years', None),
+            contact_number=getattr(user_in, 'contact_number', None)
         )
         db.add(provider_profile)
         db.commit()
@@ -106,7 +110,7 @@ def update_profile(profile_data: UserUpdate, db: Session = Depends(get_db), curr
     update_data = profile_data.dict(exclude_unset=True)
     
     # Extract provider fields
-    provider_fields = ["nmc_registration_number", "medical_council", "qualification_degree"]
+    provider_fields = ["nmc_registration_number", "medical_council", "qualification_degree", "specialization", "hospital_affiliation", "experience_years", "contact_number"]
     provider_data = {k: update_data.pop(k) for k in provider_fields if k in update_data}
     
     # Update base user fields

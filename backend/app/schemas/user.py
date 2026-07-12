@@ -25,11 +25,19 @@ class UserCreate(UserBase):
     nmc_registration_number: Optional[str] = None
     medical_council: Optional[str] = None
     qualification_degree: Optional[str] = None
+    specialization: Optional[str] = None
+    hospital_affiliation: Optional[str] = None
+    experience_years: Optional[int] = None
+    contact_number: Optional[str] = None
 
 class ProviderProfileResponse(BaseModel):
     nmc_registration_number: Optional[str] = None
     medical_council: Optional[str] = None
     qualification_degree: Optional[str] = None
+    specialization: Optional[str] = None
+    hospital_affiliation: Optional[str] = None
+    experience_years: Optional[int] = None
+    contact_number: Optional[str] = None
     is_verified: bool
 
     class Config:
@@ -51,6 +59,10 @@ class UserUpdate(BaseModel):
     nmc_registration_number: Optional[str] = None
     medical_council: Optional[str] = None
     qualification_degree: Optional[str] = None
+    specialization: Optional[str] = None
+    hospital_affiliation: Optional[str] = None
+    experience_years: Optional[int] = None
+    contact_number: Optional[str] = None
 
 class UserResponse(UserBase):
     id: UUID

@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { User, CheckCircle2, Stethoscope } from "lucide-react"
+import { User, CheckCircle2, Stethoscope, Building2, Phone, GraduationCap } from "lucide-react"
 import api from "@/lib/api"
 import { useTranslations } from "next-intl"
 import { useNotificationStore } from "@/store/notificationStore"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function DoctorProfilePage() {
  const user = useAuthStore((state) => state.user)
@@ -20,53 +19,69 @@ export default function DoctorProfilePage() {
  const [name, setName] = useState(user?.name || "")
  const [email, setEmail] = useState(user?.email || "")
  const [phone, setPhone] = useState(user?.phone || "")
- const [abhaId, setAbhaId] = useState(user?.abha_id || "")
- const [dateOfBirth, setDateOfBirth] = useState(user?.date_of_birth || "")
- const [bloodGroup, setBloodGroup] = useState(user?.blood_group || "")
- const [height, setHeight] = useState<string>(user?.height ? String(user.height) : "")
- const [weight, setWeight] = useState<string>(user?.weight ? String(user.weight) : "")
  const [stateResidence, setStateResidence] = useState(user?.state_residence || "")
- const [emergencyContactName, setEmergencyContactName] = useState(user?.emergency_contact_name || "")
- const [emergencyContactPhone, setEmergencyContactPhone] = useState(user?.emergency_contact_phone || "")
 
  // Doctor specific fields
  const provider = (user as any)?.provider_profile || {}
  const [nmcRegistrationNumber, setNmcRegistrationNumber] = useState(provider.nmc_registration_number || "")
  const [medicalCouncil, setMedicalCouncil] = useState(provider.medical_council || "")
  const [qualificationDegree, setQualificationDegree] = useState(provider.qualification_degree || "")
+ const [specialization, setSpecialization] = useState(provider.specialization || "")
+ const [hospitalAffiliation, setHospitalAffiliation] = useState(provider.hospital_affiliation || "")
+ const [experienceYears, setExperienceYears] = useState<string>(provider.experience_years ? String(provider.experience_years) : "")
+ const [contactNumber, setContactNumber] = useState(provider.contact_number || "")
  
  const [isUpdating, setIsUpdating] = useState(false)
+ const [errors, setErrors] = useState<Record<string, string>>({})
+ 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    if (!name.trim()) newErrors.name = "Full name is required"
+    if (!phone.trim() || phone.length < 10) newErrors.phone = "Valid phone number is required"
+    if (!specialization.trim()) newErrors.specialization = "Specialization is required"
+    if (!qualificationDegree.trim()) newErrors.qualificationDegree = "Qualification degree is required"
+    if (!hospitalAffiliation.trim()) newErrors.hospitalAffiliation = "Hospital affiliation is required"
+    if (!nmcRegistrationNumber.trim()) newErrors.nmcRegistrationNumber = "NMC registration number is required"
+    if (!medicalCouncil.trim()) newErrors.medicalCouncil = "Medical council is required"
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
  
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors before saving.", {
+        icon: <AlertTriangle className="w-5 h-5 text-amber-500" />
+      })
+      return
+    }
+    
     setIsUpdating(true)
+    setErrors({})
     try {
       const res = await api.patch("/api/auth/profile", {
         name,
         phone,
-        abha_id: abhaId,
-        date_of_birth: dateOfBirth,
-        blood_group: bloodGroup,
-        height: height ? parseFloat(height) : null,
-        weight: weight ? parseFloat(weight) : null,
         state_residence: stateResidence,
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
         nmc_registration_number: nmcRegistrationNumber,
         medical_council: medicalCouncil,
-        qualification_degree: qualificationDegree
+        qualification_degree: qualificationDegree,
+        specialization,
+        hospital_affiliation: hospitalAffiliation,
+        experience_years: experienceYears ? parseInt(experienceYears) : null,
+        contact_number: contactNumber
       })
       useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
       toast.success("Profile updated successfully", {
         description: "Your provider details have been saved.",
-        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
+        className: "border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20"
       })
       useNotificationStore.getState().addNotification({
         title: "Profile Updated",
         message: "Your provider profile was updated successfully.",
-        type: "system",
-        isRead: false,
-        timestamp: new Date().toISOString()
+        type: "system"
       })
     } catch (error: any) {
       let msg = "Failed to update profile"
@@ -80,18 +95,48 @@ export default function DoctorProfilePage() {
           msg = JSON.stringify(detail)
         }
       }
-      toast.error(msg)
+      toast.error(msg, {
+        description: "Please try again later.",
+        icon: <AlertTriangle className="w-5 h-5 text-rose-500" />,
+        className: "border-rose-500/20 bg-rose-50/50 dark:bg-rose-950/20"
+      })
     } finally {
       setIsUpdating(false)
     }
   }
 
  return (
-  <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
    
    <div>
     <h1 className="text-3xl font-heading font-bold text-foreground">Provider Profile</h1>
     <p className="text-muted-foreground mt-1">Manage your personal and professional provider details.</p>
+   </div>
+
+   {/* Premium Identity Header */}
+   <div className="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+    <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+     <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/40 shrink-0">
+      <User size={48} className="text-white" />
+     </div>
+     <div className="text-center sm:text-left">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-1">{name || "Dr. Said Sona"}</h2>
+      <p className="text-sky-100 font-medium mb-3 flex items-center justify-center sm:justify-start gap-2">
+       <Stethoscope size={16} /> {specialization || "Specialization"} &bull; {qualificationDegree || "Degree"}
+      </p>
+      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+       <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium border border-white/20 flex items-center gap-1.5">
+        <Building2 size={12} /> {hospitalAffiliation || "Hospital Affiliation"}
+       </span>
+       {nmcRegistrationNumber && (
+        <span className="px-3 py-1 bg-emerald-500/80 backdrop-blur-md rounded-full text-xs font-medium border border-emerald-400/50 flex items-center gap-1.5">
+         <CheckCircle2 size={12} /> NMC: {nmcRegistrationNumber}
+        </span>
+       )}
+      </div>
+     </div>
+    </div>
    </div>
 
    <div className="grid gap-6">
@@ -107,26 +152,90 @@ export default function DoctorProfilePage() {
       </div>
      </div>
      <div className="p-6">
-      <form id="profile-form" onSubmit={handleUpdateProfile} className="space-y-4 max-w-xl">
-       <div className="space-y-2">
-        <Label htmlFor="qualificationDegree">Qualification / Degree</Label>
-        <Input 
-         id="qualificationDegree" 
-         value={qualificationDegree} 
-         onChange={(e) => setQualificationDegree(e.target.value)} 
-         placeholder="e.g. MBBS, MD"
-         className="bg-background"
-        />
-       </div>
+      <form id="profile-form" onSubmit={handleUpdateProfile} className="space-y-6 max-w-xl">
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+         <Label htmlFor="specialization">Specialization</Label>
+         <div className="relative">
+          <Stethoscope className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+           id="specialization" 
+           value={specialization} 
+           onChange={(e) => setSpecialization(e.target.value)} 
+           placeholder="e.g. Cardiology"
+           className={`bg-background pl-9 ${errors.specialization ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+          />
+         </div>
+         {errors.specialization && <p className="text-xs text-red-500 mt-1">{errors.specialization}</p>}
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="qualificationDegree">Qualification / Degree</Label>
+         <div className="relative">
+          <GraduationCap className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+           id="qualificationDegree" 
+           value={qualificationDegree} 
+           onChange={(e) => setQualificationDegree(e.target.value)} 
+           placeholder="e.g. MBBS, MD"
+           className={`bg-background pl-9 ${errors.qualificationDegree ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+          />
+         </div>
+         {errors.qualificationDegree && <p className="text-xs text-red-500 mt-1">{errors.qualificationDegree}</p>}
+        </div>
+       </div>
+
+       <div className="space-y-2">
+        <Label htmlFor="hospitalAffiliation">Hospital/Clinic Affiliation</Label>
+        <div className="relative">
+         <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+         <Input 
+          id="hospitalAffiliation" 
+          value={hospitalAffiliation} 
+          onChange={(e) => setHospitalAffiliation(e.target.value)} 
+          placeholder="e.g. City General Hospital"
+          className={`bg-background pl-9 ${errors.hospitalAffiliation ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+         />
+        </div>
+        {errors.hospitalAffiliation && <p className="text-xs text-red-500 mt-1">{errors.hospitalAffiliation}</p>}
+       </div>
+
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+         <Label htmlFor="experienceYears">Years of Experience</Label>
+         <Input 
+          id="experienceYears" 
+          type="number"
+          value={experienceYears} 
+          onChange={(e) => setExperienceYears(e.target.value)} 
+          className="bg-background"
+          placeholder="e.g. 10"
+         />
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="contactNumber">Clinic Contact Number</Label>
+         <div className="relative">
+          <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+           id="contactNumber" 
+           value={contactNumber} 
+           onChange={(e) => setContactNumber(e.target.value)} 
+           className="bg-background pl-9"
+           placeholder="For patient appointments"
+          />
+         </div>
+        </div>
+       </div>
+
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
         <div className="space-y-2">
          <Label htmlFor="nmcRegistrationNumber">NMC Registration Number</Label>
          <Input 
           id="nmcRegistrationNumber" 
           value={nmcRegistrationNumber} 
           onChange={(e) => setNmcRegistrationNumber(e.target.value)} 
-          className="bg-background"
+          className={`bg-background ${errors.nmcRegistrationNumber ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
          />
+         {errors.nmcRegistrationNumber && <p className="text-xs text-red-500 mt-1">{errors.nmcRegistrationNumber}</p>}
         </div>
         <div className="space-y-2">
          <Label htmlFor="medicalCouncil">Medical Council</Label>
@@ -134,8 +243,9 @@ export default function DoctorProfilePage() {
           id="medicalCouncil" 
           value={medicalCouncil} 
           onChange={(e) => setMedicalCouncil(e.target.value)} 
-          className="bg-background"
+          className={`bg-background ${errors.medicalCouncil ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
          />
+         {errors.medicalCouncil && <p className="text-xs text-red-500 mt-1">{errors.medicalCouncil}</p>}
         </div>
        </div>
       </form>
@@ -161,8 +271,9 @@ export default function DoctorProfilePage() {
          form="profile-form"
          value={name} 
          onChange={(e) => setName(e.target.value)} 
-         className="bg-background"
+         className={`bg-background ${errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
         />
+        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
        </div>
        <div className="space-y-2">
         <Label htmlFor="email">Email Address</Label>
@@ -177,77 +288,15 @@ export default function DoctorProfilePage() {
        </div>
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-         <Label htmlFor="phone">Phone Number</Label>
+         <Label htmlFor="phone">Personal Phone</Label>
          <Input 
           id="phone" 
           form="profile-form"
           value={phone} 
           onChange={(e) => setPhone(e.target.value)} 
-          className="bg-background"
+          className={`bg-background ${errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
          />
-        </div>
-        <div className="space-y-2">
-         <Label htmlFor="dob">Date of Birth</Label>
-         <Input 
-          id="dob" 
-          type="date"
-          form="profile-form"
-          value={dateOfBirth} 
-          onChange={(e) => setDateOfBirth(e.target.value)} 
-          className="bg-background"
-         />
-        </div>
-        <div className="space-y-2">
-         <Label htmlFor="abha">ABHA ID</Label>
-         <Input 
-          id="abha" 
-          form="profile-form"
-          value={abhaId} 
-          onChange={(e) => setAbhaId(e.target.value)} 
-          className="bg-background"
-         />
-        </div>
-        <div className="space-y-2">
-         <Label htmlFor="bloodGroup">Blood Group</Label>
-         <Select value={bloodGroup} onValueChange={setBloodGroup}>
-          <SelectTrigger id="bloodGroup" className="w-full bg-background">
-           <SelectValue placeholder="Select..." />
-          </SelectTrigger>
-          <SelectContent>
-           <SelectItem value="A+">A+</SelectItem>
-           <SelectItem value="A-">A-</SelectItem>
-           <SelectItem value="B+">B+</SelectItem>
-           <SelectItem value="B-">B-</SelectItem>
-           <SelectItem value="AB+">AB+</SelectItem>
-           <SelectItem value="AB-">AB-</SelectItem>
-           <SelectItem value="O+">O+</SelectItem>
-           <SelectItem value="O-">O-</SelectItem>
-          </SelectContent>
-         </Select>
-        </div>
-        <div className="space-y-2">
-         <Label htmlFor="height">Height (cm)</Label>
-         <Input 
-          id="height" 
-          type="number"
-          form="profile-form"
-          value={height} 
-          onChange={(e) => setHeight(e.target.value)} 
-          className="bg-background"
-          placeholder="e.g. 175"
-         />
-        </div>
-        <div className="space-y-2">
-         <Label htmlFor="weight">Weight (kg)</Label>
-         <Input 
-          id="weight" 
-          type="number"
-          form="profile-form"
-          value={weight} 
-          onChange={(e) => setWeight(e.target.value)} 
-          className="bg-background"
-          placeholder="e.g. 70"
-         />
+         {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
         </div>
         <div className="space-y-2">
          <Label htmlFor="state">State of Residence</Label>
@@ -261,32 +310,7 @@ export default function DoctorProfilePage() {
         </div>
        </div>
        
-       <div className="pt-2">
-        <h3 className="text-sm font-medium text-foreground mb-2">Emergency Contact</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         <div className="space-y-2">
-          <Label htmlFor="emergencyName">Name</Label>
-          <Input 
-           id="emergencyName" 
-           form="profile-form"
-           value={emergencyContactName} 
-           onChange={(e) => setEmergencyContactName(e.target.value)} 
-           className="bg-background"
-          />
-         </div>
-         <div className="space-y-2">
-          <Label htmlFor="emergencyPhone">Phone Number</Label>
-          <Input 
-           id="emergencyPhone" 
-           form="profile-form"
-           value={emergencyContactPhone} 
-           onChange={(e) => setEmergencyContactPhone(e.target.value)} 
-           className="bg-background"
-          />
-         </div>
-        </div>
-       </div>
-       <Button type="submit" form="profile-form" disabled={isUpdating} className="bg-sky-500 hover:bg-sky-600 text-white mt-4">
+       <Button type="submit" form="profile-form" disabled={isUpdating} className="bg-sky-500 hover:bg-sky-600 text-white mt-6">
         {isUpdating ? "Saving..." : "Save Changes"}
        </Button>
       </div>

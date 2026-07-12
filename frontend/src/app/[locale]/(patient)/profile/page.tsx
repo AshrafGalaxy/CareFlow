@@ -31,12 +31,28 @@ export default function ProfilePage() {
  const [emergencyContactPhone, setEmergencyContactPhone] = useState(user?.emergency_contact_phone || "")
  
  const [isUpdating, setIsUpdating] = useState(false)
+ const [errors, setErrors] = useState<Record<string, string>>({})
  
-
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    if (!name.trim()) newErrors.name = "Full name is required"
+    if (!phone.trim() || phone.length < 10) newErrors.phone = "Valid phone number is required"
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors before saving.", {
+        icon: <AlertTriangle className="w-5 h-5 text-amber-500" />
+      })
+      return
+    }
+    
     setIsUpdating(true)
+    setErrors({})
     try {
       const res = await api.patch("/api/auth/profile", {
         name,
@@ -53,14 +69,13 @@ export default function ProfilePage() {
       useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
       toast.success("Profile updated successfully", {
         description: "Your personal details have been saved.",
-        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
+        className: "border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20"
       })
       useNotificationStore.getState().addNotification({
         title: "Profile Updated",
         message: "Your personal information was updated successfully.",
-        type: "system",
-        isRead: false,
-        timestamp: new Date().toISOString()
+        type: "system"
       })
     } catch (error: any) {
       let msg = "Failed to update profile"
@@ -74,7 +89,11 @@ export default function ProfilePage() {
           msg = JSON.stringify(detail)
         }
       }
-      toast.error(msg)
+      toast.error(msg, {
+        description: "Please try again later.",
+        icon: <AlertTriangle className="w-5 h-5 text-rose-500" />,
+        className: "border-rose-500/20 bg-rose-50/50 dark:bg-rose-950/20"
+      })
     } finally {
       setIsUpdating(false)
     }
@@ -108,8 +127,9 @@ export default function ProfilePage() {
          id="name" 
          value={name} 
          onChange={(e) => setName(e.target.value)} 
-         className="bg-background"
+         className={`bg-background ${errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
         />
+        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
        </div>
        <div className="space-y-2">
         <Label htmlFor="email">Email Address</Label>
@@ -130,8 +150,9 @@ export default function ProfilePage() {
           id="phone" 
           value={phone} 
           onChange={(e) => setPhone(e.target.value)} 
-          className="bg-background"
+          className={`bg-background ${errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
          />
+         {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
         </div>
         <div className="space-y-2">
          <Label htmlFor="dob">Date of Birth</Label>
@@ -154,7 +175,7 @@ export default function ProfilePage() {
         </div>
         <div className="space-y-2">
          <Label htmlFor="bloodGroup">Blood Group</Label>
-         <Select value={bloodGroup} onValueChange={setBloodGroup}>
+         <Select value={bloodGroup} onValueChange={(v) => setBloodGroup(v || "")}>
           <SelectTrigger id="bloodGroup" className="w-full bg-background">
            <SelectValue placeholder="Select..." />
           </SelectTrigger>
