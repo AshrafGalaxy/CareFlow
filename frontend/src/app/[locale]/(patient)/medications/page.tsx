@@ -84,12 +84,69 @@ export default function MedicationsPage() {
     !m.is_active || (m.end_date && m.end_date < todayStr)
   )
 
-  const getStreak = (medId: string) => {
-    if (!adherence) return 0
-    const match = adherence.by_medication?.find((b: any) => b.medication_id === medId)
-    if (!match) return 0
-    // Simple mock streak calculation for UI purposes based on taken ratio
-    return Math.max(0, Math.floor(match.taken / Math.max(1, match.total / 30)))
+  const getStreak = (medId?: string) => {
+    if (!logs || logs.length === 0) return 0
+
+    const medsToCheck = medId ? medications.filter(m => m.id === medId) : activeMeds
+    if (medsToCheck.length === 0) return 0
+    
+    // Group logs by date
+    const logsByDate: Record<string, MedicationLog[]> = {}
+    const filteredLogs = medId ? logs.filter(l => l.medication_id === medId) : logs
+    
+    filteredLogs.forEach(log => {
+      const dateStr = format(new Date(log.scheduled_time), 'yyyy-MM-dd')
+      if (!logsByDate[dateStr]) logsByDate[dateStr] = []
+      logsByDate[dateStr].push(log)
+    })
+    
+    let streak = 0
+    let currentDate = new Date()
+    
+    while (true) {
+      const dateStr = format(currentDate, 'yyyy-MM-dd')
+      
+      let requiredDoses = 0
+      let validMedsForDate = 0
+      
+      for (const med of medsToCheck) {
+        if (dateStr >= med.start_date && med.is_active) {
+            requiredDoses += (med.times_of_day?.length || 0)
+            validMedsForDate++
+        }
+      }
+      
+      if (validMedsForDate === 0) break
+      if (requiredDoses === 0) {
+        currentDate.setDate(currentDate.getDate() - 1)
+        continue
+      }
+      
+      const dayLogs = logsByDate[dateStr] || []
+      const takenCount = dayLogs.filter(l => l.status === 'taken').length
+      const missedCount = dayLogs.filter(l => l.status === 'missed' || l.status === 'skipped').length
+      const todayStr = format(new Date(), 'yyyy-MM-dd')
+      
+      if (dateStr === todayStr) {
+         if (missedCount > 0) break
+         if (takenCount === requiredDoses) streak += 1
+      } else {
+         if (takenCount === requiredDoses) {
+            streak += 1
+         } else {
+            break
+         }
+      }
+      
+      currentDate.setDate(currentDate.getDate() - 1)
+      
+      // Limit check to logs fetch window (30 days)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      if (currentDate < thirtyDaysAgo) break
+    }
+    
+    return streak
   }
  return (
   <div className="w-full space-y-8">
@@ -221,10 +278,10 @@ export default function MedicationsPage() {
           <CalendarCheck size={20} className="text-sky-500" />
           30-Day Adherence
          </h2>
-         {adherence && adherence.adherence_rate > 80 && (
+         {adherence && adherence.adherence_rate > 80 && getStreak() > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full font-bold text-xs shadow-sm">
            <Flame size={14} className="fill-orange-500 text-orange-500" />
-           {Math.floor(adherence.taken / Math.max(1, adherence.total_doses / 30))} Day Streak!
+           {getStreak()} Day Streak!
           </div>
          )}
         </div>

@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight
+ LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight, ClipboardList
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
@@ -21,6 +21,7 @@ const getNavItems = (t: (key: string) => string) => [
  { name: t("medications"), href: "/medications", icon: Pill },
  { name: t("insurance"), href: "/insurance", icon: Shield },
  { name: "My Timeline", href: "/timeline", icon: Clock },
+ { name: "Clinical Notes", href: "/memos", icon: ClipboardList },
 ]
 
 const bottomNavItems = [

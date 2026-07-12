@@ -42,6 +42,7 @@ export const API_ROUTES = {
  },
  DASHBOARD: {
   KPIS: "/api/dashboard/kpis",
+  MEMOS: "/api/dashboard/memos",
  },
 } as const
 
@@ -57,6 +58,7 @@ export const APP_ROUTES = {
  MEDICATIONS: "/medications",
  INSURANCE: "/insurance",
  TIMELINE: "/timeline",
+ MEMOS: "/memos",
  ONBOARDING: "/onboarding",
  PROFILE: "/profile",
  DOCTOR_DASHBOARD: "/doctor/dashboard",

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
+import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 import { Eye, EyeOff, Loader2, AlertCircle, Activity, ShieldCheck, ChevronRight, UserCircle2, Stethoscope, CheckCircle, ArrowUpCircle } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
@@ -62,10 +64,12 @@ function PasswordStrength({ password }: { password: string }) {
  )
 }
 
-export default function RegisterPage() {
+function RegisterContent() {
+ const searchParams = useSearchParams()
+ const defaultRole = searchParams.get("role") === "doctor" ? "doctor" : "patient"
  const [showPassword, setShowPassword] = useState(false)
  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
- const [role, setRole] = useState<"patient" | "doctor">("patient")
+ const [role, setRole] = useState<"patient" | "doctor">(defaultRole)
  const [isLoading, setIsLoading] = useState(false)
  const router = useRouter()
  const setAuth = useAuthStore((state) => state.setAuth)
@@ -436,5 +440,13 @@ export default function RegisterPage() {
     </div>
    </div>
   </div>
+ )
+}
+
+export default function RegisterPage() {
+ return (
+  <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-sky-500" /></div>}>
+   <RegisterContent />
+  </Suspense>
  )
 }

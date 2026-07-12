@@ -11,6 +11,7 @@ import api from "@/lib/api"
 import { useRouter } from "@/i18n/routing"
 import { useTranslations } from "next-intl"
 import { useNotificationStore } from "@/store/notificationStore"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ProfilePage() {
  const user = useAuthStore((state) => state.user)
@@ -23,6 +24,8 @@ export default function ProfilePage() {
  const [abhaId, setAbhaId] = useState(user?.abha_id || "")
  const [dateOfBirth, setDateOfBirth] = useState(user?.date_of_birth || "")
  const [bloodGroup, setBloodGroup] = useState(user?.blood_group || "")
+ const [height, setHeight] = useState<string>(user?.height ? String(user.height) : "")
+ const [weight, setWeight] = useState<string>(user?.weight ? String(user.weight) : "")
  const [stateResidence, setStateResidence] = useState(user?.state_residence || "")
  const [emergencyContactName, setEmergencyContactName] = useState(user?.emergency_contact_name || "")
  const [emergencyContactPhone, setEmergencyContactPhone] = useState(user?.emergency_contact_phone || "")
@@ -41,6 +44,8 @@ export default function ProfilePage() {
         abha_id: abhaId,
         date_of_birth: dateOfBirth,
         blood_group: bloodGroup,
+        height: height ? parseFloat(height) : null,
+        weight: weight ? parseFloat(weight) : null,
         state_residence: stateResidence,
         emergency_contact_name: emergencyContactName,
         emergency_contact_phone: emergencyContactPhone
@@ -58,7 +63,18 @@ export default function ProfilePage() {
         timestamp: new Date().toISOString()
       })
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to update profile")
+      let msg = "Failed to update profile"
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail
+        if (typeof detail === 'string') {
+          msg = detail
+        } else if (Array.isArray(detail)) {
+          msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ')
+        } else {
+          msg = JSON.stringify(detail)
+        }
+      }
+      toast.error(msg)
     } finally {
       setIsUpdating(false)
     }
@@ -138,22 +154,43 @@ export default function ProfilePage() {
         </div>
         <div className="space-y-2">
          <Label htmlFor="bloodGroup">Blood Group</Label>
-         <select
-          id="bloodGroup"
-          value={bloodGroup}
-          onChange={(e) => setBloodGroup(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-         >
-          <option value="">Select...</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-         </select>
+         <Select value={bloodGroup} onValueChange={setBloodGroup}>
+          <SelectTrigger id="bloodGroup" className="w-full bg-background">
+           <SelectValue placeholder="Select..." />
+          </SelectTrigger>
+          <SelectContent>
+           <SelectItem value="A+">A+</SelectItem>
+           <SelectItem value="A-">A-</SelectItem>
+           <SelectItem value="B+">B+</SelectItem>
+           <SelectItem value="B-">B-</SelectItem>
+           <SelectItem value="AB+">AB+</SelectItem>
+           <SelectItem value="AB-">AB-</SelectItem>
+           <SelectItem value="O+">O+</SelectItem>
+           <SelectItem value="O-">O-</SelectItem>
+          </SelectContent>
+         </Select>
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="height">Height (cm)</Label>
+         <Input 
+          id="height" 
+          type="number"
+          value={height} 
+          onChange={(e) => setHeight(e.target.value)} 
+          className="bg-background"
+          placeholder="e.g. 175"
+         />
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="weight">Weight (kg)</Label>
+         <Input 
+          id="weight" 
+          type="number"
+          value={weight} 
+          onChange={(e) => setWeight(e.target.value)} 
+          className="bg-background"
+          placeholder="e.g. 70"
+         />
         </div>
         <div className="space-y-2">
          <Label htmlFor="state">State of Residence</Label>

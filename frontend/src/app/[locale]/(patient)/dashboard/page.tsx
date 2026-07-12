@@ -54,7 +54,13 @@ interface DashboardKPIs {
   appointment_date: string
   status: string
  }
-}
+  latest_memo?: {
+   id: string
+   doctor_name: string
+   content: string
+   created_at: string
+  }
+ }
 
 const fetcher = (url: string) => api.get(url).then(res => res.data)
 
@@ -277,23 +283,25 @@ export default function DashboardPage() {
     </div>
 
    {/* Doctor's Memo */}
-   <div className="bg-amber-100/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
-    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500" />
-    <div className="flex items-start gap-4 relative z-10">
-     <div className="bg-amber-500/20 p-2.5 rounded-xl shrink-0 mt-0.5">
-      <MessageSquare className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-     </div>
-     <div className="flex-1">
-      <div className="flex items-center justify-between mb-1">
-       <h3 className="text-sm font-bold text-amber-900 dark:text-amber-500">Note from Dr. Jenkins</h3>
-       <span className="text-xs font-medium text-amber-700/60 dark:text-amber-500/60">2 hours ago</span>
+   {!kpiLoading && kpiData?.latest_memo && (
+    <div className="bg-amber-100/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
+     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500" />
+     <div className="flex items-start gap-4 relative z-10">
+      <div className="bg-amber-500/20 p-2.5 rounded-xl shrink-0 mt-0.5">
+       <MessageSquare className="w-5 h-5 text-amber-600 dark:text-amber-500" />
       </div>
-      <p className="text-sm text-amber-800/90 dark:text-amber-400/90 leading-relaxed italic">
-       "I've reviewed your latest HbA1c results and they look fantastic. Let's stick with the current metformin dosage. Keep up the good work!"
-      </p>
+      <div className="flex-1">
+       <div className="flex items-center justify-between mb-1">
+        <h3 className="text-sm font-bold text-amber-900 dark:text-amber-500">Note from Dr. {kpiData.latest_memo.doctor_name}</h3>
+        <span className="text-xs font-medium text-amber-700/60 dark:text-amber-500/60">{formatRelativeTime(kpiData.latest_memo.created_at)}</span>
+       </div>
+       <p className="text-sm text-amber-800/90 dark:text-amber-400/90 leading-relaxed italic whitespace-pre-wrap">
+        "{kpiData.latest_memo.content}"
+       </p>
+      </div>
      </div>
     </div>
-   </div>
+   )}
 
    {/* Dynamic Biomarker Trends (Recharts) */}
    {!isLoading && data && data.length > 0 && (
