@@ -37,7 +37,7 @@ def upgrade() -> None:
     sa.Column('emergency_contact_name', sa.String(length=255), nullable=True),
     sa.Column('emergency_contact_phone', sa.String(length=20), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
-    sa.Column('push_subscription', sa.JSON().with_variant(postgresql.JSONB(astext_type=Text()), 'postgresql'), nullable=True),
+    sa.Column('push_subscription', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id')
