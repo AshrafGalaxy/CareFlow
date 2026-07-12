@@ -546,6 +546,8 @@ export default function ClinicalChartPage() {
           {saving === med.id ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Save Changes
          </Button>
+        </div>
+       </div>
       </DialogContent>
      </Dialog>
     ))}
