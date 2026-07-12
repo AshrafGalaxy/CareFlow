@@ -43,18 +43,26 @@ export default function MemosPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-heading font-bold text-foreground">Clinical Notes</h1>
-        <p className="text-muted-foreground mt-1">Review notes and memos left by your doctors.</p>
+    <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold font-heading text-foreground tracking-tight">Clinical Notes</h1>
+            <p className="text-sm text-muted-foreground mt-1">Review notes and memos left by your doctors</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {(!memos || memos.length === 0) ? (
-          <div className="h-64 flex flex-col items-center justify-center text-center p-8 bg-card rounded-2xl border border-border shadow-sm">
-            <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
-            <p className="text-lg font-medium text-foreground">No notes found</p>
-            <p className="text-sm text-muted-foreground">You don't have any clinical notes or memos from your doctors yet.</p>
+          <div className="bg-card border border-dashed border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-900/30 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mb-4">
+              <MessageSquare size={32} />
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2">No notes found</h3>
+            <p className="text-muted-foreground max-w-sm mb-6">You don't have any clinical notes or memos from your doctors yet.</p>
           </div>
         ) : (
           memos.map((memo) => (
