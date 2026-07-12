@@ -62,6 +62,29 @@ def decline_follow_up(id: uuid.UUID, body: FollowUpUpdate, user: User = Depends(
     return fu
 
 
+@router.post("/{id}/schedule", response_model=FollowUpResponse)
+def schedule_follow_up(id: uuid.UUID, body: FollowUpUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    fu = db.query(FollowUp).filter(FollowUp.id == id).first()
+    if not fu:
+        raise HTTPException(status_code=404, detail="Follow-up not found")
+    if user.role not in ["doctor", "admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    fu.status = "scheduled"
+    if body.appointment_date:
+        fu.appointment_date = body.appointment_date
+    if body.notes:
+        fu.notes = body.notes
+    
+    # Ensure doctor name is set
+    if not fu.doctor_name:
+        fu.doctor_name = user.name
+        
+    db.commit()
+    db.refresh(fu)
+    return fu
+
+
 @router.post("/", response_model=FollowUpResponse)
 async def create_follow_up(
     body: FollowUpCreate,
@@ -84,12 +107,19 @@ async def create_follow_up(
         target_user_id = body.patient_id
 
     fu_status = "scheduled"
+    final_doctor_name = body.doctor_name
     if user.role == "patient":
         fu_status = "requested"
+        if not final_doctor_name:
+            provider = db.query(ProviderPatient).filter(ProviderPatient.patient_id == target_user_id, ProviderPatient.is_active == True).first()
+            if provider:
+                doctor = db.query(User).filter(User.id == provider.provider_id).first()
+                if doctor:
+                    final_doctor_name = doctor.name
 
     fu = FollowUp(
         user_id=target_user_id,
-        doctor_name=body.doctor_name,
+        doctor_name=final_doctor_name,
         specialty=body.specialty,
         appointment_date=body.appointment_date,
         notes=body.notes,
