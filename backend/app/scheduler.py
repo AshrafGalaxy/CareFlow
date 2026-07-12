@@ -30,6 +30,7 @@ async def send_push_notification(subscription: dict, message: str, title: str = 
 
 from datetime import timedelta
 from app.models.medication import MedicationLog
+from app.services.medication_service import sync_all_missed_medications
 
 async def check_medications():
     """Run every minute to check if medications are due or missed."""
@@ -56,39 +57,8 @@ async def check_medications():
                         title="Medication Reminder"
                     )
 
-        # 2. Check for Missed Medications (1-Hour Auto-Miss Rule)
-        all_active_meds = db.query(Medication).filter(Medication.is_active == True).all()
-        now_utc = datetime.now(timezone.utc)
-        
-        for med in all_active_meds:
-            if not med.times_of_day:
-                continue
-            
-            for t_str in med.times_of_day:
-                # Convert time string to datetime for today in UTC
-                # Assuming times_of_day are local to user? We'll assume UTC for now or server time
-                h, m = map(int, t_str.split(':'))
-                # Create a naive datetime for today at the scheduled time, then make it aware
-                scheduled_time_local = now.replace(hour=h, minute=m, second=0, microsecond=0)
-                scheduled_time_utc = scheduled_time_local.astimezone(timezone.utc)
-                
-                # If the scheduled time was more than 1 hour ago
-                if now_utc > scheduled_time_utc + timedelta(hours=1):
-                    # Check if a log exists for this exact scheduled time
-                    existing_log = db.query(MedicationLog).filter(
-                        MedicationLog.medication_id == med.id,
-                        MedicationLog.scheduled_time == scheduled_time_utc
-                    ).first()
-                    
-                    if not existing_log:
-                        # Auto-Miss!
-                        logger.info(f"Auto-missing medication {med.id} scheduled for {t_str}")
-                        log = MedicationLog(
-                            medication_id=med.id,
-                            scheduled_time=scheduled_time_utc,
-                            status="missed"
-                        )
-                        db.add(log)
+        # 2. Check for Missed Medications (Robust Backfill)
+        sync_all_missed_medications(db, days_back=3)
         
         db.commit()
 

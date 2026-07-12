@@ -17,6 +17,7 @@ from app.schemas.medication import (
 from app.middleware.auth_middleware import get_current_user
 from app.ai.vector_store import embed_medication
 from app.utils.timeline_builder import add_timeline_event
+from app.services.medication_service import sync_missed_medications
 from datetime import date
 
 router = APIRouter()
@@ -141,10 +142,12 @@ def get_adherence(
     db: Session = Depends(get_db)
 ):
     """Calculate medication adherence for the last N days."""
+    # Ensure logs are synced before calculating
+    sync_missed_medications(user.id, db, days_back=days)
+    
     now_utc = datetime.now(timezone.utc)
     cutoff = now_utc - timedelta(days=days)
 
-    # Get all user medications
     user_meds = db.query(Medication).filter(Medication.user_id == user.id).all()
     med_ids = [m.id for m in user_meds]
 
@@ -154,92 +157,54 @@ def get_adherence(
             adherence_rate=0.0, by_medication=[]
         )
 
-    # Get logs for these medications in the time window
     logs = db.query(MedicationLog).filter(
         MedicationLog.medication_id.in_(med_ids),
         MedicationLog.scheduled_time >= cutoff
     ).all()
 
-    # Breakdown by medication
     by_med: dict[str, dict] = {}
     for m in user_meds:
-        mid = str(m.id)
-        
-        # Calculate expected historical doses for this medication dynamically
-        # Start from the later of (start_date, cutoff.date())
-        # End at today.date()
-        m_start = m.start_date
-        c_start = cutoff.date()
-        effective_start = max(m_start, c_start)
-        
-        m_end = m.end_date if m.end_date else now_utc.date()
-        effective_end = min(m_end, now_utc.date())
-        
-        expected_doses = 0
-        if effective_start <= effective_end:
-            # Days BEFORE today
-            days_before_today = max(0, (effective_end - effective_start).days)
-            daily_doses = len(m.times_of_day or [])
-            expected_doses = days_before_today * daily_doses
-            
-            # For TODAY, only count scheduled times that have already passed
-            if effective_start <= now_utc.date() <= effective_end:
-                current_time_str = now_utc.strftime("%H:%M")
-                for t in (m.times_of_day or []):
-                    if t <= current_time_str:
-                        expected_doses += 1
-            
-        by_med[mid] = {"total": expected_doses, "taken": 0, "missed": 0, "skipped": 0, "med": m}
+        by_med[str(m.id)] = {"taken": 0, "missed": 0, "skipped": 0, "med": m}
 
     for log in logs:
         mid = str(log.medication_id)
-        if mid in by_med:
-            # Only count statuses towards actuals
-            if log.status in ["taken", "missed", "skipped"]:
-                by_med[mid][log.status] = by_med[mid].get(log.status, 0) + 1
+        if mid in by_med and log.status in ["taken", "missed", "skipped"]:
+            by_med[mid][log.status] += 1
 
-    # Cap the values per medication so percentages never exceed 100%
-    for mid, counts in by_med.items():
-        t = counts["total"]
-        tak = min(counts.get("taken", 0), t)
-        skip = min(counts.get("skipped", 0), t - tak)
-        counts["taken"] = tak
-        counts["skipped"] = skip
-
-    total = sum(d["total"] for d in by_med.values())
-    taken = sum(d["taken"] for d in by_med.values())
-    missed = sum(d["missed"] for d in by_med.values())
-    skipped = sum(d["skipped"] for d in by_med.values())
-    
-    # Infer missed if not manually logged
-    inferred_missed = max(0, total - taken - skipped)
-    
-    adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
-
+    total = taken = missed = skipped = 0
     by_medication = []
+    
     for mid, counts in by_med.items():
         med_obj = counts["med"]
-        t = counts["total"]
-        tak = counts.get("taken", 0)
-        skip = counts.get("skipped", 0)
-        # Infer missed for the individual medication
-        inf_miss = max(0, t - tak - skip)
+        tak = counts["taken"]
+        miss = counts["missed"]
+        skip = counts["skipped"]
+        t = tak + miss + skip
+        
+        total += t
+        taken += tak
+        missed += miss
+        skipped += skip
+        
+        adherence_rate = round((tak / t * 100), 1) if t > 0 else 0.0
         by_medication.append(AdherenceByMedication(
             medication_id=mid,
-            medication_name=med_obj.name if med_obj else "Unknown",
+            medication_name=med_obj.name,
             total=t,
             taken=tak,
-            missed=inf_miss,
+            missed=miss,
             skipped=skip,
-            adherence_rate=round((tak / t * 100), 1) if t > 0 else 0.0
+            adherence_rate=adherence_rate
         ))
+
+    overall_adherence_rate = round((taken / total * 100), 1) if total > 0 else 0.0
 
     return AdherenceResponse(
         total_doses=total,
         taken=taken,
         missed=missed,
         skipped=skipped,
-        adherence_rate=adherence_rate,
+        adherence_rate=overall_adherence_rate,
         by_medication=by_medication
     )
 
@@ -247,10 +212,11 @@ def get_adherence(
 @router.get("/logs/all", response_model=list[MedicationLogResponse])
 def get_all_medication_logs(
     patient_id: Optional[uuid.UUID] = None,
+    days: Optional[int] = 30,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all logs for all user medications."""
+    """Get logs for all user medications."""
     target_user_id = user.id
     if patient_id:
         if user.role not in ["doctor", "admin"]:
@@ -272,9 +238,16 @@ def get_all_medication_logs(
     if not med_ids:
         return []
 
-    logs = db.query(MedicationLog).filter(
+    query = db.query(MedicationLog).filter(
         MedicationLog.medication_id.in_(med_ids)
-    ).order_by(MedicationLog.scheduled_time.desc()).all()
+    )
+    
+    if days and days > 0:
+        now_utc = datetime.now(timezone.utc)
+        cutoff = now_utc - timedelta(days=days)
+        query = query.filter(MedicationLog.scheduled_time >= cutoff)
+
+    logs = query.order_by(MedicationLog.scheduled_time.desc()).all()
     
     return logs
 
