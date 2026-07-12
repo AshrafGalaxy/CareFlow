@@ -49,8 +49,8 @@ start.bat
 backend/fake_report.png
 
 !README.md
-. e n v  
- b a c k e n d / . e n v  
- 
+.env
+backend/.env
 app.db
+*.db
 *.db
