@@ -247,7 +247,7 @@ export default function ProviderLogin() {
             </div>
 
             <Link
-              href="/register"
+              href="/register?role=doctor"
               className="w-full h-14 flex items-center justify-center gap-2 border-2 border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-600 bg-white/50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] group backdrop-blur-sm"
             >
               Register new provider

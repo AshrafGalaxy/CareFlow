@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Activity } from "lucide-react";
+import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Activity, Eye } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import PatientMemo from "@/components/doctor/PatientMemo";
+import { ReportViewerModal } from "@/components/shared/ReportViewerModal";
 
 function SkeletonCard() {
  return (
@@ -25,6 +26,7 @@ export default function PatientDetailPage() {
  const [patient, setPatient] = useState<any>(null);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState("");
+ const [viewingReport, setViewingReport] = useState<any>(null);
 
  useEffect(() => {
   const fetchPatient = async () => {
@@ -77,7 +79,7 @@ export default function PatientDetailPage() {
 
  return (
   <div className="max-w-5xl mx-auto space-y-8 pb-10 animate-in fade-in duration-500">
-   <div className="flex items-center gap-6 bg-card /50 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm relative overflow-hidden">
+   <div className="flex items-center gap-6 bg-card/50 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm relative overflow-hidden">
     <div className="absolute right-0 top-0 w-64 h-64 bg-sky-50 dark:bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
     
     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white flex items-center justify-center font-bold text-3xl shadow-lg relative z-10">
@@ -90,12 +92,29 @@ export default function PatientDetailPage() {
       <span className="flex items-center gap-1.5"><Mail className="w-4 h-4" /> {patient.email}</span>
       {patient.phone && <span className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> {patient.phone}</span>}
      </div>
+     <div className="flex flex-wrap items-center gap-2 mt-3">
+      {patient.blood_group && (
+       <span className="px-2.5 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold text-xs rounded-md border border-rose-100 dark:border-rose-500/20">
+        Blood: {patient.blood_group}
+       </span>
+      )}
+      {patient.height && (
+       <span className="px-2.5 py-1 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold text-xs rounded-md border border-sky-100 dark:border-sky-500/20">
+        Height: {patient.height} cm
+       </span>
+      )}
+      {patient.weight && (
+       <span className="px-2.5 py-1 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold text-xs rounded-md border border-sky-100 dark:border-sky-500/20">
+        Weight: {patient.weight} kg
+       </span>
+      )}
+     </div>
     </div>
    </div>
 
    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {/* Medications */}
-    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 hover:shadow-md transition-shadow">
+    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow">
      <div className="flex items-center gap-3 mb-6">
       <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-500">
        <Pill className="w-5 h-5" />
@@ -108,7 +127,7 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No active medications.</p>
       ) : (
        patient.medications.map((m: any) => (
-        <div key={m.id} className="p-3 rounded-xl bg-slate-50 /50 border border-slate-100 dark:border-slate-700/50">
+        <div key={m.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50">
          <p className="font-medium text-foreground ">{m.name}</p>
          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.dosage} • {m.frequency}</p>
         </div>
@@ -118,7 +137,7 @@ export default function PatientDetailPage() {
     </Card>
 
     {/* Reports */}
-    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 hover:shadow-md transition-shadow">
+    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow">
      <div className="flex items-center gap-3 mb-6">
       <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500">
        <FileText className="w-5 h-5" />
@@ -131,30 +150,50 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No recent reports.</p>
       ) : (
        patient.reports.map((r: any) => (
-        <div key={r.id} className="p-3 rounded-xl bg-slate-50 /50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-2">
+        <div key={r.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-2">
          <p className="font-medium text-sm text-foreground truncate" title={r.original_filename || r.file_type}>
           {r.original_filename || r.file_type}
          </p>
-         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-           {new Date(r.uploaded_at).toLocaleDateString()}
-          </span>
-          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
-           r.processing_status === 'completed' 
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
-            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-          }`}>
-           {r.processing_status}
-          </span>
+          <div className="flex items-center justify-between mt-2">
+           <button
+            onClick={() => setViewingReport(r)}
+            className="flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
+           >
+            <Eye className="w-3.5 h-3.5" /> View
+           </button>
+           <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+             {new Date(r.uploaded_at).toLocaleDateString()}
+            </span>
+            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
+             r.processing_status === 'completed' || r.processing_status === 'done'
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
+              : r.processing_status === 'failed'
+              ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
+              : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+            }`}>
+             {r.processing_status}
+            </span>
+           </div>
+          </div>
          </div>
-        </div>
-       ))
+        ))
+       )}
+      </div>
+
+      {viewingReport && (
+       <ReportViewerModal
+        isOpen={!!viewingReport}
+        onClose={() => setViewingReport(null)}
+        fileUrl={viewingReport.file_url}
+        fileType={viewingReport.file_type}
+        fileName={viewingReport.original_filename}
+       />
       )}
-     </div>
-    </Card>
+     </Card>
 
     {/* Follow-ups */}
-    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 hover:shadow-md transition-shadow">
+    <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow">
      <div className="flex items-center gap-3 mb-6">
       <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-500">
        <CalendarDays className="w-5 h-5" />
@@ -167,7 +206,7 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No scheduled follow-ups.</p>
       ) : (
        patient.follow_ups.filter((f: any) => f.status === "scheduled").map((f: any) => (
-        <div key={f.id} className="p-3 rounded-xl bg-slate-50 /50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-1.5">
+        <div key={f.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-1.5">
          <p className="font-medium text-sm text-foreground ">
           {f.doctor_name} {f.specialty ? `(${f.specialty})` : ""}
          </p>

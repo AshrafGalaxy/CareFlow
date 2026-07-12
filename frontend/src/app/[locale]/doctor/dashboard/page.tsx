@@ -7,10 +7,11 @@ import PatientList from "@/components/doctor/PatientList";
 import AdherenceAnalytics from "@/components/doctor/AdherenceAnalytics";
 import {
  Users, Activity, AlertCircle, FileText, Loader2, ArrowRight,
- Calendar, User, Clock, CalendarDays
+ Calendar, User, Clock, CalendarDays, Eye
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
+import { ReportViewerModal } from "@/components/shared/ReportViewerModal";
 
 export default function DoctorDashboardPage() {
  const [patients, setPatients] = useState<any[]>([]);
@@ -21,6 +22,7 @@ export default function DoctorDashboardPage() {
  const [upcomingFollowups, setUpcomingFollowups] = useState<any[]>([]);
  const [days, setDays] = useState(30);
  const [isLoading, setIsLoading] = useState(true);
+ const [viewingReport, setViewingReport] = useState<any>(null);
 
  // Fetch everything except adherence (which depends on `days`)
  const fetchDashboardData = useCallback(async () => {
@@ -164,7 +166,7 @@ export default function DoctorDashboardPage() {
     <div className="lg:col-span-2 space-y-6">
      {/* Patient list header */}
      <div className="flex items-center justify-between">
-      <h2 className="text-xl font-bold text-foreground">Your Patients</h2>
+      <h2 className="text-xl font-bold font-heading text-foreground">Your Patients</h2>
       <Link
        href="/doctor/patients"
        className="text-sm font-medium text-sky-500 hover:text-sky-600 flex items-center gap-1 group"
@@ -183,7 +185,7 @@ export default function DoctorDashboardPage() {
      {/* Recent Reports */}
      <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 space-y-4">
       <div>
-       <h2 className="text-lg font-bold text-foreground">Recent Reports</h2>
+       <h2 className="text-lg font-bold font-heading text-foreground">Recent Reports</h2>
        <p className="text-xs text-slate-500 dark:text-slate-400">
         Most recent medical records uploaded by your patients
        </p>
@@ -217,27 +219,45 @@ export default function DoctorDashboardPage() {
             </div>
            </div>
           </div>
-          <span
-           className={`text-xs px-2.5 py-0.5 rounded font-semibold capitalize ${
-            r.processing_status === "done" || r.processing_status === "completed"
-             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
-             : r.processing_status === "failed"
-             ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400"
-             : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 animate-pulse"
-           }`}
-          >
-           {r.processing_status}
-          </span>
+          <div className="flex items-center gap-2">
+           <button
+            onClick={() => setViewingReport(r)}
+            className="flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 hover:bg-sky-100 dark:bg-sky-900/20 dark:hover:bg-sky-900/40 px-2 py-1 rounded-md transition-colors"
+           >
+            <Eye className="w-3.5 h-3.5" /> View
+           </button>
+           <span
+            className={`text-xs px-2.5 py-0.5 rounded font-semibold capitalize ${
+             r.processing_status === "done" || r.processing_status === "completed"
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
+              : r.processing_status === "failed"
+              ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400"
+              : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 animate-pulse"
+            }`}
+           >
+            {r.processing_status}
+           </span>
+          </div>
          </div>
         ))
        )}
       </div>
+      
+      {viewingReport && (
+       <ReportViewerModal
+        isOpen={!!viewingReport}
+        onClose={() => setViewingReport(null)}
+        fileUrl={viewingReport.file_url}
+        fileType={viewingReport.file_type}
+        fileName={viewingReport.original_filename}
+       />
+      )}
      </Card>
 
      {/* Upcoming Follow-ups */}
      <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 space-y-4">
       <div>
-       <h2 className="text-lg font-bold text-foreground">Upcoming Follow-ups</h2>
+       <h2 className="text-lg font-bold font-heading text-foreground">Upcoming Follow-ups</h2>
        <p className="text-xs text-slate-500 dark:text-slate-400">
         Scheduled appointments across your patients
        </p>
@@ -289,7 +309,7 @@ export default function DoctorDashboardPage() {
 
     {/* ── Right column: Adherence chart ── */}
     <div className="space-y-4">
-     <h2 className="text-xl font-bold text-foreground">Adherence Overview</h2>
+     <h2 className="text-xl font-bold font-heading text-foreground">Adherence Overview</h2>
      <AdherenceAnalytics
       data={analytics?.by_patient ?? []}
       days={days}
