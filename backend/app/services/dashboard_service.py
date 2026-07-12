@@ -224,6 +224,18 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
                 created_at=latest_memo_obj.created_at
             )
 
+    # 5. Assigned Doctor
+    assigned_provider = db.query(ProviderPatient).filter(
+        ProviderPatient.patient_id == patient.id,
+        ProviderPatient.is_active == True
+    ).first()
+    
+    assigned_doctor_name = None
+    if assigned_provider:
+        assigned_doc = db.query(User).filter(User.id == assigned_provider.provider_id).first()
+        if assigned_doc:
+            assigned_doctor_name = assigned_doc.name
+
     return DashboardKPIsResponse(
         medications_today_total=medications_today_total,
         medications_today_taken=medications_today_taken,
@@ -231,7 +243,8 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
         action_items=action_items,
         next_medication=next_medication,
         next_appointment=next_appointment,
-        latest_memo=latest_memo
+        latest_memo=latest_memo,
+        assigned_doctor_name=assigned_doctor_name
     )
 
 async def get_patient_overview(doctor: User, db: Session):

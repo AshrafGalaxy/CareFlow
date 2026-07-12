@@ -31,7 +31,7 @@ export function ScheduleFollowUpModal({ isOpen, onClose, onSuccess, patientId, p
     try {
       const datetime = new Date(`${formData.date}T${formData.time}`).toISOString()
       
-      await api.post('/api/follow_ups/', {
+      await api.post('/api/follow-ups/', {
         appointment_date: datetime,
         patient_id: patientId,
         notes: formData.notes || null,

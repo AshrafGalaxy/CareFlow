@@ -1,7 +1,7 @@
 "use client"
 
 import { Link } from "@/i18n/routing"
-import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, Calendar, FileDown, Eye, MessageSquare, Flame, Activity } from "lucide-react"
+import { UploadCloud, FileText, Pill, CalendarDays, ArrowRight, BrainCircuit, AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, Calendar, FileDown, Eye, MessageSquare, Flame, Activity, Stethoscope } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { StatusBadge } from "@/components/shared/StatusBadge"
@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
-import { RequestFollowUpModal } from "@/components/appointments/RequestFollowUpModal"
 import { motion } from "framer-motion"
 
  interface Report {
@@ -61,6 +60,7 @@ interface DashboardKPIs {
    content: string
    created_at: string
   }
+  assigned_doctor_name?: string
  }
 
 const fetcher = (url: string) => api.get(url).then(res => res.data)
@@ -86,7 +86,7 @@ export default function DashboardPage() {
   )
 
   const { data: followUps, mutate: mutateFollowUps } = useSWR<any[]>(
-    '/api/follow_ups/',
+    '/api/follow-ups/',
     fetcher
   )
   const pendingFollowUps = followUps?.filter(f => f.status === 'scheduled') || []
@@ -94,11 +94,10 @@ export default function DashboardPage() {
   const [declineId, setDeclineId] = useState<string | null>(null)
   const [declineReason, setDeclineReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
 
   const handleConfirmFollowUp = async (id: string) => {
     try {
-      await api.post(`/api/follow_ups/${id}/confirm`)
+      await api.post(`/api/follow-ups/${id}/confirm`)
       toast.success("Appointment confirmed!")
       mutateFollowUps()
       mutateKpi()
@@ -114,7 +113,7 @@ export default function DashboardPage() {
     }
     setSubmitting(true)
     try {
-      await api.post(`/api/follow_ups/${id}/decline`, { decline_reason: declineReason })
+      await api.post(`/api/follow-ups/${id}/decline`, { decline_reason: declineReason })
       toast.success("Appointment declined. Your doctor has been notified.")
       setDeclineId(null)
       setDeclineReason("")
@@ -269,15 +268,6 @@ export default function DashboardPage() {
    )}
 
     {/* Pending Follow-ups */}
-    <div className="flex items-center justify-between mt-8 mb-4">
-      <h2 className="text-xl font-bold text-foreground">Appointments & Follow-ups</h2>
-      <button 
-        onClick={() => setIsRequestModalOpen(true)}
-        className="text-sm font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 dark:text-sky-400 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 px-4 py-2 rounded-xl transition-colors"
-      >
-        Request Follow-up
-      </button>
-    </div>
     {pendingFollowUps.length > 0 && (
       <div className="space-y-3">
         {pendingFollowUps.map(fu => (
@@ -346,7 +336,15 @@ export default function DashboardPage() {
      <h1 className="text-2xl font-bold text-foreground mb-1">
       {greeting}, {firstName}
      </h1>
-     <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
+     <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+       <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
+       {!kpiLoading && kpiData?.assigned_doctor_name && (
+         <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+           <Stethoscope className="w-3.5 h-3.5" />
+           <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
+         </Link>
+       )}
+     </div>
     </div>
     <Link
      href={APP_ROUTES.REPORT_UPLOAD}
@@ -647,11 +645,6 @@ export default function DashboardPage() {
     />
    )}
 
-   <RequestFollowUpModal
-    isOpen={isRequestModalOpen}
-    onClose={() => setIsRequestModalOpen(false)}
-    onSuccess={() => mutateFollowUps()}
-   />
   </div>
  )
 }

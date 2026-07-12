@@ -36,3 +36,10 @@ class DashboardKPIsResponse(BaseModel):
     next_medication: Optional[NextMedication] = None
     next_appointment: Optional[NextAppointment] = None
     latest_memo: Optional[LatestMemo] = None
+    assigned_doctor_name: Optional[str] = None
+
+class MyDoctorResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    phone: Optional[str] = None

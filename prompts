@@ -1,0 +1,8 @@
+Now I want you to do a stress test of the backend and make sure:
+- every API endpoint is getting utilized
+- the thing in the flow gets conflicted or comes with bugs or issues
+- everything is latency-free, fast, optimized, robust, ready to handle any type of states in the medical flows from patient to doctor and doctor to patient
+- security bugs and issues, anything
+Let's do it and do the stress test of the backend and see if there is any bug, issue, or error and let's fix them all
+
+For this consider yourselves a tester, debugger, developer

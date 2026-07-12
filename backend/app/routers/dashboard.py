@@ -9,7 +9,8 @@ from app.models.memo import PatientMemo
 from app.middleware.rbac import require_role
 from app.middleware.auth_middleware import get_current_user
 from app.services import dashboard_service
-from app.schemas.dashboard import DashboardKPIsResponse
+from app.schemas.dashboard import DashboardKPIsResponse, MyDoctorResponse
+from app.models.provider import ProviderPatient
 
 router = APIRouter()
 
@@ -19,6 +20,30 @@ async def get_kpis(
     db: Session = Depends(get_db)
 ):
     return await dashboard_service.get_patient_dashboard_kpis(patient, db)
+
+@router.get("/my-doctor", response_model=MyDoctorResponse)
+async def get_my_doctor(
+    patient: User = Depends(require_role("patient")),
+    db: Session = Depends(get_db)
+):
+    assigned_provider = db.query(ProviderPatient).filter(
+        ProviderPatient.patient_id == patient.id,
+        ProviderPatient.is_active == True
+    ).first()
+    
+    if not assigned_provider:
+        raise HTTPException(status_code=404, detail="No doctor assigned to this patient.")
+        
+    doctor = db.query(User).filter(User.id == assigned_provider.provider_id).first()
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found.")
+        
+    return {
+        "id": str(doctor.id),
+        "name": doctor.name,
+        "email": doctor.email,
+        "phone": doctor.phone
+    }
 
 @router.get("/memos")
 async def get_patient_memos(

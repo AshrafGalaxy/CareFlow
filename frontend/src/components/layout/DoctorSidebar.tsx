@@ -17,7 +17,7 @@ import { useTranslations } from "next-intl"
 const getNavItems = (t: (key: string) => string) => [
  { name: t("dashboard"), href: "/doctor/dashboard", icon: LayoutDashboard },
  { name: "Patient Directory", href: "/doctor/patients", icon: Users },
- { name: "Appointments & Requests", href: "/doctor/dashboard#requests", icon: CalendarDays },
+ { name: "Appointments & Requests", href: "/doctor/appointments", icon: CalendarDays },
  { name: "Clinical Medications", href: "/doctor/medications", icon: Pill },
 ]
 
