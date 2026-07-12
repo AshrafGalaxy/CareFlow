@@ -78,11 +78,52 @@ export default function DashboardPage() {
   { refreshInterval: 0, revalidateOnFocus: true }
  )
 
-  const { data: kpiData, isLoading: kpiLoading } = useSWR<DashboardKPIs>(
+  const { data: kpiData, isLoading: kpiLoading, mutate: mutateKpi } = useSWR<DashboardKPIs>(
    API_ROUTES.DASHBOARD.KPIS,
    fetcher,
    { refreshInterval: 60000, revalidateOnFocus: true }
   )
+
+  const { data: followUps, mutate: mutateFollowUps } = useSWR<any[]>(
+    '/api/follow_ups/',
+    fetcher
+  )
+  const pendingFollowUps = followUps?.filter(f => f.status === 'scheduled') || []
+  
+  const [declineId, setDeclineId] = useState<string | null>(null)
+  const [declineReason, setDeclineReason] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleConfirmFollowUp = async (id: string) => {
+    try {
+      await api.post(`/api/follow_ups/${id}/confirm`)
+      toast.success("Appointment confirmed!")
+      mutateFollowUps()
+      mutateKpi()
+    } catch (e) {
+      toast.error("Failed to confirm appointment")
+    }
+  }
+
+  const handleDeclineFollowUp = async (id: string) => {
+    if (!declineReason.trim()) {
+      toast.error("Please provide a reason for declining")
+      return
+    }
+    setSubmitting(true)
+    try {
+      await api.post(`/api/follow_ups/${id}/decline`, { decline_reason: declineReason })
+      toast.success("Appointment declined. Your doctor has been notified.")
+      setDeclineId(null)
+      setDeclineReason("")
+      mutateFollowUps()
+      mutateKpi()
+    } catch (e) {
+      toast.error("Failed to decline appointment")
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const notifiedMedication = useRef<string | null>(null)
 
@@ -224,6 +265,69 @@ export default function DashboardPage() {
      ))}
     </div>
    )}
+
+    {/* Pending Follow-ups */}
+    {pendingFollowUps.length > 0 && (
+      <div className="space-y-3">
+        {pendingFollowUps.map(fu => (
+          <div key={fu.id} className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-sky-100 dark:bg-sky-800 rounded-xl text-sky-600 dark:text-sky-300">
+                <CalendarDays className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground">Follow-up Requested</h3>
+                <p className="text-sm text-muted-foreground">
+                  Dr. {fu.doctor_name} scheduled a follow-up for <span className="font-semibold text-foreground">{new Date(fu.appointment_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>.
+                </p>
+                {fu.notes && <p className="text-sm italic text-muted-foreground mt-1">"{fu.notes}"</p>}
+              </div>
+            </div>
+            {declineId === fu.id ? (
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <input 
+                  type="text" 
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="Reason for declining..."
+                  className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm w-full sm:w-64"
+                />
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setDeclineId(null)}
+                    className="flex-1 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => handleDeclineFollowUp(fu.id)}
+                    disabled={submitting}
+                    className="flex-1 px-3 py-1.5 text-xs font-semibold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
+                  >
+                    Confirm Decline
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button 
+                  onClick={() => setDeclineId(fu.id)}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-slate-800 border border-border hover:bg-muted text-sm font-semibold rounded-xl transition-colors"
+                >
+                  Decline
+                </button>
+                <button 
+                  onClick={() => handleConfirmFollowUp(fu.id)}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
 
    {/* Welcome Banner */}
    <div className="flex items-start justify-between gap-4">

@@ -18,6 +18,8 @@ interface Medication {
  times_of_day: string[]
  is_active: boolean
  start_date: string
+ end_date?: string
+ status?: string
 }
 
 interface Adherence {
@@ -75,14 +77,15 @@ export default function MedicationsPage() {
   const todayStr = new Date().toISOString().split('T')[0]
   
   const activeMeds = medications.filter(m => 
-    m.is_active && m.start_date <= todayStr && (!m.end_date || m.end_date >= todayStr)
+    (m.status === 'active' || !m.status) && m.is_active && m.start_date <= todayStr && (!m.end_date || m.end_date >= todayStr)
   )
   const upcomingMeds = medications.filter(m => 
-    m.is_active && m.start_date > todayStr
+    (m.status === 'active' || !m.status) && m.is_active && m.start_date > todayStr
   )
   const inactiveMeds = medications.filter(m => 
-    !m.is_active || (m.end_date && m.end_date < todayStr)
+    (m.status === 'active' || !m.status) && (!m.is_active || (m.end_date && m.end_date < todayStr))
   )
+  const pendingMeds = medications.filter(m => m.status === 'pending')
 
   const getStreak = (medId?: string) => {
     if (!logs || logs.length === 0) return 0
@@ -170,7 +173,7 @@ export default function MedicationsPage() {
        href="/medications/add" 
        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-sm shadow-sm hover:shadow transition-all active:scale-95"
       >
-       <Plus size={18} /> Add New Medication
+       <Plus size={18} /> Request Medication
       </Link>
      </div>
     </div>
@@ -186,6 +189,23 @@ export default function MedicationsPage() {
       {/* Left Column: Medications List */}
       <div className="lg:col-span-3 space-y-8">
        
+       {/* Pending Medications */}
+       {pendingMeds.length > 0 && (
+        <section className="mb-8">
+         <h2 className="text-xl font-bold font-heading text-foreground flex items-center gap-2 mb-4">
+          Pending Requests
+          <span className="text-xs font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
+           {pendingMeds.length}
+          </span>
+         </h2>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75">
+          {pendingMeds.map(med => (
+           <MedicationCard key={med.id} medication={med} streak={0} onLogSuccess={loadData} />
+          ))}
+         </div>
+        </section>
+       )}
+
        {/* Active Medications */}
        <section>
         {activeMeds.length === 0 ? (

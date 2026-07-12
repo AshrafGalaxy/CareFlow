@@ -23,6 +23,61 @@ from datetime import date
 router = APIRouter()
 
 
+@router.post("/{id}/approve", response_model=MedicationResponse)
+def approve_medication(
+    id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if user.role not in ["doctor", "admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    med = db.query(Medication).filter(Medication.id == id).first()
+    if not med:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    # Verify doctor is assigned
+    if user.role != "admin":
+        is_assigned = db.query(ProviderPatient).filter(
+            ProviderPatient.provider_id == user.id,
+            ProviderPatient.patient_id == med.user_id,
+            ProviderPatient.is_active == True
+        ).first()
+        if not is_assigned:
+            raise HTTPException(status_code=403, detail="Patient not assigned")
+    
+    med.status = "active"
+    med.is_active = True
+    db.commit()
+    db.refresh(med)
+    return med
+
+
+@router.post("/{id}/reject", response_model=MedicationResponse)
+def reject_medication(
+    id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if user.role not in ["doctor", "admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    med = db.query(Medication).filter(Medication.id == id).first()
+    if not med:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    if user.role != "admin":
+        is_assigned = db.query(ProviderPatient).filter(
+            ProviderPatient.provider_id == user.id,
+            ProviderPatient.patient_id == med.user_id,
+            ProviderPatient.is_active == True
+        ).first()
+        if not is_assigned:
+            raise HTTPException(status_code=403, detail="Patient not assigned")
+    
+    med.status = "rejected"
+    med.is_active = False
+    db.commit()
+    db.refresh(med)
+    return med
+
+
 def get_medication_for_user(medication_id: uuid.UUID, user: User, db: Session):
     med = db.query(Medication).filter(Medication.id == medication_id).first()
     if not med:
@@ -63,6 +118,12 @@ async def create_medication(
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned to this provider")
         target_user_id = body.patient_id
 
+    med_status = "active"
+    med_active = True
+    if user.role == "patient":
+        med_status = "pending"
+        med_active = False
+
     med = Medication(
         user_id=target_user_id,
         name=body.name,
@@ -72,7 +133,8 @@ async def create_medication(
         start_date=body.start_date,
         end_date=body.end_date,
         notes=body.notes,
-        is_active=True
+        is_active=med_active,
+        status=med_status
     )
     db.add(med)
     db.commit()

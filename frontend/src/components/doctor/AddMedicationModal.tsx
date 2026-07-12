@@ -1,26 +1,15 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useRouter } from "@/i18n/routing"
-import { ArrowLeft, Plus, X, Pill, Clock, Calendar, FileText, AlertTriangle, ChevronDown, Stethoscope, Droplet } from 'lucide-react'
-import Link from 'next/link'
+import { Plus, X, Pill, Clock, Calendar, FileText, AlertTriangle, ChevronDown, Stethoscope, Droplet, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import api from '@/lib/api'
-import { useAuthStore } from '@/store/authStore'
 import { CustomCalendar } from '@/components/shared/CustomCalendar'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 const FREQUENCIES = [
-  "Once Daily",
-  "Twice Daily",
-  "Three Times Daily",
-  "Every 4 Hours",
-  "Every 6 Hours",
-  "Every 8 Hours",
-  "Every 12 Hours",
-  "As Needed",
-  "Weekly",
-  "Custom"
+  "Once Daily", "Twice Daily", "Three Times Daily", "Every 4 Hours",
+  "Every 6 Hours", "Every 8 Hours", "Every 12 Hours", "As Needed",
+  "Weekly", "Custom"
 ]
 
 const DOSAGE_UNITS = [
@@ -30,36 +19,24 @@ const DOSAGE_UNITS = [
 ]
 
 const DURATIONS = [
-  "1 Day",
-  "2 Days",
-  "3 Days",
-  "5 Days",
-  "1 Week",
-  "10 Days",
-  "14 Days",
-  "30 Days",
-  "Ongoing",
-  "Custom Date"
+  "1 Day", "2 Days", "3 Days", "5 Days", "1 Week", "10 Days",
+  "14 Days", "30 Days", "Ongoing", "Custom Date"
 ]
 
 const START_DATES = [
-  "Today",
-  "Tomorrow",
-  "Yesterday",
-  "Custom Date"
+  "Today", "Tomorrow", "Yesterday", "Custom Date"
 ]
 
-interface ActiveMedication {
-  id: string
-  name: string
-  is_active: boolean
+interface AddMedicationModalProps {
+  isOpen: boolean
+  onClose: () => void
+  patientId: number | null
+  activeMeds: any[]
+  onSuccess: () => void
 }
 
-export default function AddMedicationPage() {
-  const router = useRouter()
-  const { user, _hasHydrated } = useAuthStore()
+export function AddMedicationModal({ isOpen, onClose, patientId, activeMeds, onSuccess }: AddMedicationModalProps) {
   const [loading, setLoading] = useState(false)
-  const [activeMeds, setActiveMeds] = useState<ActiveMedication[]>([])
   
   // Smart Context States
   const [isDuplicate, setIsDuplicate] = useState(false)
@@ -90,20 +67,31 @@ export default function AddMedicationPage() {
   
   const [timesOfDay, setTimesOfDay] = useState<string[]>(['08:00'])
 
+  // Reset form when modal opens
   useEffect(() => {
-    if (_hasHydrated) {
-      api.get('/api/medications/')
-        .then(res => {
-          setActiveMeds(res.data.filter((m: any) => m.is_active))
-        })
-        .catch(err => console.error("Failed to load context", err))
+    if (isOpen) {
+      setForm({
+        name: '', dosage: '', unit: 'mg', frequency: 'Once Daily', custom_frequency: '',
+        condition: '', start_date_preset: 'Today', start_date_custom: new Date().toISOString().split('T')[0],
+        duration_preset: 'Ongoing', end_date_custom: '', notes: '',
+      })
+      setTimesOfDay(['08:00'])
+      setIsDuplicate(false)
+      setDateError(null)
+      setContextWarning(null)
+      setShowFreqDropdown(false)
+      setShowUnitDropdown(false)
+      setShowDurationDropdown(false)
+      setShowStartDateDropdown(false)
+      setShowStartCalendar(false)
+      setShowEndCalendar(false)
     }
-  }, [_hasHydrated])
+  }, [isOpen])
 
   // Check for duplicates
   useEffect(() => {
     if (form.name.trim().length > 2) {
-      const exists = activeMeds.some(m => m.name.toLowerCase() === form.name.toLowerCase().trim())
+      const exists = activeMeds.some(m => m.name.toLowerCase() === form.name.toLowerCase().trim() && m.is_active)
       setIsDuplicate(exists)
     } else {
       setIsDuplicate(false)
@@ -195,6 +183,10 @@ export default function AddMedicationPage() {
       toast.error(dateError)
       return false
     }
+    if (!patientId) {
+      toast.error('Please select a patient first')
+      return false
+    }
     return true
   }
 
@@ -207,7 +199,7 @@ export default function AddMedicationPage() {
     try {
       const { startDateStr, endDateStr } = calculateDates()
       const finalNotes = form.condition ? `Condition: ${form.condition}\n${form.notes}` : form.notes;
-      const finalDosage = form.dosage ? `${form.dosage} ${form.unit}` : "";
+      const finalDosage = form.dosage ? `${form.dosage}${form.unit}` : "";
       const finalFreq = form.frequency === "Custom" ? form.custom_frequency : form.frequency;
       
       const payload = {
@@ -218,13 +210,15 @@ export default function AddMedicationPage() {
         end_date: endDateStr,
         notes: finalNotes,
         times_of_day: timesOfDay,
+        patient_id: patientId
       }
       
       await api.post('/api/medications/', payload)
-      toast.success("Medication request sent successfully")
-      router.push('/medications')
+      toast.success("Medication added successfully for patient")
+      onSuccess()
     } catch {
-      toast.error('Failed to request medication. Please try again.')
+      toast.error('Failed to add medication. Please try again.')
+    } finally {
       setLoading(false)
     }
   }
@@ -238,32 +232,24 @@ export default function AddMedicationPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-background">
-      <div className="max-w-2xl mx-auto space-y-5">
-        
-        <div className="flex items-center gap-4 mb-6">
-          <Link 
-            href="/medications" 
-            className="p-2 bg-card border border-border rounded-full hover:bg-muted transition-colors shadow-sm"
-          >
-            <ArrowLeft size={18} className="text-foreground" />
-          </Link>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-heading text-foreground tracking-tight">Request Medication</h1>
-            <p className="text-sm md:text-base text-muted-foreground mt-1">Submit a request for a new medication to your doctor</p>
-          </div>
-        </div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl border border-border shadow-sm p-5 md:p-6 relative overflow-hidden"
-        >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-background border-border shadow-2xl sky-scrollbar [&>button]:hidden">
+        <DialogTitle className="sr-only">Add New Medication</DialogTitle>
+        <div className="bg-card p-5 md:p-8 relative overflow-hidden">
           {/* Decorative glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 dark:bg-sky-500/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32" />
 
+          <div className="flex justify-between items-center mb-6 relative z-10">
+            <div>
+              <h2 className="text-2xl font-bold font-heading text-foreground tracking-tight">Add New Medication</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">Configure clinical dosage, frequency, and schedule</p>
+            </div>
+            <button onClick={onClose} className="p-2 bg-muted/50 hover:bg-muted text-muted-foreground rounded-full transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-            
             {/* Name Input */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Medication Name <span className="text-rose-500">*</span></label>
@@ -281,7 +267,7 @@ export default function AddMedicationPage() {
                   required
                 />
                 <datalist id="active-meds-list">
-                  {activeMeds.map(m => (
+                  {activeMeds?.filter(m => m.is_active).map(m => (
                     <option key={m.id} value={m.name} />
                   ))}
                 </datalist>
@@ -300,7 +286,7 @@ export default function AddMedicationPage() {
                   <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Smart Context Alert</p>
-                    <p className="text-xs text-amber-700 dark:text-amber-400/80 mt-0.5">You are already actively taking a medication with this name. Please verify if you need to add a duplicate.</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400/80 mt-0.5">Patient is already actively taking a medication with this name.</p>
                   </div>
                 </motion.div>
               )}
@@ -439,7 +425,7 @@ export default function AddMedicationPage() {
             {/* Times of Day */}
             <div className="space-y-2 pt-1">
               <label className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center justify-between">
-                Reminder Times
+                Schedule & Reminders
               </label>
               
               {/* Smart Context Warning (Frequency vs Times) */}
@@ -458,7 +444,7 @@ export default function AddMedicationPage() {
                 )}
               </AnimatePresence>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                 <AnimatePresence>
                   {timesOfDay.map((time, i) => (
                     <motion.div 
@@ -498,7 +484,7 @@ export default function AddMedicationPage() {
                   onClick={addTime} 
                   className="flex items-center justify-center gap-1.5 py-2 border-2 border-dashed border-border rounded-xl text-xs font-semibold text-muted-foreground hover:text-sky-500 hover:border-sky-200 dark:hover:border-sky-900/50 transition-colors"
                 >
-                  <Plus size={14} /> Add Time
+                  <Plus size={14} /> Add Dose
                 </button>
               </div>
             </div>
@@ -669,7 +655,7 @@ export default function AddMedicationPage() {
 
             {/* Notes */}
             <div className="space-y-1 pt-1">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Instructions / Notes</label>
+              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Clinical Notes / Instructions</label>
               <div className="relative">
                 <div className="absolute top-3 left-0 pl-3 flex pointer-events-none text-muted-foreground">
                   <FileText size={16} />
@@ -677,40 +663,35 @@ export default function AddMedicationPage() {
                 <textarea
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
-                  placeholder="e.g., Mix powder with a glass of milk"
+                  placeholder="e.g., Take with food. Discontinue if rash occurs."
                   rows={2}
                   className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm text-foreground placeholder:text-muted-foreground resize-none shadow-sm"
                 />
               </div>
             </div>
 
-            {/* Submit */}
-            <div className="pt-4 border-t border-border flex items-center justify-end gap-3 pb-8">
-              <Link
-                href="/medications"
-                className="px-5 py-2.5 rounded-xl font-medium text-muted-foreground hover:bg-muted transition-colors"
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-5 border-t border-border mt-6">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
               >
                 Cancel
-              </Link>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:shadow transition-all disabled:opacity-70"
+              </button>
+              <button 
+                type="submit" 
+                disabled={loading || !!dateError || !patientId}
+                className="px-5 py-2 flex items-center gap-2 text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 rounded-xl shadow-sm hover:shadow active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
-                {loading ? (
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check size={18} />
-                    Submit Request
-                  </>
-                )}
+                {loading && <Loader2 size={16} className="animate-spin" />}
+                {loading ? 'Adding...' : 'Save Medication'}
               </button>
             </div>
 
           </form>
-        </motion.div>
-      </div>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

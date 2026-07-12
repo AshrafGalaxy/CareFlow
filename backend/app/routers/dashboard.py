@@ -41,6 +41,28 @@ async def get_patient_memos(
             })
     return result
 
+@router.get("/doctor-memos")
+async def get_doctor_memos(
+    doctor: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    memos = db.query(PatientMemo).filter(
+        PatientMemo.doctor_id == doctor.id
+    ).order_by(PatientMemo.created_at.desc()).limit(10).all()
+    
+    result = []
+    for memo in memos:
+        patient = db.query(User).filter(User.id == memo.patient_id).first()
+        if patient:
+            result.append({
+                "id": str(memo.id),
+                "patient_name": patient.name,
+                "patient_id": str(patient.id),
+                "content": memo.content,
+                "created_at": memo.created_at
+            })
+    return result
+
 @router.get("/patients")
 async def list_patients(
     doctor: User = Depends(require_role("doctor", "admin")),
@@ -65,6 +87,64 @@ async def followup_analytics(
 ):
     return await dashboard_service.get_followup_stats(doctor, db)
 
+@router.get("/requests")
+async def pending_requests(
+    doctor: User = Depends(require_role("doctor", "admin")),
+    db: Session = Depends(get_db)
+):
+    from app.models.medication import Medication
+    from app.models.follow_up import FollowUp
+    from app.models.provider import ProviderPatient
+    
+    # Get all patients assigned to this doctor
+    assigned_patients = db.query(ProviderPatient.patient_id).filter(
+        ProviderPatient.provider_id == doctor.id,
+        ProviderPatient.is_active == True
+    ).all()
+    patient_ids = [p[0] for p in assigned_patients]
+    
+    if not patient_ids:
+        return {"medications": [], "follow_ups": []}
+    
+    # Get pending medications
+    pending_meds = db.query(Medication).filter(
+        Medication.user_id.in_(patient_ids),
+        Medication.status == "pending"
+    ).all()
+    
+    # Get requested follow-ups
+    requested_followups = db.query(FollowUp).filter(
+        FollowUp.user_id.in_(patient_ids),
+        FollowUp.status == "requested"
+    ).all()
+    
+    users = db.query(User).filter(User.id.in_(patient_ids)).all()
+    user_map = {u.id: u.name for u in users}
+    
+    med_list = [{
+        "id": str(m.id),
+        "patient_name": user_map.get(m.user_id, "Unknown"),
+        "patient_id": str(m.user_id),
+        "name": m.name,
+        "dosage": m.dosage,
+        "frequency": m.frequency,
+        "notes": m.notes,
+        "type": "medication"
+    } for m in pending_meds]
+    
+    fu_list = [{
+        "id": str(f.id),
+        "patient_name": user_map.get(f.user_id, "Unknown"),
+        "patient_id": str(f.user_id),
+        "appointment_date": f.appointment_date,
+        "notes": f.notes,
+        "type": "follow_up"
+    } for f in requested_followups]
+    
+    return {
+        "medications": med_list,
+        "follow_ups": fu_list
+    }
 
 class AssignPatientRequest(BaseModel):
     patient_id: uuid.UUID

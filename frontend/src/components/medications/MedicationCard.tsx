@@ -17,6 +17,7 @@ interface Medication {
   start_date: string
   end_date?: string
   notes?: string
+  status?: string
 }
 
 interface MedicationLog {
@@ -41,6 +42,7 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
 
   const todayStr = new Date().toISOString().split('T')[0]
   const isUpcoming = medication.start_date > todayStr
+  const isPending = medication.status === 'pending'
   const isInactive = !medication.is_active || (medication.end_date && medication.end_date < todayStr)
 
   useEffect(() => {
@@ -67,12 +69,12 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
       }
     }
 
-    if (!isUpcoming && !isInactive) {
+    if (!isUpcoming && !isInactive && !isPending) {
       fetchRecentLogs()
     } else {
       setLoadingLogs(false)
     }
-  }, [medication.id, isUpcoming, isInactive])
+  }, [medication.id, isUpcoming, isInactive, isPending])
 
   const logDose = async (status: 'taken' | 'missed' | 'skipped', timeOfDay: string) => {
     setLoggingTime(timeOfDay)
@@ -199,7 +201,7 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
       
       {/* Absolute Badges */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        {streak > 1 && !isInactive && !isUpcoming && (
+        {streak > 1 && !isInactive && !isUpcoming && !isPending && (
           <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full font-bold text-xs shadow-sm">
             <Flame size={12} className="fill-orange-500 text-orange-500" />
             {streak} Day Streak
@@ -232,6 +234,23 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
+        {isInactive ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            Inactive
+          </span>
+        ) : isUpcoming ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400">
+            <Calendar size={12} /> Starts {format(new Date(medication.start_date), 'MMM d')}
+          </span>
+        ) : isPending ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+            <Clock size={12} /> Pending Approval
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+            Active
+          </span>
+        )}
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800">
           <Calendar size={13} className="text-sky-500" />
           {durationStr}
@@ -257,7 +276,7 @@ export function MedicationCard({ medication, streak = 0, onLogSuccess }: Medicat
         </div>
       )}
 
-      {!isUpcoming && !isInactive && (
+      {!isUpcoming && !isInactive && !isPending && (
         <div className="mt-2 pt-4 border-t border-border">
           <p className="text-sm font-medium text-foreground mb-3">Today&apos;s Doses</p>
 

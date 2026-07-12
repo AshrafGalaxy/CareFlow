@@ -7,7 +7,7 @@ import PatientList from "@/components/doctor/PatientList";
 import AdherenceAnalytics from "@/components/doctor/AdherenceAnalytics";
 import {
  Users, Activity, AlertCircle, FileText, Loader2, ArrowRight,
- Calendar, User, Clock, CalendarDays, Eye
+ Calendar, User, Clock, CalendarDays, Eye, Check, X, Bell, MessageSquare
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ export default function DoctorDashboardPage() {
  const [followups, setFollowups] = useState<any>(null);
  const [recentReports, setRecentReports] = useState<any[]>([]);
  const [upcomingFollowups, setUpcomingFollowups] = useState<any[]>([]);
+ const [requests, setRequests] = useState<{ medications: any[], follow_ups: any[] }>({ medications: [], follow_ups: [] });
+ const [memos, setMemos] = useState<any[]>([]);
  const [days, setDays] = useState(30);
  const [isLoading, setIsLoading] = useState(true);
  const [viewingReport, setViewingReport] = useState<any>(null);
@@ -27,18 +29,22 @@ export default function DoctorDashboardPage() {
  // Fetch everything except adherence (which depends on `days`)
  const fetchDashboardData = useCallback(async () => {
   try {
-   const [patientsRes, unassignedRes, followupsRes, reportsRes, upcomingRes] = await Promise.all([
+   const [patientsRes, unassignedRes, followupsRes, reportsRes, upcomingRes, requestsRes, memosRes] = await Promise.all([
     api.get("/api/dashboard/patients"),
     api.get("/api/dashboard/patients/unassigned"),
     api.get("/api/dashboard/analytics/followups"),
     api.get("/api/dashboard/analytics/reports?limit=5"),
     api.get("/api/dashboard/analytics/upcoming-followups?limit=5"),
+    api.get("/api/dashboard/requests"),
+    api.get("/api/dashboard/doctor-memos")
    ]);
    setPatients(patientsRes.data);
    setUnassignedPatients(unassignedRes.data);
    setFollowups(followupsRes.data);
    setRecentReports(reportsRes.data);
    setUpcomingFollowups(upcomingRes.data);
+   setRequests(requestsRes.data);
+   setMemos(memosRes.data);
   } catch (err) {
    console.error("Failed to fetch dashboard core data:", err);
   }
@@ -85,6 +91,26 @@ export default function DoctorDashboardPage() {
    await Promise.all([fetchDashboardData(), fetchAdherence()]);
   } catch {
    toast.error("Failed to remove patient");
+  }
+ };
+
+ const handleApproveMedication = async (medId: string) => {
+  try {
+   await api.post(`/api/medications/${medId}/approve`);
+   toast.success("Medication approved");
+   fetchDashboardData();
+  } catch {
+   toast.error("Failed to approve medication");
+  }
+ };
+
+ const handleRejectMedication = async (medId: string) => {
+  try {
+   await api.post(`/api/medications/${medId}/reject`);
+   toast.success("Medication rejected");
+   fetchDashboardData();
+  } catch {
+   toast.error("Failed to reject medication");
   }
  };
 
@@ -154,7 +180,7 @@ export default function DoctorDashboardPage() {
          </p>
         </div>
        </div>
-       <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-50/50 dark:bg-sky-900/10 rounded-full group-hover:scale-110 transition-transform duration-500" />
+       <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-50/50 dark:bg-sky-300/10 rounded-full group-hover:scale-110 transition-transform duration-500" />
       </Card>
      );
     })}
@@ -254,6 +280,53 @@ export default function DoctorDashboardPage() {
       )}
      </Card>
 
+     {/* Requests Inbox */}
+     {(requests.medications.length > 0 || requests.follow_ups.length > 0) && (
+      <Card className="p-6 rounded-2xl border-amber-200/60 dark:border-amber-800 shadow-sm bg-amber-50/50 dark:bg-amber-900/10 space-y-4">
+       <div>
+        <h2 className="text-lg font-bold font-heading text-amber-900 dark:text-amber-500 flex items-center gap-2">
+         <Bell className="w-5 h-5" /> Pending Requests
+        </h2>
+        <p className="text-xs text-amber-700/80 dark:text-amber-400/80">
+         Requires your review and approval
+        </p>
+       </div>
+       <div className="divide-y divide-amber-100 dark:divide-amber-800/50">
+        {requests.medications.map((req: any) => (
+         <div key={req.id} className="py-3 flex justify-between items-center gap-4">
+          <div>
+           <p className="text-sm font-semibold text-foreground">Medication: {req.name}</p>
+           <p className="text-xs text-slate-500">{req.dosage} • {req.frequency}</p>
+           <p className="text-xs text-slate-400 mt-1">Requested by: <span className="font-medium text-slate-600 dark:text-slate-300">{req.patient_name}</span></p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+           <button onClick={() => handleRejectMedication(req.id)} className="p-2 text-rose-500 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-xl transition-colors">
+            <X className="w-4 h-4" />
+           </button>
+           <button onClick={() => handleApproveMedication(req.id)} className="p-2 text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-xl transition-colors">
+            <Check className="w-4 h-4" />
+           </button>
+          </div>
+         </div>
+        ))}
+        {requests.follow_ups.map((req: any) => (
+         <div key={req.id} className="py-3 flex justify-between items-center gap-4">
+          <div>
+           <p className="text-sm font-semibold text-foreground">Follow-up Requested</p>
+           <p className="text-xs text-slate-500">Date: {new Date(req.appointment_date).toLocaleDateString()}</p>
+           <p className="text-xs text-slate-400 mt-1">Requested by: <span className="font-medium text-slate-600 dark:text-slate-300">{req.patient_name}</span></p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+           <Link href={`/doctor/patients/${req.patient_id}`} className="px-3 py-1.5 text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white rounded-xl transition-colors">
+            Schedule Slot
+           </Link>
+          </div>
+         </div>
+        ))}
+       </div>
+      </Card>
+     )}
+
      {/* Upcoming Follow-ups */}
      <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 space-y-4">
       <div>
@@ -307,15 +380,52 @@ export default function DoctorDashboardPage() {
      </Card>
     </div>
 
-    {/* ── Right column: Adherence chart ── */}
-    <div className="space-y-4">
-     <h2 className="text-xl font-bold font-heading text-foreground">Adherence Overview</h2>
-     <AdherenceAnalytics
-      data={analytics?.by_patient ?? []}
-      days={days}
-      setDays={setDays}
-      isLoading={isLoading}
-     />
+    {/* ── Right column: Adherence chart & Memos ── */}
+    <div className="space-y-6">
+     <div className="space-y-4">
+      <h2 className="text-xl font-bold font-heading text-foreground">Adherence Overview</h2>
+      <AdherenceAnalytics
+       data={analytics?.by_patient ?? []}
+       days={days}
+       setDays={setDays}
+       isLoading={isLoading}
+      />
+     </div>
+     
+     {/* Patient Memos */}
+     <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 space-y-4">
+      <div>
+       <h2 className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
+        <MessageSquare className="w-5 h-5 text-sky-500" /> Patient Memos
+       </h2>
+       <p className="text-xs text-slate-500 dark:text-slate-400">
+        Messages and notifications from your patients
+       </p>
+      </div>
+      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+       {memos.length === 0 ? (
+        <p className="text-sm text-slate-500 py-6 text-center font-medium">
+         No new memos
+        </p>
+       ) : (
+        memos.map((memo) => (
+         <div key={memo.id} className="py-3.5 space-y-2">
+          <div className="flex justify-between items-start gap-4">
+           <Link href={`/doctor/patients/${memo.patient_id}`} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:underline">
+            {memo.patient_name}
+           </Link>
+           <span className="text-xs text-slate-400">
+            {new Date(memo.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+           </span>
+          </div>
+          <p className="text-sm text-foreground bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+           {memo.content}
+          </p>
+         </div>
+        ))
+       )}
+      </div>
+     </Card>
     </div>
    </div>
   </div>

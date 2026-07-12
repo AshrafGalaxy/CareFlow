@@ -22,6 +22,7 @@ class Medication(Base):
     hospital_notes = Column(Text)
     previous_dosage = Column(String(100))
     is_active = Column(Boolean, default=True, index=True)
+    status = Column(String(20), default="active")
 
 class MedicationLog(Base):
     __tablename__ = "medication_logs"

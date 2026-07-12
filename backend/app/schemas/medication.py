@@ -17,6 +17,7 @@ class MedicationCreate(BaseModel):
     previous_dosage: Optional[str] = None
 
     patient_id: Optional[UUID] = None
+    status: str = "active"
 
 
 
@@ -31,6 +32,7 @@ class MedicationUpdate(BaseModel):
     hospital_notes: Optional[str] = None
     previous_dosage: Optional[str] = None
     is_active: Optional[bool] = None
+    status: Optional[str] = None
 
 
 class MedicationResponse(BaseModel):
@@ -46,6 +48,7 @@ class MedicationResponse(BaseModel):
     hospital_notes: Optional[str] = None
     previous_dosage: Optional[str] = None
     is_active: bool
+    status: str
 
     class Config:
         from_attributes = True

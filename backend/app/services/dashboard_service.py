@@ -388,6 +388,7 @@ async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
             "id": r.id,
             "original_filename": r.original_filename,
             "file_type": r.file_type,
+            "file_url": r.file_url,
             "processing_status": r.processing_status
         } for r in reports
     ]
@@ -549,6 +550,7 @@ async def get_recent_reports(provider: User, db: Session, limit: int = 5):
             "patient_name": r.name,
             "original_filename": r.Report.original_filename,
             "file_type": r.Report.file_type,
+            "file_url": r.Report.file_url,
             "processing_status": r.Report.processing_status,
             "uploaded_at": r.Report.uploaded_at
         } for r in reports

@@ -3,10 +3,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Activity, Eye } from "lucide-react";
+import { Pill, FileText, CalendarDays, User, ArrowLeft, Loader2, Mail, Phone, Activity, Eye, Check, X } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import PatientMemo from "@/components/doctor/PatientMemo";
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal";
+import { toast } from "sonner";
+import useSWR from "swr";
+
+const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 function SkeletonCard() {
  return (
@@ -23,26 +27,47 @@ function SkeletonCard() {
 
 export default function PatientDetailPage() {
  const { id } = useParams();
+ const [viewingReport, setViewingReport] = useState<any>(null);
  const [patient, setPatient] = useState<any>(null);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState("");
- const [viewingReport, setViewingReport] = useState<any>(null);
+
+ const fetchPatient = async () => {
+  try {
+   setIsLoading(true);
+   const res = await api.get(`/api/dashboard/patients/${id}`);
+   setPatient(res.data);
+  } catch (err) {
+   console.error("Failed to fetch patient:", err);
+   setError("Failed to load patient details.");
+  } finally {
+   setIsLoading(false);
+  }
+ };
 
  useEffect(() => {
-  const fetchPatient = async () => {
-   try {
-    setIsLoading(true);
-    const res = await api.get(`/api/dashboard/patients/${id}`);
-    setPatient(res.data);
-   } catch (err) {
-    console.error("Failed to fetch patient:", err);
-    setError("Failed to load patient details.");
-   } finally {
-    setIsLoading(false);
-   }
-  };
   fetchPatient();
  }, [id]);
+
+ const handleApproveMedication = async (medId: string) => {
+  try {
+   await api.post(`/api/medications/${medId}/approve`);
+   toast.success("Medication approved");
+   fetchPatient();
+  } catch {
+   toast.error("Failed to approve medication");
+  }
+ };
+
+ const handleRejectMedication = async (medId: string) => {
+  try {
+   await api.post(`/api/medications/${medId}/reject`);
+   toast.success("Medication rejected");
+   fetchPatient();
+  } catch {
+   toast.error("Failed to reject medication");
+  }
+ };
 
  if (isLoading) {
   return (
@@ -78,7 +103,8 @@ export default function PatientDetailPage() {
  }
 
  return (
-  <div className="max-w-5xl mx-auto space-y-8 pb-10 animate-in fade-in duration-500">
+  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-slate-50/50 dark:bg-background">
+   <div className="w-full max-w-7xl mx-auto space-y-8 pb-10 animate-in fade-in duration-500">
    <div className="flex items-center gap-6 bg-card/50 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm relative overflow-hidden">
     <div className="absolute right-0 top-0 w-64 h-64 bg-sky-50 dark:bg-sky-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
     
@@ -127,9 +153,24 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No active medications.</p>
       ) : (
        patient.medications.map((m: any) => (
-        <div key={m.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50">
-         <p className="font-medium text-foreground ">{m.name}</p>
-         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.dosage} • {m.frequency}</p>
+        <div key={m.id} className={`p-3 rounded-xl border flex justify-between items-center ${m.status === 'pending' ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+         <div>
+          <p className="font-medium text-foreground flex items-center gap-2">
+           {m.name}
+           {m.status === 'pending' && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">Request</span>}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.dosage} • {m.frequency}</p>
+         </div>
+         {m.status === 'pending' && (
+          <div className="flex items-center gap-2 shrink-0">
+           <button onClick={() => handleRejectMedication(m.id)} className="p-2 text-rose-500 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-xl transition-colors">
+            <X className="w-4 h-4" />
+           </button>
+           <button onClick={() => handleApproveMedication(m.id)} className="p-2 text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-xl transition-colors">
+            <Check className="w-4 h-4" />
+           </button>
+          </div>
+         )}
         </div>
        ))
       )}
@@ -150,7 +191,7 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No recent reports.</p>
       ) : (
        patient.reports.map((r: any) => (
-        <div key={r.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-2">
+        <div key={r.id} className="p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col gap-2">
          <p className="font-medium text-sm text-foreground truncate" title={r.original_filename || r.file_type}>
           {r.original_filename || r.file_type}
          </p>
@@ -206,7 +247,7 @@ export default function PatientDetailPage() {
        <p className="text-sm text-slate-500 dark:text-slate-400">No scheduled follow-ups.</p>
       ) : (
        patient.follow_ups.filter((f: any) => f.status === "scheduled").map((f: any) => (
-        <div key={f.id} className="p-3 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-1.5">
+        <div key={f.id} className="p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col gap-1.5">
          <p className="font-medium text-sm text-foreground ">
           {f.doctor_name} {f.specialty ? `(${f.specialty})` : ""}
          </p>
@@ -225,5 +266,6 @@ export default function PatientDetailPage() {
     </div>
    </div>
   </div>
- );
+ </div>
+);
 }

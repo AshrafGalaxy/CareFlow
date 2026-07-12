@@ -19,6 +19,7 @@ class FollowUpUpdate(BaseModel):
     appointment_date: Optional[datetime] = None
     notes: Optional[str] = None
     status: Optional[str] = None
+    decline_reason: Optional[str] = None
 
 
 class FollowUpResponse(BaseModel):

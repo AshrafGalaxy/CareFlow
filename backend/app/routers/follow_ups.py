@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.follow_up import FollowUp
 from app.models.provider import ProviderPatient
+from app.models.memo import PatientMemo
 from app.schemas.follow_up import FollowUpCreate, FollowUpUpdate, FollowUpResponse
 from app.middleware.auth_middleware import get_current_user
 from app.utils.timeline_builder import add_timeline_event
@@ -22,6 +23,43 @@ def get_follow_ups(
     return db.query(FollowUp).filter(
         FollowUp.user_id == user.id
     ).order_by(FollowUp.appointment_date.asc()).all()
+
+@router.post("/{id}/confirm", response_model=FollowUpResponse)
+def confirm_follow_up(id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    fu = db.query(FollowUp).filter(FollowUp.id == id).first()
+    if not fu:
+        raise HTTPException(status_code=404, detail="Follow-up not found")
+    if user.role == "patient" and fu.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    fu.status = "confirmed"
+    db.commit()
+    db.refresh(fu)
+    return fu
+
+@router.post("/{id}/decline", response_model=FollowUpResponse)
+def decline_follow_up(id: uuid.UUID, body: FollowUpUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    fu = db.query(FollowUp).filter(FollowUp.id == id).first()
+    if not fu:
+        raise HTTPException(status_code=404, detail="Follow-up not found")
+    if user.role == "patient" and fu.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    fu.status = "declined"
+    
+    if body.decline_reason:
+        # Create a PatientMemo for the doctor
+        provider = db.query(ProviderPatient).filter(ProviderPatient.patient_id == fu.user_id, ProviderPatient.is_active == True).first()
+        if provider:
+            memo = PatientMemo(
+                doctor_id=provider.provider_id,
+                patient_id=fu.user_id,
+                content=f"Follow-up scheduled on {fu.appointment_date.strftime('%Y-%m-%d')} was declined. Reason: {body.decline_reason}"
+            )
+            db.add(memo)
+    
+    db.commit()
+    db.refresh(fu)
+    return fu
 
 
 @router.post("/", response_model=FollowUpResponse)
@@ -45,13 +83,17 @@ async def create_follow_up(
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient not assigned to this provider")
         target_user_id = body.patient_id
 
+    fu_status = "scheduled"
+    if user.role == "patient":
+        fu_status = "requested"
+
     fu = FollowUp(
         user_id=target_user_id,
         doctor_name=body.doctor_name,
         specialty=body.specialty,
         appointment_date=body.appointment_date,
         notes=body.notes,
-        status=body.status
+        status=fu_status
     )
     db.add(fu)
     db.commit()
