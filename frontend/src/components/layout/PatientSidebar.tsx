@@ -11,19 +11,26 @@ import { useAuthStore } from "@/store/authStore"
 import { useSidebarStore } from "@/store/sidebarStore"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
 
 import { useTranslations } from "next-intl"
 
 const getNavItems = (t: (key: string) => string) => [
  { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
- { name: "My Care Team", href: "/care-team", icon: Stethoscope },
+ { 
+   name: "My Care Team", 
+   href: "/care-team", 
+   icon: Stethoscope,
+   subItems: [
+     { name: "Appointments", href: "/appointments", icon: CalendarDays },
+     { name: "Clinical Notes", href: "/memos", icon: ClipboardList }
+   ]
+ },
  { name: t("reports"), href: "/reports", icon: FileText },
  { name: t("chat"), href: "/chat", icon: MessageSquare },
  { name: t("medications"), href: "/medications", icon: Pill },
  { name: t("insurance"), href: "/insurance", icon: Shield },
- { name: "Appointments", href: "/appointments", icon: CalendarDays },
  { name: "My Timeline", href: "/timeline", icon: Clock },
- { name: "Clinical Notes", href: "/memos", icon: ClipboardList },
 ]
 
 const bottomNavItems = [
@@ -43,6 +50,15 @@ export function PatientSidebar() {
 
  const initials = getInitials(user?.name)
  const isCollapsed = sidebarState === 'collapsed'
+ const [expanded, setExpanded] = useState<Record<string, boolean>>({"My Care Team": true})
+
+ const toggleExpand = (name: string, e: React.MouseEvent) => {
+   e.preventDefault()
+   e.stopPropagation()
+   if (!isCollapsed) {
+     setExpanded(prev => ({ ...prev, [name]: !prev[name] }))
+   }
+ }
 
  const handleLogout = async () => {
   const { useNotificationStore } = await import('@/store/notificationStore')
@@ -97,45 +113,94 @@ export function PatientSidebar() {
    <nav className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="Main navigation">
     {navItems.map((item) => {
      const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+     const hasSub = !!item.subItems
+     const isExpanded = expanded[item.name]
+
      return (
-      <Link
-       key={item.name}
-       href={item.href}
-       title={isCollapsed ? item.name : undefined}
-       className={cn(
-        "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
-        isActive
-         ? "text-primary dark:text-sky-400"
-         : "text-muted-foreground hover:text-foreground",
-        isCollapsed && "justify-center px-0"
-       )}
-      >
-       {isActive && (
-        <motion.div
-         layoutId="sidebar-active-indicator"
-         className="absolute inset-0 bg-primary/10 dark:bg-sky-500/15 rounded-xl"
-         initial={false}
-         transition={{ type: "spring", stiffness: 400, damping: 35 }}
-        />
-       )}
-       {/* Subtle hover background for inactive items */}
-       {!isActive && (
-        <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
-       )}
-       <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
+      <div key={item.name} className="flex flex-col gap-1">
+       <Link
+        href={item.href}
+        title={isCollapsed ? item.name : undefined}
+        className={cn(
+         "relative flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group",
+         isActive
+          ? "text-primary dark:text-sky-400"
+          : "text-muted-foreground hover:text-foreground",
+         isCollapsed && "justify-center px-0"
+        )}
+       >
+        {isActive && (
+         <motion.div
+          layoutId="sidebar-active-indicator"
+          className="absolute inset-0 bg-primary/10 dark:bg-sky-500/15 rounded-xl"
+          initial={false}
+          transition={{ type: "spring", stiffness: 400, damping: 35 }}
+         />
+        )}
+        {/* Subtle hover background for inactive items */}
+        {!isActive && (
+         <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300" />
+        )}
+        
+        <div className="flex items-center gap-3 overflow-hidden">
+         <item.icon className="h-[18px] w-[18px] shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" />
+         <AnimatePresence>
+          {!isCollapsed && (
+           <motion.span 
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: "auto" }}
+            exit={{ opacity: 0, width: 0 }}
+            className="relative z-10 whitespace-nowrap overflow-hidden"
+           >
+            {item.name}
+           </motion.span>
+          )}
+         </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+         {!isCollapsed && hasSub && (
+          <motion.button 
+           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+           onClick={(e) => toggleExpand(item.name, e)} 
+           className="relative z-10 p-1 -mr-1 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+          >
+           <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", isExpanded && "rotate-90")} />
+          </motion.button>
+         )}
+        </AnimatePresence>
+       </Link>
+
        <AnimatePresence>
-        {!isCollapsed && (
-         <motion.span 
-          initial={{ opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: "auto" }}
-          exit={{ opacity: 0, width: 0 }}
-          className="relative z-10 whitespace-nowrap overflow-hidden"
+        {!isCollapsed && hasSub && isExpanded && (
+         <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="flex flex-col gap-1 pl-9 pr-2 overflow-hidden"
          >
-          {item.name}
-         </motion.span>
+          {item.subItems?.map((sub) => {
+           const isSubActive = pathname === sub.href
+           return (
+            <Link
+             key={sub.name}
+             href={sub.href}
+             className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors group relative",
+              isSubActive ? "text-primary dark:text-sky-400 font-semibold" : "text-muted-foreground hover:text-foreground font-medium"
+             )}
+            >
+             {!isSubActive && <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/50 rounded-lg transition-colors" />}
+             {isSubActive && <div className="absolute inset-0 bg-primary/5 dark:bg-sky-500/10 rounded-lg transition-colors" />}
+             <sub.icon className="h-[15px] w-[15px] relative z-10 opacity-80" />
+             <span className="relative z-10">{sub.name}</span>
+            </Link>
+           )
+          })}
+         </motion.div>
         )}
        </AnimatePresence>
-      </Link>
+      </div>
      )
     })}
    </nav>
