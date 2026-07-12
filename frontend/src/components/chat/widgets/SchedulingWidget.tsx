@@ -34,10 +34,9 @@ export function SchedulingWidget() {
       // Parse "09:00 AM" and combine with selectedDate
       const parsedTime = parse(selectedTime, 'hh:mm a', selectedDate)
       
-      await api.post('/api/appointments/', {
-        doctor_name: "General Practitioner",
+      await api.post('/api/follow-ups/', {
         appointment_date: parsedTime.toISOString(),
-        reason: "General Consultation"
+        notes: "Requested via AI Assistant"
       })
       
       setStep('success')
