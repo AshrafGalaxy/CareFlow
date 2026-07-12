@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from "@/i18n/routing"
-import { ArrowLeft, Plus, X, Pill, Clock, Calendar, FileText, AlertTriangle, ChevronDown, Stethoscope, Droplet } from 'lucide-react'
+import { ArrowLeft, Plus, X, Pill, Clock, Calendar, FileText, AlertTriangle, ChevronDown, Stethoscope, Droplet, Check } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
