@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Boolean, Date, DateTime, Float
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB as PG_JSONB
 from sqlalchemy.sql import func
 from sqlalchemy import JSON
@@ -26,5 +27,6 @@ class User(Base):
     emergency_contact_phone = Column(String(20))
     is_active = Column(Boolean, default=True)
     push_subscription = Column(JSONVariant, nullable=True)
+    provider_profile = relationship("ProviderProfile", back_populates="user", uselist=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

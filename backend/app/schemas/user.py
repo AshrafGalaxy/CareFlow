@@ -26,6 +26,15 @@ class UserCreate(UserBase):
     medical_council: Optional[str] = None
     qualification_degree: Optional[str] = None
 
+class ProviderProfileResponse(BaseModel):
+    nmc_registration_number: Optional[str] = None
+    medical_council: Optional[str] = None
+    qualification_degree: Optional[str] = None
+    is_verified: bool
+
+    class Config:
+        from_attributes = True
+
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
@@ -38,11 +47,16 @@ class UserUpdate(BaseModel):
     weight: Optional[float] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
+    # Doctor specific fields
+    nmc_registration_number: Optional[str] = None
+    medical_council: Optional[str] = None
+    qualification_degree: Optional[str] = None
 
 class UserResponse(UserBase):
     id: UUID
     role: str
     is_active: bool
+    provider_profile: Optional[ProviderProfileResponse] = None
     created_at: datetime
     updated_at: datetime
 

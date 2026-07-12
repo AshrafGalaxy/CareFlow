@@ -104,8 +104,22 @@ def get_profile(current_user: User = Depends(get_current_user)):
 @router.patch("/profile", response_model=UserResponse)
 def update_profile(profile_data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     update_data = profile_data.dict(exclude_unset=True)
+    
+    # Extract provider fields
+    provider_fields = ["nmc_registration_number", "medical_council", "qualification_degree"]
+    provider_data = {k: update_data.pop(k) for k in provider_fields if k in update_data}
+    
+    # Update base user fields
     for key, value in update_data.items():
         setattr(current_user, key, value)
+        
+    # Update provider profile fields if user is a doctor
+    if current_user.role == "doctor" and provider_data:
+        if not current_user.provider_profile:
+            current_user.provider_profile = ProviderProfile(user_id=current_user.id)
+            db.add(current_user.provider_profile)
+        for key, value in provider_data.items():
+            setattr(current_user.provider_profile, key, value)
     
     db.commit()
     db.refresh(current_user)
