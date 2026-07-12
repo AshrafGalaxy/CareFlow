@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 export default function DoctorAppointmentsPage() {
-  const [scheduleModalData, setScheduleModalData] = useState<{ isOpen: boolean; patientId: string; patientName: string } | null>(null);
+  const [scheduleModalData, setScheduleModalData] = useState<{ isOpen: boolean; patientId: string; patientName: string; requestId?: string } | null>(null);
 
   const { data: upcomingFollowUps, isLoading, mutate } = useSWR<any[]>(
     "/api/dashboard/analytics/upcoming-followups?limit=100",
@@ -73,7 +73,7 @@ export default function DoctorAppointmentsPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setScheduleModalData({ isOpen: true, patientId: req.patient_id, patientName: req.patient_name })}
+                    onClick={() => setScheduleModalData({ isOpen: true, patientId: req.patient_id, patientName: req.patient_name, requestId: req.id })}
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 rounded-xl text-sm transition-colors"
                   >
                     Schedule Slot
@@ -145,6 +145,7 @@ export default function DoctorAppointmentsPage() {
           }}
           patientId={scheduleModalData.patientId}
           patientName={scheduleModalData.patientName}
+          requestId={scheduleModalData.requestId}
         />
       )}
     </div>

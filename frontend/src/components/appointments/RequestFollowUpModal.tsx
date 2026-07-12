@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar as CalendarIcon, Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -12,6 +12,8 @@ interface RequestFollowUpModalProps {
 
 export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFollowUpModalProps) {
   const [loading, setLoading] = useState(false)
+  const minDate = React.useMemo(() => new Date().toISOString().split('T')[0], [])
+  const maxDate = React.useMemo(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], [])
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -91,9 +93,22 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
                     <input
                       type="date"
                       required
-                      min={new Date().toISOString().split('T')[0]}
+                      min={minDate}
+                      max={maxDate}
                       value={formData.date}
-                      onChange={e => setFormData({ ...formData, date: e.target.value })}
+                      onChange={e => {
+                        const dateVal = e.target.value;
+                        if (!dateVal) {
+                          setFormData({ ...formData, date: dateVal });
+                          return;
+                        }
+                        const d = new Date(dateVal);
+                        if (d.getUTCDay() === 0) {
+                          toast.error("Appointments cannot be requested on Sundays");
+                          return;
+                        }
+                        setFormData({ ...formData, date: dateVal })
+                      }}
                       className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                     />
                   </div>
@@ -106,8 +121,17 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
                     <input
                       type="time"
                       required
+                      min="09:00"
+                      max="21:00"
                       value={formData.time}
-                      onChange={e => setFormData({ ...formData, time: e.target.value })}
+                      onChange={e => {
+                        const timeVal = e.target.value;
+                        if (timeVal && (timeVal < "09:00" || timeVal > "21:00")) {
+                          toast.error("Appointments must be between 09:00 AM and 09:00 PM");
+                          return;
+                        }
+                        setFormData({ ...formData, time: timeVal })
+                      }}
                       className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                     />
                   </div>
