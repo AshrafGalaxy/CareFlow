@@ -59,9 +59,7 @@ export default function SettingsPage() {
       useNotificationStore.getState().addNotification({
         title: "Security Update",
         message: "Your password was changed successfully.",
-        type: "security",
-        isRead: false,
-        timestamp: new Date().toISOString()
+        type: "security"
       })
       setCurrentPassword("")
       setNewPassword("")
@@ -168,22 +166,6 @@ export default function SettingsPage() {
    </div>
 
    <div className="grid gap-6">
-
-    {/* Preferences Section */}
-    <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-     <div className="p-6 border-b border-border bg-muted/30">
-      <div className="flex items-center gap-3">
-       <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
-        <Palette size={20} />
-       </div>
-       <h2 className="text-xl font-heading font-semibold text-foreground">Preferences</h2>
-      </div>
-     </div>
-     <div className="p-6 space-y-4">
-      <p className="text-sm text-muted-foreground">App preferences like theme and language will be available here.</p>
-      {/* Placeholder for future theme/language toggles */}
-     </div>
-    </section>
 
     {/* Notifications & Push */}
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mt-6">

@@ -38,7 +38,7 @@ export function MedicationWidget() {
       </div>
 
       <AnimatePresence mode="wait">
-        {orderState === 'idle' && (
+        {(orderState === 'idle' || orderState === 'processing') && (
           <motion.div
             key="idle"
             initial={{ opacity: 0 }}

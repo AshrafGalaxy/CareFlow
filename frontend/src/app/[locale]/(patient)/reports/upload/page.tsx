@@ -68,9 +68,7 @@ export default function ReportUploadPage() {
    useNotificationStore.getState().addNotification({
     title: "Report Uploaded",
     message: `Your document "${file.name}" was successfully uploaded and is being analyzed.`,
-    type: "system",
-    isRead: false,
-    timestamp: new Date().toISOString()
+    type: "system"
    })
    setTimeout(() => router.push(`/reports/detail/${res.data.id}`), 1500)
   } catch (error: unknown) {

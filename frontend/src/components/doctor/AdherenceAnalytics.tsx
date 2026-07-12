@@ -21,7 +21,7 @@ export default function AdherenceAnalytics({
  isLoading?: boolean;
 }) {
  return (
-  <Card className="p-5 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 flex flex-col h-[500px]">
+  <Card className="p-5 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card flex flex-col h-[500px]">
    <div className="flex items-center justify-between mb-6">
     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
      {[7, 30, 90].map((d) => (
@@ -30,7 +30,7 @@ export default function AdherenceAnalytics({
        onClick={() => setDays(d)}
        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
         days === d 
-         ? "bg-card dark:bg-slate-700 text-foreground shadow-sm" 
+         ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm" 
          : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
        }`}
       >
@@ -42,7 +42,7 @@ export default function AdherenceAnalytics({
    
    <div className="flex-1 relative">
     {isLoading && (
-     <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/50 /50 backdrop-blur-sm rounded-xl">
+     <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
       <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
      </div>
     )}

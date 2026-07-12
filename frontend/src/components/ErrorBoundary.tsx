@@ -53,7 +53,7 @@ export class ErrorBoundary extends React.Component<
         Try Again
        </button>
        <Link
-        href="/dashboard"
+        href={typeof window !== 'undefined' && window.location.pathname.includes('/doctor') ? '/doctor/dashboard' : '/dashboard'}
         className="flex items-center justify-center text-sm font-medium text-slate-600 hover:text-foreground border border-slate-200 hover:border-slate-300 px-6 py-2.5 rounded-xl transition-all duration-200"
        >
         Go to Dashboard

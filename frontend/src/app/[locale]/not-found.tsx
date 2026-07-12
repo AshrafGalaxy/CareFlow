@@ -1,8 +1,17 @@
+"use client"
+
 import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { FileSearch, ChevronRight, Activity, ShieldCheck, HeartPulse } from "lucide-react"
+import { useAuthStore } from "@/store/authStore"
 
 export default function NotFound() {
+ const user = useAuthStore((state) => state.user)
+ const isDoctor = user?.role === "doctor" || user?.role === "provider" || user?.role === "admin"
+ const dashboardHref = isDoctor ? "/doctor/dashboard" : "/dashboard"
+ const homeHref = isDoctor ? "/doctor/dashboard" : "/"
+ const homeText = isDoctor ? "Back to Doctor Portal" : "Back to Homepage"
+
  return (
   <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row relative overflow-hidden font-sans">
    {/* Animated Radial Gradients */}
@@ -58,7 +67,7 @@ export default function NotFound() {
 
       <div className="flex flex-col gap-4">
        <Link
-        href="/dashboard"
+        href={dashboardHref}
         className="w-full h-14 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] transform hover:-translate-y-1 group"
        >
         Return to Dashboard
@@ -66,10 +75,10 @@ export default function NotFound() {
        </Link>
        
        <Link
-        href="/"
+        href={homeHref}
         className="w-full h-14 border-2 border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-600 bg-white/50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center justify-center transition-all duration-300 group backdrop-blur-sm"
        >
-        Back to Homepage
+        {homeText}
        </Link>
       </div>
 

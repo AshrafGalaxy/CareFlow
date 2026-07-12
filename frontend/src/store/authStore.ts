@@ -10,6 +10,8 @@ interface User {
  abha_id?: string
  date_of_birth?: string
  blood_group?: string
+ height?: number
+ weight?: number
  state_residence?: string
  emergency_contact_name?: string
  emergency_contact_phone?: string

@@ -58,9 +58,7 @@ export default function DoctorSettingsPage() {
       useNotificationStore.getState().addNotification({
         title: "Security Update",
         message: "Your password was changed successfully.",
-        type: "security",
-        isRead: false,
-        timestamp: new Date().toISOString()
+        type: "security"
       })
       setCurrentPassword("")
       setNewPassword("")
@@ -128,7 +126,7 @@ export default function DoctorSettingsPage() {
 
       // Send to backend
       await api.post("/api/notifications/subscribe", subscription.toJSON())
-      toast.success("Successfully subscribed to alarms!")
+      toast.success("Successfully subscribed to notifications!")
     } catch (error: any) {
       console.error(error)
       toast.error("Failed to enable push notifications")
@@ -137,28 +135,28 @@ export default function DoctorSettingsPage() {
     }
   }
 
-  const handleTestAlarm = async () => {
+  const handleTestNotification = async () => {
     setIsTesting(true)
     try {
       await api.post("/api/notifications/test")
       
       const store = (await import('@/store/notificationStore')).useNotificationStore.getState()
       store.addNotification({
-        title: "Test Alarm Triggered",
+        title: "Test Notification Triggered",
         message: "This is a real-time test notification.",
         type: "info"
       })
 
-      toast.success("Test alarm triggered. Check your notifications.")
+      toast.success("Test notification sent. Check your device.")
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to trigger test alarm")
+      toast.error(error.response?.data?.detail || "Failed to trigger test notification")
     } finally {
       setIsTesting(false)
     }
   }
 
  return (
-  <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
    
    <div>
     <h1 className="text-3xl font-heading font-bold text-foreground">Settings</h1>
@@ -166,22 +164,6 @@ export default function DoctorSettingsPage() {
    </div>
 
    <div className="grid gap-6">
-
-    {/* Preferences Section */}
-    <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-     <div className="p-6 border-b border-border bg-muted/30">
-      <div className="flex items-center gap-3">
-       <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
-        <Palette size={20} />
-       </div>
-       <h2 className="text-xl font-heading font-semibold text-foreground">Preferences</h2>
-      </div>
-     </div>
-     <div className="p-6 space-y-4">
-      <p className="text-sm text-muted-foreground">App preferences like theme and language will be available here.</p>
-      {/* Placeholder for future theme/language toggles */}
-     </div>
-    </section>
 
     {/* Notifications & Push */}
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
@@ -194,25 +176,25 @@ export default function DoctorSettingsPage() {
       
       <div className="p-6 space-y-6">
         <div className="space-y-4 max-w-md">
-          <h3 className="font-medium text-slate-700 dark:text-slate-300">{t("pushAlarms")}</h3>
+          <h3 className="font-medium text-slate-700 dark:text-slate-300">Push Notifications</h3>
           <p className="text-sm text-slate-500">
-            {t("pushDesc")}
+            Receive important alerts regarding patient updates, notes, and messages directly to your device.
           </p>
           <div className="flex gap-4">
             <Button 
               onClick={handleSubscribePush} 
               disabled={isSubscribing || !!user?.push_subscription}
             >
-              {isSubscribing ? "Setting up..." : user?.push_subscription ? "Alarms Enabled ✅" : t("enableAlarms")}
+              {isSubscribing ? "Setting up..." : user?.push_subscription ? "Notifications Enabled ✅" : "Enable Notifications"}
             </Button>
 
             {user?.push_subscription && (
               <Button 
                 variant="outline" 
-                onClick={handleTestAlarm} 
+                onClick={handleTestNotification} 
                 disabled={isTesting}
               >
-                {isTesting ? "Sending..." : t("testAlarm")}
+                {isTesting ? "Sending..." : "Test Notification"}
               </Button>
             )}
           </div>

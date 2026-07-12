@@ -27,7 +27,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
 
  const lowerUrl = fileUrl?.toLowerCase() || ''
  const isPdf = fileType === 'application/pdf' || lowerUrl.endsWith('.pdf')
- const isCloudinaryPdf = isPdf && fileUrl.includes('res.cloudinary.com')
+ const isCloudinaryPdf = isPdf && fileUrl?.includes('res.cloudinary.com')
  const isRegularImage = !isPdf && (fileType?.startsWith('image/') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg'))
  
  const showCustomZoom = isRegularImage || isCloudinaryPdf

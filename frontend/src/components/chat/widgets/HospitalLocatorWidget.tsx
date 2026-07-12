@@ -98,7 +98,7 @@ export function HospitalLocatorWidget() {
               }
             })
             // Sort by distance
-            fetchedHospitals.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+            fetchedHospitals.sort((a, b) => parseFloat(a.distance || "0") - parseFloat(b.distance || "0"))
             setHospitals(fetchedHospitals)
             sessionStorage.setItem(cacheKey, JSON.stringify({ loc: userLoc, items: fetchedHospitals }))
           } else {

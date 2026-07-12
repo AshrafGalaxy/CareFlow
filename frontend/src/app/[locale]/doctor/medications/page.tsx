@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import { ArrowLeft, Clock, Save, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Filter, Play, Square, Users, MoreVertical, Pill, Droplet, Syringe, Package, Beaker, User as UserIcon, Plus } from 'lucide-react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import { ArrowLeft, Clock, Save, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Filter, Play, Square, Users, MoreVertical, Pill, Droplet, Syringe, Package, Beaker, User as UserIcon, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -10,8 +10,11 @@ import { format, parseISO } from 'date-fns'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import AdherenceAnalytics from '@/components/doctor/AdherenceAnalytics'
+import { AddMedicationModal } from '@/components/doctor/AddMedicationModal'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Stethoscope, Calendar } from 'lucide-react'
 
 interface Medication {
  id: string
@@ -21,6 +24,10 @@ interface Medication {
  frequency: string
  is_active: boolean
  hospital_notes: string
+ start_date?: string
+ end_date?: string
+ times_of_day?: string[]
+ notes?: string
 }
 
 interface MedicationLog {
@@ -198,8 +205,20 @@ export default function ClinicalChartPage() {
    toast.error("Failed to change medication status")
   }
  }
+ 
+  const handleDelete = async (id: string) => {
+   if (!confirm("Are you sure you want to delete this medication?")) return
+   try {
+    await api.delete(`/api/medications/${id}`)
+    toast.success("Medication deleted successfully")
+    setMedications(medications.filter(m => m.id !== id))
+    if (editingMedId === id) setEditingMedId(null)
+   } catch (e) {
+    toast.error("Failed to delete medication")
+   }
+  }
 
- const groupedLogs = useMemo(() => {
+  const groupedLogs = useMemo(() => {
   const groups: Record<string, (MedicationLog & { medName: string })[]> = {}
   const medMap = new Map(medications.map(m => [m.id, m.name]))
 
@@ -229,8 +248,8 @@ export default function ClinicalChartPage() {
  }, [logs, medications, statusFilter, medFilter, monthFilter])
 
  const renderOverviewGrid = () => (
-  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-background">
-   <div className="max-w-7xl mx-auto space-y-8">
+  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-slate-50/50 dark:bg-background">
+   <div className="w-full max-w-7xl mx-auto space-y-8">
     <div className="flex items-center justify-between gap-4">
      <div>
       <h1 className="text-3xl font-bold font-heading text-foreground tracking-tight flex items-center gap-3">
@@ -259,9 +278,16 @@ export default function ClinicalChartPage() {
          <div className="w-12 h-12 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 group-hover:scale-105 transition-transform">
           <UserIcon size={24} />
          </div>
-         <div>
-          <h3 className="font-bold text-foreground text-lg">{p.name}</h3>
-          <p className="text-xs text-muted-foreground">{p.email}</p>
+         <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-foreground text-lg truncate">{p.name}</h3>
+          <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+         </div>
+         <div className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 shadow-sm
+            ${p.medication_adherence_rate >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+              p.medication_adherence_rate >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
+              'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}
+         >
+           {Math.round(p.medication_adherence_rate)}% Adherence
          </div>
         </div>
 
@@ -307,8 +333,8 @@ export default function ClinicalChartPage() {
  )
 
  const renderDetailedChart = () => (
-  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-background">
-   <div className="max-w-5xl mx-auto space-y-8">
+  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-slate-50/50 dark:bg-background">
+   <div className="w-full max-w-7xl mx-auto space-y-8">
     
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
      <div className="flex items-center gap-4">
@@ -327,22 +353,7 @@ export default function ClinicalChartPage() {
        <p className="text-muted-foreground mt-1">Unified medication record and historical adherence logs</p>
       </div>
      </div>
-     <div className="w-full md:w-64 shrink-0">
-      <Select value={selectedPatient || undefined} onValueChange={setSelectedPatient}>
-       <SelectTrigger className="w-full">
-        <div className="flex items-center gap-2">
-         <Users size={16} className="text-sky-500" />
-         <SelectValue placeholder="Switch Patient" />
-        </div>
-       </SelectTrigger>
-       <SelectContent>
-        {patients.map(p => (
-         <SelectItem key={p.patient_id} value={p.patient_id}>{p.name}</SelectItem>
-        ))}
-       </SelectContent>
-      </Select>
      </div>
-    </div>
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
      <div className="lg:col-span-2 space-y-6">
@@ -477,140 +488,153 @@ export default function ClinicalChartPage() {
         ))}
        </div>
       )}
-      
-      {groupedLogs.sortedMonths.length > 0 && (
-       <div className="flex justify-center pt-2">
-        <Button variant="outline" onClick={loadMoreLogs} disabled={loading} className="w-full bg-card hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground transition-colors border-dashed">
-         Load Older Logs (Currently showing {logsDays} days)
-        </Button>
-       </div>
-      )}
      </div>
     </div>
     
     {/* Modals for Edit Details */}
-    {medications.map(med => (
-     <Dialog key={`modal-${med.id}`} open={editingMedId === med.id} onOpenChange={(open) => !open && setEditingMedId(null)}>
-      <DialogContent className="sm:max-w-[425px]">
-       <DialogHeader>
-        <DialogTitle className="flex items-center gap-2 text-xl">
-         {React.createElement(getIconForDosage(med.dosage), { size: 24, className: "text-sky-500" })}
-         {med.name} Details
-        </DialogTitle>
-       </DialogHeader>
-       <div className="py-4 space-y-6">
-        <div className="space-y-2">
-         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Previous Dosage</label>
-         <input
-          type="text"
-          placeholder="e.g. 10mg (before Jul 1)"
-          value={editData[med.id]?.previous_dosage || ''}
-          onChange={(e) => setEditData({
-           ...editData,
-           [med.id]: { ...editData[med.id], previous_dosage: e.target.value }
-          })}
-          className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-sky-500 outline-none"
-         />
+    {medications.map(med => {
+     const durationStr = `Started ${format(parseISO(med.start_date || new Date().toISOString()), 'MMM d, yyyy')}`
+     return (
+      <Dialog key={`modal-${med.id}`} open={editingMedId === med.id} onOpenChange={(open) => !open && setEditingMedId(null)}>
+       <DialogContent className="sm:max-w-2xl bg-card border-border shadow-2xl p-0 overflow-hidden">
+        
+        {/* Header Area */}
+        <div className="bg-sky-50 dark:bg-sky-900/10 p-6 border-b border-border relative overflow-hidden">
+         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-sky-500">
+          {React.createElement(getIconForDosage(med.dosage), { size: 120 })}
+         </div>
+         <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+           <div className="w-10 h-10 rounded-full bg-white dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 shadow-sm">
+            {React.createElement(getIconForDosage(med.dosage), { size: 20 })}
+           </div>
+           <h2 className="text-2xl font-bold font-heading text-foreground">{med.name}</h2>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground ml-13">
+           <span className="font-medium text-foreground">{med.dosage}</span> • <span>{med.frequency}</span>
+          </div>
+         </div>
         </div>
-        <div className="space-y-2">
-         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clinical Notes</label>
-         <textarea
-          placeholder="Doctor's notes..."
-          rows={3}
-          value={editData[med.id]?.hospital_notes || ''}
-          onChange={(e) => setEditData({
-           ...editData,
-           [med.id]: { ...editData[med.id], hospital_notes: e.target.value }
-          })}
-          className="w-full p-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-sky-500 outline-none resize-none"
-         />
+
+        {/* Content Area */}
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+         {/* Left Column: Info */}
+         <div className="space-y-6">
+          <div>
+           <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Schedule Details</h4>
+           <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+             <Calendar size={16} className="text-sky-500" />
+             <span className="font-medium">{durationStr}</span>
+            </div>
+            {med.times_of_day && med.times_of_day.length > 0 && (
+             <div className="flex items-start gap-2 text-sm">
+              <Clock size={16} className="text-sky-500 mt-0.5" />
+              <div className="flex flex-wrap gap-1.5">
+               {med.times_of_day.map(t => (
+                <span key={t} className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-medium">{t}</span>
+               ))}
+              </div>
+             </div>
+            )}
+           </div>
+          </div>
+          {med.notes && (
+           <div>
+            <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">Patient Notes</h4>
+            <div className="bg-amber-50 dark:bg-amber-900/10 text-amber-800 dark:text-amber-200/80 p-3 rounded-lg text-sm italic border border-amber-100 dark:border-amber-900/30">
+             "{med.notes}"
+            </div>
+           </div>
+          )}
+         </div>
+
+         {/* Right Column: Doctor Adjustments */}
+         <div className="space-y-5">
+          <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+           <Stethoscope size={16} className="text-sky-500" /> Clinical Adjustments
+          </h4>
+          
+          <div className="space-y-1.5">
+           <label className="text-xs font-semibold text-foreground">Previous Dosage History</label>
+           <input
+            type="text"
+            placeholder="e.g. 10mg (before Jul 1)"
+            value={editData[med.id]?.previous_dosage || ''}
+            onChange={(e) => setEditData({
+             ...editData,
+             [med.id]: { ...editData[med.id], previous_dosage: e.target.value }
+            })}
+            className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-sky-500 outline-none"
+           />
+          </div>
+          
+          <div className="space-y-1.5">
+           <label className="text-xs font-semibold text-foreground">Doctor's Clinical Notes</label>
+           <textarea
+            placeholder="Private notes for medical record..."
+            rows={3}
+            value={editData[med.id]?.hospital_notes || ''}
+            onChange={(e) => setEditData({
+             ...editData,
+             [med.id]: { ...editData[med.id], hospital_notes: e.target.value }
+            })}
+            className="w-full p-3 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-sky-500 outline-none resize-none"
+           />
+          </div>
+         </div>
         </div>
         
-        <div className="flex justify-between items-center pt-4 border-t border-border">
-         <Button
-          variant="outline"
-          onClick={() => toggleActive(med.id, med.is_active)}
-          className={`flex items-center justify-center gap-2 border-0
-           ${med.is_active 
-            ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40 hover:text-rose-700 dark:hover:text-rose-300' 
-            : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300'}
-          `}
-         >
-          {med.is_active ? <><Square size={16} /> Stop Medication</> : <><Play size={16} /> Resume Medication</>}
-         </Button>
+        {/* Footer Actions */}
+        <div className="bg-muted/30 p-4 border-t border-border flex justify-between items-center">
+         <div className="flex gap-2">
+          <Button
+           variant="outline"
+           onClick={() => toggleActive(med.id, med.is_active)}
+           className={`flex items-center justify-center gap-2 border-0
+            ${med.is_active 
+             ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40 hover:text-rose-700 dark:hover:text-rose-300' 
+             : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300'}
+           `}
+          >
+           {med.is_active ? <><Square size={16} /> Stop Medication</> : <><Play size={16} /> Resume Medication</>}
+          </Button>
+          <Button
+           variant="outline"
+           onClick={() => handleDelete(med.id)}
+           className="flex items-center justify-center gap-2 border-0 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+          >
+           <Trash2 size={16} /> Delete
+          </Button>
+         </div>
          <Button
           onClick={() => handleSave(med.id)}
           disabled={saving === med.id}
           className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white"
          >
           {saving === med.id ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          Save Changes
+          Save Clinical Data
          </Button>
         </div>
-       </div>
-      </DialogContent>
-     </Dialog>
-    ))}
+       </DialogContent>
+      </Dialog>
+     )
+    })}
 
-    <Dialog open={isAddingMed} onOpenChange={setIsAddingMed}>
-     <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-       <DialogTitle>Add New Medication</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-4 py-4">
-       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">Medication Name</label>
-        <input
-         type="text"
-         className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-         value={newMed.name}
-         onChange={(e) => setNewMed({...newMed, name: e.target.value})}
-         placeholder="e.g. Metformin"
-        />
-       </div>
-       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">Dosage</label>
-        <input
-         type="text"
-         className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-         value={newMed.dosage}
-         onChange={(e) => setNewMed({...newMed, dosage: e.target.value})}
-         placeholder="e.g. 500mg"
-        />
-       </div>
-       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-         <label className="text-sm font-medium text-foreground">Frequency</label>
-         <Select value={newMed.frequency} onValueChange={(v) => setNewMed({...newMed, frequency: v})}>
-          <SelectTrigger>
-           <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-           <SelectItem value="Daily">Daily</SelectItem>
-           <SelectItem value="Weekly">Weekly</SelectItem>
-           <SelectItem value="As needed">As needed</SelectItem>
-          </SelectContent>
-         </Select>
-        </div>
-        <div className="space-y-2">
-         <label className="text-sm font-medium text-foreground">Time (HH:MM)</label>
-         <input
-          type="time"
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          value={newMed.times_of_day[0]}
-          onChange={(e) => setNewMed({...newMed, times_of_day: [e.target.value]})}
-         />
-        </div>
-       </div>
-       <div className="flex justify-end pt-4">
-        <Button onClick={handleAddMedication} disabled={isSubmittingMed || !newMed.name || !newMed.dosage}>
-         {isSubmittingMed ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-         Prescribe
-        </Button>
-       </div>
-      </div>
-     </DialogContent>
-    </Dialog>
+    <AddMedicationModal 
+     isOpen={isAddingMed}
+     onClose={() => setIsAddingMed(false)}
+     patientId={Number(selectedPatient)}
+     activeMeds={medications}
+     onSuccess={() => {
+      setIsAddingMed(false)
+      if (selectedPatient) {
+       api.get(`/api/medications/patient/${selectedPatient}`).then((res) => {
+        setMedications(res.data)
+       }).catch(console.error)
+      }
+     }}
+    />
 
    </div>
   </div>
@@ -629,12 +653,18 @@ export default function ClinicalChartPage() {
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
        <DropdownMenu.Content align="end" className="min-w-[160px] bg-card border border-border rounded-lg shadow-xl p-1 z-[100] animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2">
-        <DropdownMenu.Item 
-         className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer outline-none" 
-         onClick={() => setEditingMedId(med.id)}
-        >
-         <FileText size={14} /> View Details
-        </DropdownMenu.Item>
+         <DropdownMenu.Item 
+          className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md cursor-pointer outline-none" 
+          onClick={() => setEditingMedId(med.id)}
+         >
+          <FileText size={14} /> View Details
+         </DropdownMenu.Item>
+         <DropdownMenu.Item 
+          className="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-md cursor-pointer outline-none" 
+          onClick={() => handleDelete(med.id)}
+         >
+          <Trash2 size={14} /> Delete
+         </DropdownMenu.Item>
        </DropdownMenu.Content>
       </DropdownMenu.Portal>
      </DropdownMenu.Root>

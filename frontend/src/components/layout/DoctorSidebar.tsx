@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, ChevronLeft, ChevronRight
+ LayoutDashboard, FileText, MessageSquare, Pill, Shield, Clock, LogOut, Settings, User, Users, ChevronLeft, ChevronRight
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl"
 
 const getNavItems = (t: (key: string) => string) => [
  { name: t("dashboard"), href: "/doctor/dashboard", icon: LayoutDashboard },
+ { name: "Patient Directory", href: "/doctor/patients", icon: Users },
  { name: "Clinical Medications", href: "/doctor/medications", icon: Pill },
 ]
 
