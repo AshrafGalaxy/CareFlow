@@ -613,9 +613,8 @@ export default function ClinicalChartPage() {
     </Dialog>
 
    </div>
-  )
+  </div>
  )
-
  const renderMedicationCard = (med: Medication) => {
   const MedIcon = getIconForDosage(med.dosage)
   
