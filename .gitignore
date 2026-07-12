@@ -16,10 +16,6 @@ backend/data/
 backend/*.log
 backend/server_*.log
 backend/test.db
-
-# Scripts and tests
-backend/test_*.py
-backend/check_reports.py
 node_modules/
 __pycache__/
 .env
