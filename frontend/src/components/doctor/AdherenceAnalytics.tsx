@@ -23,7 +23,7 @@ export default function AdherenceAnalytics({
  return (
   <Card className="p-5 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 flex flex-col h-[500px]">
    <div className="flex items-center justify-between mb-6">
-    <div className="flex bg-slate-100 p-1 rounded-lg">
+    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
      {[7, 30, 90].map((d) => (
       <button 
        key={d} 

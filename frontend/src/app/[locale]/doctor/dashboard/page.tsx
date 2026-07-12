@@ -154,7 +154,7 @@ export default function DoctorDashboardPage() {
          </p>
         </div>
        </div>
-       <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-50/50 rounded-full group-hover:scale-110 transition-transform duration-500" />
+       <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-slate-50/50 dark:bg-sky-900/10 rounded-full group-hover:scale-110 transition-transform duration-500" />
       </Card>
      );
     })}
