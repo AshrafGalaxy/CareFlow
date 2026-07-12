@@ -12,6 +12,8 @@ class UserBase(BaseModel):
     state_residence: Optional[str] = None
     preferred_locale: Optional[str] = None
     blood_group: Optional[str] = None
+    height: Optional[float] = None
+    weight: Optional[float] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
 
@@ -32,6 +34,8 @@ class UserUpdate(BaseModel):
     state_residence: Optional[str] = None
     preferred_locale: Optional[str] = None
     blood_group: Optional[str] = None
+    height: Optional[float] = None
+    weight: Optional[float] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
 

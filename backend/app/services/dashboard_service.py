@@ -11,7 +11,7 @@ from app.models.follow_up import FollowUp
 from app.models.report import Report
 from app.models.memo import PatientMemo
 from app.models.analytics import PatientAnalytics
-from app.schemas.dashboard import DashboardKPIsResponse, NextMedication, NextAppointment, ActionItem
+from app.schemas.dashboard import DashboardKPIsResponse, NextMedication, NextAppointment, ActionItem, LatestMemo
 
 
 def _sync_patient_analytics(patient_id: uuid.UUID, db: Session):
@@ -208,13 +208,30 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
                 action_label="View Details"
             ))
 
+    # 4. Latest Memo
+    latest_memo_obj = db.query(PatientMemo).filter(
+        PatientMemo.patient_id == patient.id
+    ).order_by(PatientMemo.created_at.desc()).first()
+    
+    latest_memo = None
+    if latest_memo_obj:
+        doctor_obj = db.query(User).filter(User.id == latest_memo_obj.doctor_id).first()
+        if doctor_obj:
+            latest_memo = LatestMemo(
+                id=str(latest_memo_obj.id),
+                doctor_name=doctor_obj.name,
+                content=latest_memo_obj.content,
+                created_at=latest_memo_obj.created_at
+            )
+
     return DashboardKPIsResponse(
         medications_today_total=medications_today_total,
         medications_today_taken=medications_today_taken,
         health_score=health_score,
         action_items=action_items,
         next_medication=next_medication,
-        next_appointment=next_appointment
+        next_appointment=next_appointment,
+        latest_memo=latest_memo
     )
 
 async def get_patient_overview(doctor: User, db: Session):
@@ -226,10 +243,10 @@ async def get_patient_overview(doctor: User, db: Session):
         assigned_patients = db.query(User).filter(User.role == "patient", User.is_active == True).all()
     else:
         assigned_patients = db.query(User).join(
-            DoctorPatient, DoctorPatient.patient_id == User.id
+            ProviderPatient, ProviderPatient.patient_id == User.id
         ).filter(
-            DoctorPatient.doctor_id == doctor.id,
-            DoctorPatient.is_active == True
+            ProviderPatient.provider_id == doctor.id,
+            ProviderPatient.is_active == True
         ).all()
 
     result = []
@@ -244,6 +261,18 @@ async def get_patient_overview(doctor: User, db: Session):
             Report.user_id == patient.id
         ).order_by(Report.uploaded_at.desc()).first()
         recent_report_id = recent_report.id if recent_report else None
+        
+        # Get active medications for preview
+        active_meds = db.query(Medication).filter(
+            Medication.user_id == patient.id,
+            Medication.is_active == True
+        ).all()
+        meds_data = [{
+            "id": m.id,
+            "name": m.name,
+            "dosage": m.dosage,
+            "frequency": m.frequency
+        } for m in active_meds]
 
         result.append({
             "patient_id": patient.id,
@@ -251,7 +280,8 @@ async def get_patient_overview(doctor: User, db: Session):
             "email": patient.email,
             "medication_adherence_rate": analytics.adherence_rate_30d,
             "pending_follow_ups": analytics.pending_follow_ups_count,
-            "recent_report_id": recent_report_id
+            "recent_report_id": recent_report_id,
+            "active_medications": meds_data
         })
 
     return result
@@ -265,10 +295,10 @@ async def get_adherence_analytics(doctor: User, days: int, db: Session):
         assigned_patients = db.query(User).filter(User.role == "patient", User.is_active == True).all()
     else:
         assigned_patients = db.query(User).join(
-            DoctorPatient, DoctorPatient.patient_id == User.id
+            ProviderPatient, ProviderPatient.patient_id == User.id
         ).filter(
-            DoctorPatient.doctor_id == doctor.id,
-            DoctorPatient.is_active == True
+            ProviderPatient.provider_id == doctor.id,
+            ProviderPatient.is_active == True
         ).all()
 
     total_patients = len(assigned_patients)
@@ -304,9 +334,9 @@ async def get_followup_stats(doctor: User, db: Session):
         patient_ids = [u.id for u in db.query(User).filter(User.role == "patient", User.is_active == True).all()]
     else:
         patient_ids = [
-            p.patient_id for p in db.query(DoctorPatient).filter(
-                DoctorPatient.doctor_id == doctor.id,
-                DoctorPatient.is_active == True
+            p.patient_id for p in db.query(ProviderPatient).filter(
+                ProviderPatient.provider_id == doctor.id,
+                ProviderPatient.is_active == True
             ).all()
         ]
 
@@ -332,10 +362,10 @@ async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
         return None
 
     if doctor.role != "admin":
-        is_assigned = db.query(DoctorPatient).filter(
-            DoctorPatient.doctor_id == doctor.id,
-            DoctorPatient.patient_id == patient_id,
-            DoctorPatient.is_active == True
+        is_assigned = db.query(ProviderPatient).filter(
+            ProviderPatient.provider_id == doctor.id,
+            ProviderPatient.patient_id == patient_id,
+            ProviderPatient.is_active == True
         ).first()
         if not is_assigned:
             return None
@@ -388,6 +418,10 @@ async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
     return {
         "name": patient.name,
         "email": patient.email,
+        "phone": patient.phone,
+        "blood_group": patient.blood_group,
+        "height": patient.height,
+        "weight": patient.weight,
         "medications": medications_list,
         "reports": reports_list,
         "follow_ups": follow_ups_list,
@@ -396,10 +430,10 @@ async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
 
 async def add_patient_memo(patient_id: uuid.UUID, doctor: User, content: str, db: Session):
     if doctor.role != "admin":
-        is_assigned = db.query(DoctorPatient).filter(
-            DoctorPatient.doctor_id == doctor.id,
-            DoctorPatient.patient_id == patient_id,
-            DoctorPatient.is_active == True
+        is_assigned = db.query(ProviderPatient).filter(
+            ProviderPatient.provider_id == doctor.id,
+            ProviderPatient.patient_id == patient_id,
+            ProviderPatient.is_active == True
         ).first()
         if not is_assigned:
             return None

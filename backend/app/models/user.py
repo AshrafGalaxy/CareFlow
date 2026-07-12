@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Date, DateTime
+from sqlalchemy import Column, String, Boolean, Date, DateTime, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB as PG_JSONB
 from sqlalchemy.sql import func
 from sqlalchemy import JSON
@@ -20,6 +20,8 @@ class User(Base):
     state_residence = Column(String(100))
     preferred_locale = Column(String(10), default="en")
     blood_group = Column(String(5))
+    height = Column(Float)
+    weight = Column(Float)
     emergency_contact_name = Column(String(255))
     emergency_contact_phone = Column(String(20))
     is_active = Column(Boolean, default=True)

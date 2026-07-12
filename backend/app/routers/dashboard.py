@@ -5,6 +5,7 @@ import uuid
 
 from app.database import get_db
 from app.models.user import User
+from app.models.memo import PatientMemo
 from app.middleware.rbac import require_role
 from app.middleware.auth_middleware import get_current_user
 from app.services import dashboard_service
@@ -18,6 +19,27 @@ async def get_kpis(
     db: Session = Depends(get_db)
 ):
     return await dashboard_service.get_patient_dashboard_kpis(patient, db)
+
+@router.get("/memos")
+async def get_patient_memos(
+    patient: User = Depends(require_role("patient")),
+    db: Session = Depends(get_db)
+):
+    memos = db.query(PatientMemo).filter(
+        PatientMemo.patient_id == patient.id
+    ).order_by(PatientMemo.created_at.desc()).all()
+    
+    result = []
+    for memo in memos:
+        doctor = db.query(User).filter(User.id == memo.doctor_id).first()
+        if doctor:
+            result.append({
+                "id": str(memo.id),
+                "doctor_name": doctor.name,
+                "content": memo.content,
+                "created_at": memo.created_at
+            })
+    return result
 
 @router.get("/patients")
 async def list_patients(
