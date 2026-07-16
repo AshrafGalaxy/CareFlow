@@ -49,4 +49,4 @@ backend/fake_report.png
 backend/.env
 app.db
 *.db
-*.db
+*.dbronit/
