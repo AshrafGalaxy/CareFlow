@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { PenLine, Plus, Loader2, Calendar } from "lucide-react";
 import api from "@/lib/api";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function PatientMemo({ patientId, memos: initialMemos }: { patientId: string, memos: any[] }) {
  const [memos, setMemos] = useState(initialMemos || []);
@@ -12,6 +14,10 @@ export default function PatientMemo({ patientId, memos: initialMemos }: { patien
 
  const handleAddMemo = async () => {
   if (!newMemoContent.trim()) return;
+  if (!patientId) {
+   toast.error("Cannot save note: patient ID is missing.");
+   return;
+  }
   setIsSubmitting(true);
   try {
    const res = await api.post(`/api/dashboard/patients/${patientId}/memos`, {
@@ -20,21 +26,24 @@ export default function PatientMemo({ patientId, memos: initialMemos }: { patien
    setMemos([res.data, ...memos]);
    setNewMemoContent("");
    setIsAdding(false);
-  } catch (err) {
+   toast.success("Clinical note saved successfully.");
+  } catch (err: any) {
    console.error("Failed to add memo", err);
+   const detail = err?.response?.data?.detail;
+   toast.error(detail || "Failed to save clinical note. Please try again.");
   } finally {
    setIsSubmitting(false);
   }
  };
 
  return (
-  <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card /50 hover:shadow-md transition-shadow h-full flex flex-col">
+  <Card className="p-6 rounded-2xl border-slate-200/60 dark:border-slate-800 shadow-sm bg-card/50 hover:shadow-md transition-shadow h-full flex flex-col">
    <div className="flex items-center justify-between mb-6">
     <div className="flex items-center gap-3">
      <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-500">
       <PenLine className="w-5 h-5" />
      </div>
-     <h2 className="font-semibold text-lg text-foreground ">Clinical Notes</h2>
+     <h2 className="font-semibold text-lg text-foreground">Clinical Notes</h2>
     </div>
     {!isAdding && (
      <button 
@@ -48,7 +57,7 @@ export default function PatientMemo({ patientId, memos: initialMemos }: { patien
    
    <div className="flex-1 overflow-y-auto pr-2 space-y-4">
     {isAdding && (
-     <div className="p-4 rounded-xl bg-slate-50 /50 border border-slate-200 dark:border-slate-700">
+     <div className="p-4 rounded-xl bg-slate-50/50 border border-slate-200 dark:border-slate-700">
       <textarea
        className="w-full bg-transparent border-none focus:ring-0 resize-none text-foreground placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
        rows={4}
@@ -59,7 +68,7 @@ export default function PatientMemo({ patientId, memos: initialMemos }: { patien
       />
       <div className="flex justify-end gap-2 mt-3">
        <button 
-        onClick={() => setIsAdding(false)}
+        onClick={() => { setIsAdding(false); setNewMemoContent(""); }}
         className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
        >
         Cancel
@@ -82,10 +91,10 @@ export default function PatientMemo({ patientId, memos: initialMemos }: { patien
      </div>
     ) : (
      memos.map((memo: any) => (
-      <div key={memo.id} className="p-4 rounded-xl bg-slate-50 /50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-2">
+      <div key={memo.id} className="p-4 rounded-xl bg-slate-50/50 border border-slate-100 dark:border-slate-700/50 flex flex-col gap-2">
        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
         <Calendar className="w-3.5 h-3.5" />
-        {new Date(memo.created_at).toLocaleString()}
+        {memo.created_at ? format(new Date(memo.created_at), "PPP 'at' p") : "Unknown date"}
        </div>
        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
         {memo.content}

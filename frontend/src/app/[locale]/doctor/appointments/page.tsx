@@ -17,12 +17,14 @@ export default function DoctorAppointmentsPage() {
 
   const { data: upcomingFollowUps, isLoading, mutate } = useSWR<any[]>(
     "/api/dashboard/analytics/upcoming-followups?limit=100",
-    fetcher
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true }
   );
 
   const { data: requestsData, mutate: mutateRequests } = useSWR(
     "/api/dashboard/requests",
-    fetcher
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true }
   );
 
   const pendingRequests = requestsData?.follow_ups || [];

@@ -22,7 +22,8 @@ export default function MemosPage() {
   
   const { data: memos, isLoading, error } = useSWR<Memo[]>(
     API_ROUTES.DASHBOARD.MEMOS,
-    fetcher
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true }
   )
 
   if (isLoading) {

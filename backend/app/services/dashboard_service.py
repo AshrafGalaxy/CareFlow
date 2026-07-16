@@ -430,6 +430,7 @@ async def get_patient_detail(patient_id: uuid.UUID, doctor: User, db: Session):
     ]
 
     return {
+        "id": str(patient.id),
         "name": patient.name,
         "email": patient.email,
         "phone": patient.phone,
