@@ -29,7 +29,7 @@ async def get_streaming_response(
     if not groq_api_key or groq_api_key.strip() == "":
         raise ValueError("GROQ_API_KEY is missing. Chat cannot function.")
         
-    model_name = "llama-3.2-90b-vision-preview" if image_base64 else "llama-3.3-70b-versatile"
+    model_name = "llama-3.2-11b-vision-preview" if image_base64 else "llama-3.3-70b-versatile"
     llm = ChatGroq(
         model=model_name,
         api_key=groq_api_key,
