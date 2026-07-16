@@ -13,7 +13,7 @@ interface RequestFollowUpModalProps {
 export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFollowUpModalProps) {
   const [loading, setLoading] = useState(false)
   const minDate = React.useMemo(() => new Date().toISOString().split('T')[0], [])
-  const maxDate = React.useMemo(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], [])
+  const maxDate = React.useMemo(() => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], [])
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([])
   const [doctorsLoading, setDoctorsLoading] = useState(true)
 
@@ -141,15 +141,6 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
                       value={formData.date}
                       onChange={e => {
                         const dateVal = e.target.value;
-                        if (!dateVal) {
-                          setFormData({ ...formData, date: dateVal });
-                          return;
-                        }
-                        const d = new Date(dateVal);
-                        if (d.getUTCDay() === 0) {
-                          toast.error("Appointments cannot be requested on Sundays");
-                          return;
-                        }
                         setFormData({ ...formData, date: dateVal })
                       }}
                       className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
