@@ -169,12 +169,6 @@ export default function MedicationsPage() {
       </div>
      </div>
      <div className="flex items-center gap-3">
-      <Link 
-       href="/medications/add" 
-       className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-sm shadow-sm hover:shadow transition-all active:scale-95"
-      >
-       <Plus size={18} /> Request Medication
-      </Link>
      </div>
     </div>
 
@@ -214,13 +208,7 @@ export default function MedicationsPage() {
            <Pill size={32} />
           </div>
           <h3 className="text-lg font-bold text-foreground mb-2">No active medications</h3>
-          <p className="text-muted-foreground max-w-sm mb-6">Add your first medication to start tracking your schedule and generating adherence reports.</p>
-          <Link 
-           href="/medications/add" 
-           className="inline-flex items-center justify-center gap-2 bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 px-4 py-2 rounded-lg font-semibold transition-colors"
-          >
-           <Plus size={16} /> Add Medication
-          </Link>
+          <p className="text-muted-foreground max-w-sm">Your doctor will assign medications to you. They will appear here once prescribed.</p>
          </div>
         ) : (
           <>

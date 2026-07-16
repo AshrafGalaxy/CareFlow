@@ -13,6 +13,104 @@ import NetworkHospitalMap from "@/components/insurance/NetworkHospitalMap"
 
 const STATES = ["Maharashtra", "Karnataka", "Tamil Nadu", "Delhi", "Rajasthan", "West Bengal", "Telangana"]
 
+// Map of scheme names (partial match) → { applyUrl, infoUrl }
+const SCHEME_LINKS: { match: string; applyUrl: string; infoUrl: string }[] = [
+  {
+    match: "Ayushman Bharat",
+    applyUrl: "https://beneficiary.nha.gov.in/",
+    infoUrl: "https://pmjay.gov.in/",
+  },
+  {
+    match: "PM-JAY",
+    applyUrl: "https://beneficiary.nha.gov.in/",
+    infoUrl: "https://pmjay.gov.in/",
+  },
+  {
+    match: "Mahatma Jyotiba Phule Jan Arogya",
+    applyUrl: "https://www.jeevandayee.gov.in/",
+    infoUrl: "https://www.jeevandayee.gov.in/",
+  },
+  {
+    match: "MJPJAY",
+    applyUrl: "https://www.jeevandayee.gov.in/",
+    infoUrl: "https://www.jeevandayee.gov.in/",
+  },
+  {
+    match: "ESI",
+    applyUrl: "https://esic.gov.in/",
+    infoUrl: "https://esic.gov.in/medical-benefit",
+  },
+  {
+    match: "Employees' State Insurance",
+    applyUrl: "https://esic.gov.in/",
+    infoUrl: "https://esic.gov.in/medical-benefit",
+  },
+  {
+    match: "Central Government Health Scheme",
+    applyUrl: "https://cghs.gov.in/",
+    infoUrl: "https://cghs.gov.in/",
+  },
+  {
+    match: "CGHS",
+    applyUrl: "https://cghs.gov.in/",
+    infoUrl: "https://cghs.gov.in/",
+  },
+  {
+    match: "Rashtriya Swasthya Bima Yojana",
+    applyUrl: "https://www.india.gov.in/spotlight/rashtriya-swasthya-bima-yojana",
+    infoUrl: "https://labour.gov.in/rsby",
+  },
+  {
+    match: "RSBY",
+    applyUrl: "https://www.india.gov.in/spotlight/rashtriya-swasthya-bima-yojana",
+    infoUrl: "https://labour.gov.in/rsby",
+  },
+  {
+    match: "Aam Aadmi Bima Yojana",
+    applyUrl: "https://licindia.in/Products/Insurance-Plan/Aam-Aadmi-Bima-Yojana",
+    infoUrl: "https://licindia.in/Products/Insurance-Plan/Aam-Aadmi-Bima-Yojana",
+  },
+  {
+    match: "Karnataka Arogya Bhagya",
+    applyUrl: "https://arogyabhagya.karnataka.gov.in/",
+    infoUrl: "https://arogyabhagya.karnataka.gov.in/",
+  },
+  {
+    match: "Chief Minister's Comprehensive Insurance",
+    applyUrl: "https://www.cmchistn.com/",
+    infoUrl: "https://www.cmchistn.com/",
+  },
+  {
+    match: "Delhi Arogya Kosh",
+    applyUrl: "https://health.delhi.gov.in/",
+    infoUrl: "https://health.delhi.gov.in/",
+  },
+  {
+    match: "Bhamashah Swasthya Bima Yojana",
+    applyUrl: "https://bsby.rajasthan.gov.in/",
+    infoUrl: "https://bsby.rajasthan.gov.in/",
+  },
+  {
+    match: "Swasthya Sathi",
+    applyUrl: "https://swasthyasathi.gov.in/",
+    infoUrl: "https://swasthyasathi.gov.in/",
+  },
+  {
+    match: "Arogyasri",
+    applyUrl: "https://www.aarogyasri.telangana.gov.in/",
+    infoUrl: "https://www.aarogyasri.telangana.gov.in/",
+  },
+]
+
+function getSchemeLinks(schemeName: string) {
+  const lower = schemeName.toLowerCase()
+  const match = SCHEME_LINKS.find(s => lower.includes(s.match.toLowerCase()))
+  return match ?? {
+    applyUrl: `https://www.google.com/search?q=${encodeURIComponent(schemeName + ' apply online India')}`,
+    infoUrl: `https://www.google.com/search?q=${encodeURIComponent(schemeName + ' official site India')}`,
+  }
+}
+
 export default function InsuranceNavigatorPage() {
   const [query, setQuery] = useState("")
   const [state, setState] = useState("Maharashtra")
@@ -132,7 +230,9 @@ export default function InsuranceNavigatorPage() {
                 </h3>
                 
                 <div className="space-y-4">
-                  {result.schemes_suggested?.map((scheme: any, i: number) => (
+                  {result.schemes_suggested?.map((scheme: any, i: number) => {
+                    const links = getSchemeLinks(scheme.name)
+                    return (
                     <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-[100px] -z-10 transition-transform group-hover:scale-110" />
                       
@@ -155,8 +255,29 @@ export default function InsuranceNavigatorPage() {
                           <p className="text-sm text-muted-foreground leading-snug">{scheme.how_to_apply}</p>
                         </div>
                       </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
+                        <a
+                          href={links.applyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-all active:scale-95"
+                        >
+                          <ArrowRight size={14} /> Apply Now
+                        </a>
+                        <a
+                          href={links.infoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-card hover:bg-muted border border-border text-foreground text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-all active:scale-95"
+                        >
+                          <ShieldCheck size={14} className="text-sky-500" /> Learn More
+                        </a>
+                      </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 {/* Network Hospitals CTA */}

@@ -346,13 +346,6 @@ export default function DashboardPage() {
        )}
      </div>
     </div>
-    <Link
-     href={APP_ROUTES.REPORT_UPLOAD}
-     className="btn-glow hidden sm:flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors duration-200 shrink-0"
-    >
-     <UploadCloud className="h-4 w-4" />
-     {t("uploadReportBtn")}
-    </Link>
    </div>
 
    {/* Stat Cards */}
