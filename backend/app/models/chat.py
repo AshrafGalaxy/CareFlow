@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer, JSON
+from sqlalchemy.dialects.postgresql import UUID, JSONB as PG_JSONB
 from sqlalchemy.sql import func
 from app.database import Base
 import uuid
+
+JSONVariant = JSON().with_variant(PG_JSONB, "postgresql")
 
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
@@ -18,7 +20,7 @@ class ChatMessage(Base):
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
     image_url = Column(String(500), nullable=True)
-    metadata_json = Column(JSONB, nullable=True)
+    metadata_json = Column(JSONVariant, nullable=True)
     tokens_used = Column(Integer)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
