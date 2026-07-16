@@ -117,7 +117,7 @@ async def send_message(
         full_response = ""
         try:
             async for token in get_streaming_response(
-                body.content, session_id, user_id_str, history_dicts
+                body.content, session_id, user_id_str, history_dicts, getattr(body, "image_base64", None)
             ):
                 full_response += token
                 yield f"data: {json.dumps({'token': token})}\n\n"
