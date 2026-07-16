@@ -45,6 +45,31 @@ async def get_my_doctor(
         "phone": doctor.phone
     }
 
+@router.get("/my-doctors", response_model=list[MyDoctorResponse])
+async def get_my_doctors(
+    patient: User = Depends(require_role("patient")),
+    db: Session = Depends(get_db)
+):
+    assigned_providers = db.query(ProviderPatient).filter(
+        ProviderPatient.patient_id == patient.id,
+        ProviderPatient.is_active == True
+    ).all()
+    
+    if not assigned_providers:
+        return []
+        
+    provider_ids = [p.provider_id for p in assigned_providers]
+    doctors = db.query(User).filter(User.id.in_(provider_ids)).all()
+        
+    return [
+        {
+            "id": str(doc.id),
+            "name": doc.name,
+            "email": doc.email,
+            "phone": doc.phone
+        } for doc in doctors
+    ]
+
 @router.get("/memos")
 async def get_patient_memos(
     patient: User = Depends(require_role("patient")),

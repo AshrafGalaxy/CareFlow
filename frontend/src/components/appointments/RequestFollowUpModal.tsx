@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar as CalendarIcon, Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { X, Calendar as CalendarIcon, Clock, Loader2, AlertCircle, CheckCircle2, User as UserIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 
@@ -14,9 +14,26 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
   const [loading, setLoading] = useState(false)
   const minDate = React.useMemo(() => new Date().toISOString().split('T')[0], [])
   const maxDate = React.useMemo(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], [])
+  const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([])
+  const [doctorsLoading, setDoctorsLoading] = useState(true)
+
+  useEffect(() => {
+    if (isOpen) {
+      setDoctorsLoading(true)
+      api.get('/api/dashboard/my-doctors').then(res => {
+        setDoctors(res.data)
+        if (res.data.length > 0) {
+          setFormData(prev => ({ ...prev, doctor_name: res.data[0].name }))
+        }
+      }).catch(err => console.error(err))
+      .finally(() => setDoctorsLoading(false))
+    }
+  }, [isOpen])
+
   const [formData, setFormData] = useState({
     date: '',
     time: '',
+    doctor_name: '',
     reason_type: 'Routine Checkup',
     urgency: 'Normal',
     notes: ''
@@ -38,6 +55,7 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
       await api.post('/api/follow-ups/', {
         appointment_date: datetime,
         notes: formattedNotes,
+        doctor_name: formData.doctor_name || undefined
       })
       
       toast.success('Follow-up requested successfully')
@@ -85,6 +103,31 @@ export function RequestFollowUpModal({ isOpen, onClose, onSuccess }: RequestFoll
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Select Doctor</label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <select
+                    value={formData.doctor_name}
+                    onChange={e => setFormData({ ...formData, doctor_name: e.target.value })}
+                    disabled={doctorsLoading || doctors.length === 0}
+                    className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 appearance-none disabled:opacity-50"
+                  >
+                    {doctorsLoading ? (
+                      <option>Loading doctors...</option>
+                    ) : doctors.length === 0 ? (
+                      <option>No doctors assigned</option>
+                    ) : (
+                      doctors.map(doc => (
+                        <option key={doc.id} value={doc.name}>
+                          Dr. {doc.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Preferred Date</label>
