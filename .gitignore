@@ -49,4 +49,5 @@ backend/fake_report.png
 backend/.env
 app.db
 *.db
-*.dbronit/
+ronit/
+frontend/public/uploads/chat_images/
