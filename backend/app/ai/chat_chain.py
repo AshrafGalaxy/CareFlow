@@ -1,10 +1,63 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 
 from app.ai.prompts import CHAT_SYSTEM_PROMPT
 from app.ai.vector_store import load_patient_retriever
-from typing import AsyncGenerator
+from typing import AsyncGenerator, AsyncIterator
 import os
+
+
+async def _strip_think_tags(stream: AsyncIterator) -> AsyncGenerator[str, None]:
+    """
+    Filters <think>...</think> blocks from a streaming LLM response.
+    Handles tags that are split across multiple chunks using a rolling buffer.
+    """
+    OPEN_TAG = "<think>"
+    CLOSE_TAG = "</think>"
+    buffer = ""
+    in_think = False
+
+    async for chunk in stream:
+        content = chunk.content
+        if not content:
+            continue
+        buffer += content
+
+        output = ""
+        while True:
+            if in_think:
+                end_idx = buffer.find(CLOSE_TAG)
+                if end_idx != -1:
+                    # Consume everything up to and including </think>
+                    buffer = buffer[end_idx + len(CLOSE_TAG):]
+                    # Strip a leading newline left behind by the tag
+                    if buffer.startswith("\n"):
+                        buffer = buffer[1:]
+                    in_think = False
+                else:
+                    # Still inside think block — keep only a tail in case
+                    # </think> is split across the next chunk
+                    buffer = buffer[-(len(CLOSE_TAG) - 1):]
+                    break
+            else:
+                start_idx = buffer.find(OPEN_TAG)
+                if start_idx != -1:
+                    output += buffer[:start_idx]
+                    buffer = buffer[start_idx + len(OPEN_TAG):]
+                    in_think = True
+                else:
+                    # No open tag — safe to emit everything except a small tail
+                    # that could be the start of a partial <think> tag
+                    safe_len = max(0, len(buffer) - (len(OPEN_TAG) - 1))
+                    output += buffer[:safe_len]
+                    buffer = buffer[safe_len:]
+                    break
+
+        if output:
+            yield output
+
+    # Flush any remaining buffered content (only if not still inside a think block)
+    if buffer and not in_think:
+        yield buffer
 
 
 async def get_streaming_response(
@@ -24,12 +77,12 @@ async def get_streaming_response(
     except Exception as e:
         print(f"FAISS retriever failed to load (likely missing API keys): {e}")
 
-    # Use Groq exclusively
+    # Use Groq for both text and image — qwen/qwen3.6-27b supports vision, llama for text-only
     groq_api_key = os.getenv("GROQ_API_KEY")
     if not groq_api_key or groq_api_key.strip() == "":
         raise ValueError("GROQ_API_KEY is missing. Chat cannot function.")
-        
-    model_name = "meta-llama/llama-4-scout-17b-16e-instruct" if image_base64 else "llama-3.3-70b-versatile"
+
+    model_name = "qwen/qwen3.6-27b" if image_base64 else "llama-3.3-70b-versatile"
     llm = ChatGroq(
         model=model_name,
         api_key=groq_api_key,
@@ -83,15 +136,25 @@ async def get_streaming_response(
         finally:
             db.close()
         
+    # Build system prompt — prepend /no_think for qwen to disable its thinking mode
+    system_prompt = CHAT_SYSTEM_PROMPT.format(context=context)
+    if image_base64:
+        system_prompt = "/no_think\n\n" + system_prompt
+
     messages = [
-        ("system", CHAT_SYSTEM_PROMPT.format(context=context)),
+        ("system", system_prompt),
         *history_messages,
         current_msg
     ]
-        
-    async for chunk in llm.astream(messages):
-        if chunk.content:
-            yield chunk.content
+
+    # For qwen (vision model), also filter any residual <think> blocks as a safety net
+    if image_base64:
+        async for token in _strip_think_tags(llm.astream(messages)):
+            yield token
+    else:
+        async for chunk in llm.astream(messages):
+            if chunk.content:
+                yield chunk.content
 
 async def generate_chat_title(message: str) -> str:
     """Generate a concise 3-5 word title for the chat session based on the first message."""
