@@ -10,10 +10,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AshrafGalaxy/CareFlow/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Frontend-Next.js_14-black?logo=next.js&style=for-the-badge" alt="Next.js"></a>
-  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&style=for-the-badge" alt="FastAPI"></a>
-  <a href="https://python.org/"><img src="https://img.shields.io/badge/AI-Python_3.12-3776AB?logo=python&style=for-the-badge" alt="Python"></a>
+  <a href="https://github.com/AshrafGalaxy/CareFlow/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat&logo=opensourceinitiative&logoColor=white" alt="License"></a>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://neon.tech/"><img src="https://img.shields.io/badge/NeonDB-00E599?style=flat&logo=neon&logoColor=white" alt="NeonDB"></a>
+  <a href="https://groq.com/"><img src="https://img.shields.io/badge/Groq_AI-F55036?style=flat&logo=groq&logoColor=white" alt="Groq AI"></a>
+  <a href="https://cloudinary.com/"><img src="https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white" alt="Cloudinary"></a>
 </p>
 
 ---
@@ -26,24 +28,19 @@
 Modern healthcare data is heavily fragmented. Patients struggle to understand complex medical terminology in their lab reports, frequently miss critical medication doses, and lack a centralized timeline of their own health history. This leads to anxiety, poor adherence, and a disconnect between doctor visits.
 
 ### 🟢 The CareFlow Solution
-CareFlow bridges the gap between clinical data and patient comprehension. By leveraging Large Language Models (LLMs) and advanced OCR, we translate raw medical data into actionable, easy-to-understand insights—all accessible via an interactive, gamified dashboard.
+CareFlow bridges the gap between clinical data and patient comprehension. By leveraging Large Language Models (LLMs) and advanced OCR, we translate raw medical data into actionable, easy-to-understand insights—all accessible via an interactive, gamified dashboard connecting patients directly to their healthcare providers in real-time.
 
 ---
 
-## 📸 Sneak Peek
-> *(Tip for hackathon: Insert a GIF or screenshot of your dashboard here!)*
-<p align="center">
-  <img src="https://via.placeholder.com/800x400.png?text=CareFlow+Dashboard+Preview" alt="CareFlow Dashboard Preview" width="100%">
-</p>
+## ✨ Key Innovations & Features
 
----
-
-## ✨ Key Innovations
-
+- **Dual-Sided Real-Time Portal:** 
+  - 🧑‍💼 **Patients:** Can request appointments, view assigned medications with adherence charting, and interact with their AI CareBot.
+  - 👨‍⚕️ **Doctors:** Can approve/decline appointments instantly, view detailed patient profiles, and dynamically prescribe medications that instantly sync to the patient's dashboard.
 - 🤖 **Interactive AI CareBot:** A vectorized, physics-based companion that lives natively on your dashboard. It doesn't just chat; it holds context of your entire medical timeline, providing instant, personalized health insights.
-- 📄 **Smart Report Analyzer:** Upload PDFs or images of blood tests or medical reports. The built-in Vision OCR and LLM pipeline automatically extracts key metrics, flags abnormal values, and suggests critical follow-up questions for your next doctor's appointment.
+- 📄 **Smart Report Analyzer:** Upload PDFs or images of blood tests or medical reports. The built-in Vision OCR (powered by Groq) and LLM pipeline automatically extracts key metrics, flags abnormal values, and suggests critical follow-up questions for your next doctor's appointment.
 - ⏱️ **Unified Health Timeline:** A chronologically generated, highly interactive visualization of your past appointments, uploaded reports, and medication histories. Never lose track of a diagnosis again.
-- 💊 **Medication Adherence Tracking:** Real-time charting to track daily pill intake alongside visual indicators and alert systems for missed doses.
+- 🔔 **Web Push Notifications:** Real-time VAPID-based push notifications ensure patients never miss a medication dose and doctors are instantly alerted of new appointment requests.
 - 🔒 **Zero-Trust Security Layer:** Health data requires the utmost privacy. We built a fully fledged JWT authentication and Role-Based Access Control (RBAC) system to protect highly sensitive records.
 
 ---
@@ -86,9 +83,9 @@ graph TD
 
     subgraph Database ["Persistence Layer"]
         direction TB
-        Postgres[("PostgreSQL DB")]
+        NeonDB[("NeonDB (Serverless Postgres)")]
         ORM["SQLAlchemy & Alembic"]
-        ORM --> Postgres
+        ORM --> NeonDB
     end
 
     %% Flow connections
@@ -108,8 +105,35 @@ graph TD
 | **Frontend UI/UX** | Next.js 14, React, Tailwind CSS, Shadcn UI, Framer Motion |
 | **State Management**| Zustand, React Query |
 | **Backend API** | Python 3.12, FastAPI, Pydantic |
-| **AI & NLP** | LangChain, FAISS Vector Store, Multi-modal OCR |
-| **Database & ORM** | PostgreSQL (Dockerized), SQLite, SQLAlchemy, Alembic |
+| **AI & NLP** | Groq (Llama 3 / Qwen Vision), LangChain, FAISS Vector Store |
+| **Database & ORM** | NeonDB (PostgreSQL), SQLAlchemy, Alembic Migrations |
+| **Cloud Services** | Cloudinary (File Storage), Web Push (VAPID) |
+
+---
+
+## ⚙️ Environment Variables Setup
+
+To run CareFlow locally, you must configure the environment variables for the backend. Create a `.env` file inside the `backend/` directory with the following keys:
+
+```env
+# Database Configuration (We recommend NeonDB for serverless Postgres)
+DATABASE_URL=postgresql://[user]:[password]@[neon_hostname]/[dbname]?sslmode=require
+
+# Security
+SECRET_KEY=your_super_secret_jwt_key_here
+
+# AI & LLM (Groq)
+GROQ_API_KEY=your_groq_api_key_here
+
+# Cloudinary (For Medical Report PDF/Image Uploads)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Web Push Notifications (Generate via `vapid --generate`)
+VAPID_PRIVATE_KEY=your_vapid_private_key
+VAPID_SUBJECT=mailto:admin@yourdomain.com
+```
 
 ---
 
@@ -120,7 +144,6 @@ Want to run CareFlow locally? Follow these steps to get the microservices up and
 ### Prerequisites
 - Node.js >= 18.x
 - Python >= 3.10
-- Docker Desktop (for Postgres)
 
 ### 1. Clone the Repository
 ```bash
@@ -128,21 +151,31 @@ git clone https://github.com/AshrafGalaxy/CareFlow.git
 cd CareFlow
 ```
 
-### 2. Backend Setup
+### 2. Backend & Database Setup
+CareFlow uses **Alembic** to manage database migrations. Make sure your `DATABASE_URL` is set in the `.env` file first.
+
 ```bash
 # Set up the python virtual environment
+cd backend
 python -m venv venv
-source venv/Scripts/activate # On Windows
+
+# Activate on Windows:
+.\venv\Scripts\activate
+# Activate on Mac/Linux:
+source venv/bin/activate
 
 # Install requirements
-cd backend
 pip install -r requirements.txt
+
+# Initialize the Database Schema (CRITICAL STEP)
+alembic upgrade head
 
 # Start the FastAPI Server (runs on http://localhost:8000)
 uvicorn main:app --reload --port 8000
 ```
 
 ### 3. Frontend Setup
+Open a new terminal window:
 ```bash
 # Install dependencies
 cd frontend
@@ -150,12 +183,6 @@ npm install
 
 # Start the Next.js development server (runs on http://localhost:3000)
 npm run dev
-```
-
-### 4. Dockerized Database (Optional)
-If you wish to run the full stack with a production-grade PostgreSQL instance locally:
-```bash
-docker-compose up -d
 ```
 
 ---
