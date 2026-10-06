@@ -13,3 +13,5 @@ from .provider_profile import ProviderProfile
 from .audit import AuditLog
 from .appointment import Appointment
 from .order import Order
+from .checklist import DailyChecklistItem, ChecklistLog
+from .checkin import DailyCheckIn

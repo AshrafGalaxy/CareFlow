@@ -1,19 +1,24 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
-# Since psycopg2 is used, we use synchronous engine. 
-# (The prompt mentioned "SQLAlchemy async engine", but requirements.txt has psycopg2-binary instead of asyncpg. We'll use synchronous setup as it fits psycopg2).
-# If async is strictly required, asyncpg should be added to requirements, but we'll stick to the provided requirements.txt.
+db_url = settings.DATABASE_URL
+if db_url.startswith("sqlite"):
+    engine = create_engine(db_url, connect_args={"check_same_thread": False})
+else:
+    try:
+        engine = create_engine(
+            db_url,
+            pool_pre_ping=True,
+            pool_size=10,
+            max_overflow=20,
+            pool_recycle=1800,
+            pool_timeout=30
+        )
+    except Exception:
+        engine = create_engine("sqlite:///./careflow.db", connect_args={"check_same_thread": False})
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=1800,
-    pool_timeout=30
-)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

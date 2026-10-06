@@ -41,6 +41,8 @@ import app.models.insurance
 import app.models.chat
 import app.models.analytics
 import app.models.audit
+import app.models.checklist
+import app.models.checkin
 
 from main import app
 app.dependency_overrides[get_db] = override_get_db
