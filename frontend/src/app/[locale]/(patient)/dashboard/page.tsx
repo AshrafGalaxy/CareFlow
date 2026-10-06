@@ -238,19 +238,24 @@ export default function DashboardPage() {
      />
    ) : (
      <>
-       {/* In Standard Mode, also surface Today's Wellness Check-in & Checklist */}
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <DailyCheckInWidget
-           highContrast={isHighContrast}
-           onCheckinSuccess={mutateKpi}
-         />
-         <DailyChecklistWidget
-           highContrast={isHighContrast}
-           onItemUpdated={mutateKpi}
-         />
+       {/* Welcome Banner */}
+       <div className="flex items-start justify-between gap-4">
+        <div>
+         <h1 className="text-2xl font-bold text-foreground mb-1">
+          {greeting}, {firstName}
+         </h1>
+         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+           <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
+           {!kpiLoading && kpiData?.assigned_doctor_name && (
+             <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+               <Stethoscope className="w-3.5 h-3.5" />
+               <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
+             </Link>
+           )}
+         </div>
+        </div>
        </div>
 
-       {/* Dynamic Action Items */}
        {!kpiLoading && kpiData?.action_items && kpiData.action_items.length > 0 && (
         <div className="space-y-3">
          {kpiData.action_items.map((item, idx) => (
@@ -357,24 +362,6 @@ export default function DashboardPage() {
          </div>
        )}
 
-       {/* Welcome Banner */}
-       <div className="flex items-start justify-between gap-4">
-        <div>
-         <h1 className="text-2xl font-bold text-foreground mb-1">
-          {greeting}, {firstName}
-         </h1>
-         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
-           <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
-           {!kpiLoading && kpiData?.assigned_doctor_name && (
-             <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
-               <Stethoscope className="w-3.5 h-3.5" />
-               <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
-             </Link>
-           )}
-         </div>
-        </div>
-       </div>
-
        {/* Stat Cards */}
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {statCards.map((stat, i) => (
@@ -413,6 +400,18 @@ export default function DashboardPage() {
           </p>
          </motion.div>
          ))}
+        </div>
+
+        {/* Today's Wellness Check-in & Checklist */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <DailyCheckInWidget
+            highContrast={isHighContrast}
+            onCheckinSuccess={mutateKpi}
+          />
+          <DailyChecklistWidget
+            highContrast={isHighContrast}
+            onItemUpdated={mutateKpi}
+          />
         </div>
      </>
    )}

@@ -43,9 +43,8 @@ export function ElderDashboardView({
   return (
     <div
       className={cn(
-        "space-y-6 transition-all duration-300 rounded-3xl",
-        largeText ? "text-lg sm:text-xl" : "text-base",
-        highContrast ? "bg-black text-white p-3 sm:p-5 rounded-3xl border-2 border-yellow-400" : ""
+        "space-y-5 transition-all duration-200",
+        highContrast ? "bg-black text-white p-3 sm:p-5 rounded-2xl border border-yellow-400" : ""
       )}
     >
       {/* Senior Mode Active Indicator */}

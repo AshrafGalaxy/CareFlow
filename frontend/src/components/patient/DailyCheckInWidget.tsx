@@ -36,58 +36,58 @@ export function DailyCheckInWidget({
     {
       id: "GOOD",
       label: "Good",
-      subtitle: "Feeling well & energetic",
+      subtitle: "Feeling well",
       emoji: "🟢",
       icon: Smile,
       color: "emerald",
       bgClass: highContrast
-        ? "bg-black border-2 border-emerald-400 text-emerald-300 hover:bg-emerald-950/80"
-        : "bg-emerald-500/10 border-2 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20",
+        ? "bg-black border border-emerald-400 text-emerald-300 hover:bg-emerald-950/80"
+        : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20",
       activeClass: highContrast
-        ? "bg-emerald-400 text-black border-2 border-emerald-300 font-extrabold ring-4 ring-emerald-500/40"
-        : "bg-emerald-600 text-white border-2 border-emerald-600 shadow-lg shadow-emerald-500/30 ring-4 ring-emerald-500/20",
+        ? "bg-emerald-400 text-black border border-emerald-300 font-bold ring-2 ring-emerald-500/40"
+        : "bg-emerald-600 text-white border border-emerald-600 shadow-sm ring-2 ring-emerald-500/25",
     },
     {
       id: "OKAY",
       label: "Okay",
-      subtitle: "Just usual, getting by",
+      subtitle: "Just usual",
       emoji: "🟡",
       icon: Meh,
       color: "sky",
       bgClass: highContrast
-        ? "bg-black border-2 border-sky-400 text-sky-300 hover:bg-sky-950/80"
-        : "bg-sky-500/10 border-2 border-sky-500/30 text-sky-800 dark:text-sky-300 hover:bg-sky-500/20",
+        ? "bg-black border border-sky-400 text-sky-300 hover:bg-sky-950/80"
+        : "bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20",
       activeClass: highContrast
-        ? "bg-sky-400 text-black border-2 border-sky-300 font-extrabold ring-4 ring-sky-500/40"
-        : "bg-sky-600 text-white border-2 border-sky-600 shadow-lg shadow-sky-500/30 ring-4 ring-sky-500/20",
+        ? "bg-sky-400 text-black border border-sky-300 font-bold ring-2 ring-sky-500/40"
+        : "bg-sky-600 text-white border border-sky-600 shadow-sm ring-2 ring-sky-500/25",
     },
     {
       id: "NOT_WELL",
       label: "Not Well",
-      subtitle: "Tired, pain, or unwell",
+      subtitle: "Unwell or pain",
       emoji: "🟠",
       icon: Frown,
       color: "amber",
       bgClass: highContrast
-        ? "bg-black border-2 border-amber-400 text-amber-300 hover:bg-amber-950/80"
-        : "bg-amber-500/10 border-2 border-amber-500/30 text-amber-800 dark:text-amber-300 hover:bg-amber-500/20",
+        ? "bg-black border border-amber-400 text-amber-300 hover:bg-amber-950/80"
+        : "bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20",
       activeClass: highContrast
-        ? "bg-amber-400 text-black border-2 border-amber-300 font-extrabold ring-4 ring-amber-500/40"
-        : "bg-amber-600 text-white border-2 border-amber-600 shadow-lg shadow-amber-500/30 ring-4 ring-amber-500/20",
+        ? "bg-amber-400 text-black border border-amber-300 font-bold ring-2 ring-amber-500/40"
+        : "bg-amber-600 text-white border border-amber-600 shadow-sm ring-2 ring-amber-500/25",
     },
     {
       id: "NEEDS_HELP",
       label: "Need Help",
-      subtitle: "Require assistance today",
+      subtitle: "Need assist",
       emoji: "🔴",
       icon: AlertCircle,
       color: "rose",
       bgClass: highContrast
-        ? "bg-black border-2 border-rose-400 text-rose-300 hover:bg-rose-950/80"
-        : "bg-rose-500/10 border-2 border-rose-500/30 text-rose-800 dark:text-rose-300 hover:bg-rose-500/20",
+        ? "bg-black border border-rose-400 text-rose-300 hover:bg-rose-950/80"
+        : "bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-500/20",
       activeClass: highContrast
-        ? "bg-rose-500 text-white border-2 border-rose-300 font-extrabold ring-4 ring-rose-500/40"
-        : "bg-rose-600 text-white border-2 border-rose-600 shadow-lg shadow-rose-500/30 ring-4 ring-rose-500/20",
+        ? "bg-rose-500 text-white border border-rose-300 font-bold ring-2 ring-rose-500/40"
+        : "bg-rose-600 text-white border border-rose-600 shadow-sm ring-2 ring-rose-500/25",
     },
   ]
 
@@ -146,29 +146,29 @@ export function DailyCheckInWidget({
   return (
     <div
       className={cn(
-        "rounded-3xl border-2 p-6 shadow-sm transition-all duration-300",
+        "rounded-2xl border p-5 shadow-xs transition-all duration-300",
         highContrast
           ? "bg-black border-yellow-400 text-white"
           : "bg-card border-border hover:border-border/80"
       )}
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5">
           <div
             className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+              "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
               highContrast ? "bg-yellow-400 text-black" : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
             )}
           >
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h2 className="text-base font-bold tracking-tight text-foreground">
               How are you feeling today?
             </h2>
-            <p className={cn("text-sm font-medium", highContrast ? "text-yellow-200" : "text-muted-foreground")}>
-              Tap your status below to share your daily wellness signal.
+            <p className={cn("text-xs font-medium", highContrast ? "text-yellow-200" : "text-muted-foreground")}>
+              Daily wellness check-in
             </p>
           </div>
         </div>
@@ -176,14 +176,14 @@ export function DailyCheckInWidget({
         <button
           onClick={() => setShowHistoryModal(true)}
           className={cn(
-            "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors border",
+            "h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors border cursor-pointer",
             highContrast
               ? "bg-zinc-900 border-yellow-400 text-yellow-300 hover:bg-zinc-800"
               : "bg-muted hover:bg-muted/80 text-foreground border-border"
           )}
         >
-          <History className="w-4 h-4" />
-          <span>Past Check-ins</span>
+          <History className="w-3.5 h-3.5" />
+          <span>History</span>
         </button>
       </div>
 
@@ -191,30 +191,29 @@ export function DailyCheckInWidget({
       {todayCheckin && (
         <div
           className={cn(
-            "mb-4 p-3.5 rounded-2xl border flex items-center justify-between gap-3",
+            "mb-3 p-2.5 px-3 rounded-xl border flex items-center justify-between gap-2.5 text-xs",
             highContrast
               ? "bg-zinc-900 border-emerald-400 text-emerald-300"
-              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200"
+              : "bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-200"
           )}
         >
-          <div className="flex items-center gap-2.5 text-sm sm:text-base font-bold">
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-500" />
+          <div className="flex items-center gap-2 font-semibold">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
             <span>
-              Recorded for today:{" "}
-              <span className="underline decoration-2">
+              Recorded today:{" "}
+              <span className="font-bold underline decoration-1">
                 {todayCheckin.wellness_status.replace("_", " ")}
               </span>
             </span>
           </div>
-          <span className="text-xs opacity-75 hidden sm:inline">Tap another option to update</span>
+          <span className="text-[11px] opacity-75 hidden sm:inline">Tap to update</span>
         </div>
       )}
 
-      {/* 4 Large Touch Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4 mb-4">
+      {/* 4 Status Option Pills */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3.5">
         {statusOptions.map((opt) => {
           const isSelected = currentStatus === opt.id
-          const IconComp = opt.icon
 
           return (
             <button
@@ -222,22 +221,19 @@ export function DailyCheckInWidget({
               onClick={() => handleSelectStatus(opt.id)}
               disabled={isSubmitting}
               className={cn(
-                "min-h-[96px] sm:min-h-[112px] p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-200 active:scale-95 cursor-pointer",
+                "p-2.5 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-150 active:scale-95 cursor-pointer",
                 isSelected ? opt.activeClass : opt.bgClass
               )}
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-2xl sm:text-3xl" role="img" aria-label={opt.label}>
-                  {opt.emoji}
-                </span>
-                <IconComp className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-              </div>
-              <span className="text-base sm:text-lg font-extrabold leading-tight tracking-wide">
+              <span className="text-lg leading-none mb-1" role="img" aria-label={opt.label}>
+                {opt.emoji}
+              </span>
+              <span className="text-xs font-bold leading-tight">
                 {opt.label}
               </span>
               <span
                 className={cn(
-                  "text-[11px] sm:text-xs mt-1 leading-snug line-clamp-1",
+                  "text-[10px] mt-0.5 leading-tight line-clamp-1 hidden sm:block",
                   isSelected
                     ? highContrast ? "text-black font-semibold" : "text-white/90"
                     : highContrast ? "text-yellow-100" : "text-muted-foreground"
@@ -251,9 +247,9 @@ export function DailyCheckInWidget({
       </div>
 
       {/* Optional Note Box */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2 border-t border-border/50">
+      <div className="flex items-center gap-2 pt-2 border-t border-border/50">
         <div className="relative flex-1">
-          <MessageSquare className="w-4 h-4 absolute left-3.5 top-3.5 text-muted-foreground" />
+          <MessageSquare className="w-3.5 h-3.5 absolute left-3 top-2.5 text-muted-foreground" />
           <input
             type="text"
             value={notes}
@@ -261,13 +257,13 @@ export function DailyCheckInWidget({
             placeholder={
               todayCheckin?.notes
                 ? `Note: "${todayCheckin.notes}"`
-                : "Add an optional note (e.g., 'Slept well', 'Mild knee ache')..."
+                : "Add a quick note (e.g., 'Slept well')..."
             }
             className={cn(
-              "w-full min-h-[44px] pl-10 pr-4 py-2 text-sm sm:text-base rounded-xl border focus:outline-none transition-colors",
+              "w-full h-8 pl-8 pr-3 text-xs rounded-lg border focus:outline-none transition-colors",
               highContrast
-                ? "bg-zinc-900 border-yellow-400 text-white placeholder-zinc-400 focus:ring-2 focus:ring-yellow-400"
-                : "bg-background border-border focus:ring-2 focus:ring-sky-500"
+                ? "bg-zinc-900 border-yellow-400 text-white placeholder-zinc-400 focus:ring-1 focus:ring-yellow-400"
+                : "bg-background border-border focus:ring-1 focus:ring-sky-500"
             )}
           />
         </div>
@@ -275,14 +271,14 @@ export function DailyCheckInWidget({
           onClick={handleSaveNotes}
           disabled={isSubmitting || (!notes.trim() && !todayCheckin?.notes)}
           className={cn(
-            "min-h-[44px] px-5 py-2.5 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40",
+            "h-8 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 cursor-pointer",
             highContrast
               ? "bg-yellow-400 text-black hover:bg-yellow-300"
-              : "bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
+              : "bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
           )}
         >
-          <Send className="w-4 h-4" />
-          <span>Save Note</span>
+          <Send className="w-3 h-3" />
+          <span>Save</span>
         </button>
       </div>
 

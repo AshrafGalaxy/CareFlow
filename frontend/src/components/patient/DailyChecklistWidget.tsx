@@ -107,28 +107,28 @@ export function DailyChecklistWidget({
   return (
     <div
       className={cn(
-        "rounded-3xl border-2 p-6 shadow-sm transition-all duration-300",
+        "rounded-2xl border p-5 shadow-xs transition-all duration-300",
         highContrast
           ? "bg-black border-yellow-400 text-white"
           : "bg-card border-border hover:border-border/80"
       )}
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5">
           <div
             className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+              "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
               highContrast ? "bg-yellow-400 text-black" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
             )}
           >
-            <CheckSquare className="w-6 h-6" />
+            <CheckSquare className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h2 className="text-base font-bold tracking-tight text-foreground">
               Today's Care Checklist
             </h2>
-            <p className={cn("text-sm font-medium", highContrast ? "text-yellow-200" : "text-muted-foreground")}>
+            <p className={cn("text-xs font-medium", highContrast ? "text-yellow-200" : "text-muted-foreground")}>
               {totalCount > 0
                 ? `${completedCount} of ${totalCount} completed today`
                 : "Your daily scheduled health items"}
@@ -140,14 +140,14 @@ export function DailyChecklistWidget({
           onClick={() => mutate()}
           disabled={isLoading}
           className={cn(
-            "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-colors border",
+            "h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors border cursor-pointer",
             highContrast
               ? "bg-zinc-900 border-yellow-400 text-yellow-300 hover:bg-zinc-800"
               : "bg-muted hover:bg-muted/80 text-foreground border-border"
           )}
           title="Refresh today's items"
         >
-          <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+          <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
           <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
@@ -156,20 +156,20 @@ export function DailyChecklistWidget({
       {totalCount > 0 && (
         <div
           className={cn(
-            "mb-5 p-4 rounded-2xl border",
+            "mb-3.5 p-3 rounded-xl border",
             highContrast
               ? "bg-zinc-900 border-yellow-400/50"
-              : "bg-muted/40 border-border"
+              : "bg-muted/30 border-border/60"
           )}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold flex items-center gap-1.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-semibold flex items-center gap-1.5">
               <span>Today's Progress</span>
-              {progressPercent === 100 && <Sparkles className="w-4 h-4 text-emerald-500" />}
+              {progressPercent === 100 && <Sparkles className="w-3.5 h-3.5 text-emerald-500" />}
             </span>
             <span
               className={cn(
-                "text-sm sm:text-base font-extrabold",
+                "text-xs font-bold",
                 progressPercent === 100
                   ? "text-emerald-500"
                   : highContrast
@@ -183,7 +183,7 @@ export function DailyChecklistWidget({
 
           <div
             className={cn(
-              "w-full h-3.5 rounded-full overflow-hidden",
+              "w-full h-2 rounded-full overflow-hidden",
               highContrast ? "bg-zinc-800 border border-yellow-400" : "bg-muted"
             )}
           >
@@ -201,7 +201,7 @@ export function DailyChecklistWidget({
           </div>
 
           {progressPercent === 100 && (
-            <p className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1.5 flex items-center gap-1">
               <span>🎉 Excellent job! You've completed all tasks for today!</span>
             </p>
           )}
@@ -209,11 +209,11 @@ export function DailyChecklistWidget({
       )}
 
       {/* Checklist items list */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {isLoading && !checklistLogs ? (
-          <div className="py-8 text-center text-muted-foreground text-sm space-y-2">
-            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Loading your checklist for today...</p>
+          <div className="py-6 text-center text-muted-foreground text-xs space-y-2">
+            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p>Loading checklist items...</p>
           </div>
         ) : checklistLogs && checklistLogs.length > 0 ? (
           checklistLogs.map((log) => {
@@ -227,25 +227,25 @@ export function DailyChecklistWidget({
               <div
                 key={log.id}
                 className={cn(
-                  "p-4 sm:p-4.5 rounded-2xl border-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all duration-200",
+                  "p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-200",
                   isCompleted
                     ? highContrast
                       ? "bg-zinc-950 border-emerald-400/80 text-zinc-300"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-foreground"
+                      : "bg-emerald-500/10 border-emerald-500/25 text-foreground"
                     : isSkipped
                     ? highContrast
                       ? "bg-zinc-900 border-zinc-700 text-zinc-400 opacity-60"
                       : "bg-muted/40 border-muted text-muted-foreground opacity-60"
                     : highContrast
                     ? "bg-black border-yellow-400 text-white"
-                    : "bg-background border-border hover:border-sky-500/50"
+                    : "bg-background border-border hover:border-sky-500/40"
                 )}
               >
                 {/* Item Details */}
-                <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
                   <div
                     className={cn(
-                      "p-3 rounded-xl shrink-0 mt-0.5",
+                      "p-2 rounded-lg shrink-0 mt-0.5",
                       highContrast
                         ? "bg-zinc-800 text-yellow-300 border border-yellow-400/40"
                         : "bg-muted/60"
@@ -258,25 +258,25 @@ export function DailyChecklistWidget({
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
                         className={cn(
-                          "text-base sm:text-lg font-bold leading-snug",
-                          isCompleted && "line-through opacity-80"
+                          "text-sm font-semibold leading-snug",
+                          isCompleted && "line-through opacity-75"
                         )}
                       >
                         {item.title}
                       </h3>
 
                       {isHighPriority && (
-                        <span className="text-[11px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-                          High Priority
+                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                          High
                         </span>
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       {item.scheduled_time && (
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md",
+                            "inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded",
                             highContrast
                               ? "bg-zinc-800 text-yellow-200"
                               : "bg-muted text-muted-foreground"
@@ -289,41 +289,41 @@ export function DailyChecklistWidget({
 
                       <span
                         className={cn(
-                          "text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md",
+                          "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
                           highContrast
                             ? "bg-zinc-800 text-white"
                             : "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
                         )}
                       >
-                        {item.category || "custom"}
+                        {item.category || "routine"}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Status Badges & Action Buttons */}
-                <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                   {!isCompleted && !isSkipped && (
                     <>
                       <button
                         onClick={() => handleComplete(log.id, item.title)}
                         disabled={updatingId === log.id}
                         className={cn(
-                          "min-h-[48px] px-4 sm:px-5 py-2.5 rounded-xl font-extrabold text-sm sm:text-base flex items-center gap-2 transition-all active:scale-95 shadow-sm cursor-pointer",
+                          "h-8 px-3 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer",
                           highContrast
-                            ? "bg-emerald-400 text-black hover:bg-emerald-300 border-2 border-emerald-300"
+                            ? "bg-emerald-400 text-black hover:bg-emerald-300 border border-emerald-300"
                             : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
                         )}
                       >
-                        <CheckCircle2 className="w-5 h-5 shrink-0" />
-                        <span>Complete</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Done</span>
                       </button>
 
                       <button
                         onClick={() => handleSkip(log.id, item.title)}
                         disabled={updatingId === log.id}
                         className={cn(
-                          "min-h-[48px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all border cursor-pointer",
+                          "h-8 px-2.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer",
                           highContrast
                             ? "bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"
                             : "bg-muted hover:bg-muted/80 text-muted-foreground border-border"
@@ -337,13 +337,13 @@ export function DailyChecklistWidget({
                   {isCompleted && (
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-extrabold text-xs sm:text-sm border",
+                        "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold text-xs border",
                         highContrast
                           ? "bg-emerald-950 border-emerald-400 text-emerald-300"
                           : "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
                       )}
                     >
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                       <span>Completed</span>
                     </span>
                   )}
@@ -351,20 +351,20 @@ export function DailyChecklistWidget({
                   {isSkipped && (
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs sm:text-sm border",
+                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-xs border",
                         highContrast
                           ? "bg-zinc-900 border-zinc-700 text-zinc-400"
                           : "bg-muted border-border text-muted-foreground"
                       )}
                     >
-                      <XCircle className="w-4 h-4 shrink-0" />
+                      <XCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>Skipped</span>
                     </span>
                   )}
 
                   {isMissed && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs sm:text-sm">
-                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-semibold text-xs">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       <span>Missed</span>
                     </span>
                   )}
