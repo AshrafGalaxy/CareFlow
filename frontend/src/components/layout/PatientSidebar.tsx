@@ -46,15 +46,14 @@ export function PatientSidebar() {
   const navItems = getNavItems(t)
 
   const isCollapsed = sidebarState === 'collapsed'
-  const [isHovered, setIsHovered] = useState(false)
-  const isEffectivelyExpanded = !isCollapsed || isHovered
+  const [headerHovered, setHeaderHovered] = useState(false)
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({"My Care Team": true})
 
   const toggleExpand = (name: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (isEffectivelyExpanded) {
+    if (!isCollapsed) {
       setExpanded(prev => ({ ...prev, [name]: !prev[name] }))
     }
   }
@@ -72,47 +71,55 @@ export function PatientSidebar() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={false}
-      animate={{ width: isEffectivelyExpanded ? 256 : 68 }}
+      animate={{ width: isCollapsed ? 68 : 256 }}
       transition={{ type: "spring", stiffness: 350, damping: 32 }}
-      onMouseEnter={() => {
-        if (isCollapsed) setIsHovered(true)
-      }}
-      onMouseLeave={() => {
-        if (isCollapsed) setIsHovered(false)
-      }}
-      className={cn(
-        "hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative transition-shadow duration-200",
-        isCollapsed && isHovered ? "z-40 shadow-2xl" : "z-20"
-      )}
+      className="hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative z-20"
     >
       {/* ── Brand Header ── */}
-      {!isEffectivelyExpanded ? (
-        <div className="flex items-center justify-center h-[64px] border-b border-border shrink-0">
-          <Link 
-            href="/dashboard" 
-            className="flex items-center justify-center p-2 rounded-xl hover:bg-muted/80 transition-colors"
-            title="CareFlow AI"
-          >
-            <Image 
-              src="/favicon.svg" 
-              alt="CareFlow Logo" 
-              width={32} 
-              height={32} 
-              className="h-8 w-8 shrink-0 transition-transform hover:scale-105"
+      {isCollapsed ? (
+        // Collapsed: centered logo, cross-fades to expand button on hover
+        <div
+          onMouseEnter={() => setHeaderHovered(true)}
+          onMouseLeave={() => setHeaderHovered(false)}
+          onClick={toggleSidebar}
+          title="Expand sidebar"
+          className="relative flex items-center justify-center h-[64px] border-b border-border shrink-0 cursor-pointer"
+        >
+          {/* Logo — fades out on hover */}
+          <div className={cn(
+            "transition-all duration-200 flex items-center justify-center",
+            headerHovered ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
+          )}>
+            <Image
+              src="/favicon.svg"
+              alt="CareFlow Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0"
               priority
             />
-          </Link>
+          </div>
+          {/* Expand toggle — fades in on hover */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-200",
+            headerHovered ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+          )}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted text-foreground shadow-sm">
+              <PanelLeftOpen className="h-5 w-5 text-sky-500" />
+            </div>
+          </div>
         </div>
       ) : (
+        // Expanded: logo + brand name + collapse button
         <div className="flex items-center justify-between h-[64px] px-4 border-b border-border shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 flex-1 min-w-0 group">
-            <Image 
-              src="/favicon.svg" 
-              alt="CareFlow Logo" 
-              width={32} 
-              height={32} 
+            <Image
+              src="/favicon.svg"
+              alt="CareFlow Logo"
+              width={32}
+              height={32}
               className="h-8 w-8 shrink-0 transition-transform group-hover:scale-105"
               priority
             />
@@ -122,10 +129,10 @@ export function PatientSidebar() {
           </Link>
           <button
             onClick={toggleSidebar}
-            title={isCollapsed ? "Pin sidebar" : "Collapse sidebar"}
+            title="Collapse sidebar"
             className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
           >
-            {isCollapsed ? <PanelLeftOpen className="h-[17px] w-[17px]" /> : <PanelLeftClose className="h-[17px] w-[17px]" />}
+            <PanelLeftClose className="h-[17px] w-[17px]" />
           </button>
         </div>
       )}
@@ -141,23 +148,23 @@ export function PatientSidebar() {
             <div key={item.name} className="flex flex-col">
               <Link
                 href={item.href}
-                title={!isEffectivelyExpanded ? item.name : undefined}
+                title={isCollapsed ? item.name : undefined}
                 className={cn(
                   "relative flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                   isActive
                     ? "bg-sky-500/10 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                  !isEffectivelyExpanded && "justify-center px-0"
+                  isCollapsed && "justify-center px-0"
                 )}
               >
-                <div className={cn("flex items-center gap-3", !isEffectivelyExpanded && "justify-center")}>
+                <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
                   <item.icon className={cn(
                     "h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-105",
                     isActive ? "text-sky-500" : ""
                   )} />
                   <AnimatePresence>
-                    {isEffectivelyExpanded && (
-                      <motion.span 
+                    {!isCollapsed && (
+                      <motion.span
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: "auto" }}
                         exit={{ opacity: 0, width: 0 }}
@@ -170,7 +177,7 @@ export function PatientSidebar() {
                   </AnimatePresence>
                 </div>
 
-                {isEffectivelyExpanded && hasSub && (
+                {!isCollapsed && hasSub && (
                   <button
                     onClick={(e) => toggleExpand(item.name, e)}
                     className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors"
@@ -183,9 +190,9 @@ export function PatientSidebar() {
                 )}
               </Link>
 
-              {/* Sub-items rendering */}
+              {/* Sub-items */}
               <AnimatePresence>
-                {isEffectivelyExpanded && hasSub && isExpanded && (
+                {!isCollapsed && hasSub && isExpanded && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -201,8 +208,8 @@ export function PatientSidebar() {
                           href={sub.href}
                           className={cn(
                             "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                            isSubActive 
-                              ? "text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/5 dark:bg-sky-500/10" 
+                            isSubActive
+                              ? "text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/5 dark:bg-sky-500/10"
                               : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                           )}
                         >
@@ -229,18 +236,18 @@ export function PatientSidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                title={!isEffectivelyExpanded ? item.name : undefined}
+                title={isCollapsed ? item.name : undefined}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group",
                   isActive
                     ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                  !isEffectivelyExpanded && "justify-center px-0"
+                  isCollapsed && "justify-center px-0"
                 )}
               >
                 <item.icon className={cn("h-[17px] w-[17px] shrink-0", isActive ? "text-sky-500" : "")} />
                 <AnimatePresence>
-                  {isEffectivelyExpanded && (
+                  {!isCollapsed && (
                     <motion.span
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
@@ -257,15 +264,15 @@ export function PatientSidebar() {
           })}
           <button
             onClick={handleLogout}
-            title={!isEffectivelyExpanded ? "Sign Out" : undefined}
+            title={isCollapsed ? "Sign Out" : undefined}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors group",
-              !isEffectivelyExpanded && "justify-center px-0"
+              isCollapsed && "justify-center px-0"
             )}
           >
             <LogOut className="h-[17px] w-[17px] shrink-0" />
             <AnimatePresence>
-              {isEffectivelyExpanded && (
+              {!isCollapsed && (
                 <motion.span
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
@@ -280,13 +287,13 @@ export function PatientSidebar() {
           </button>
         </div>
 
-        {/* User identity card - Authoritative Profile Launcher */}
+        {/* User identity card */}
         <Link
           href="/profile"
-          title="View Profile"
+          title={isCollapsed ? "View Profile" : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-3 border-t border-border bg-muted/20 hover:bg-muted/60 transition-colors group",
-            !isEffectivelyExpanded && "justify-center px-2",
+            isCollapsed && "justify-center px-2",
             pathname.startsWith("/profile") && "bg-sky-500/10 dark:bg-sky-500/15"
           )}
         >
@@ -300,7 +307,7 @@ export function PatientSidebar() {
             className={pathname.startsWith("/profile") ? "ring-2 ring-sky-500" : ""}
           />
           <AnimatePresence>
-            {isEffectivelyExpanded && (
+            {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}

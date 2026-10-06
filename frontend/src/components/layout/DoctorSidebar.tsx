@@ -4,13 +4,14 @@ import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import { usePathname } from "@/i18n/routing"
 import {
- LayoutDashboard, Pill, LogOut, Settings, User, Users, ChevronRight, CalendarDays, PanelLeftClose, PanelLeftOpen
+  LayoutDashboard, Pill, LogOut, Settings, User, Users, ChevronRight, CalendarDays, PanelLeftClose, PanelLeftOpen
 } from "lucide-react"
 import { getInitials } from "@/lib/formatters"
 import { useAuthStore } from "@/store/authStore"
 import { useSidebarStore } from "@/store/sidebarStore"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -27,15 +28,16 @@ const bottomNavItems = [
 ]
 
 export function DoctorSidebar() {
- const pathname = usePathname()
- const logout = useAuthStore((state) => state.logout)
- const user = useAuthStore((state) => state.user)
- const { state: sidebarState, toggle: toggleSidebar } = useSidebarStore()
- const t = useTranslations("Navigation")
- const navItems = getNavItems(t)
+  const pathname = usePathname()
+  const logout = useAuthStore((state) => state.logout)
+  const user = useAuthStore((state) => state.user)
+  const { state: sidebarState, toggle: toggleSidebar } = useSidebarStore()
+  const t = useTranslations("Navigation")
+  const navItems = getNavItems(t)
 
- const initials = getInitials(user?.name)
- const isCollapsed = sidebarState === 'collapsed'
+  const initials = getInitials(user?.name)
+  const isCollapsed = sidebarState === 'collapsed'
+  const [headerHovered, setHeaderHovered] = useState(false)
 
  const handleLogout = async () => {
   const { useNotificationStore } = await import('@/store/notificationStore')
@@ -49,51 +51,73 @@ export function DoctorSidebar() {
   window.location.href = "/doctor/login"
  }
 
- return (
-  <motion.div 
-   initial={false}
-   animate={{ width: isCollapsed ? 72 : 256 }}
-   transition={{ type: "spring", stiffness: 300, damping: 30 }}
-   className="hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative z-20"
-  >
-   {/* ── Brand Header ── */}
-   <div className="flex items-center h-[64px] px-4 border-b border-border shrink-0">
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-     <Image 
-      src="/favicon.svg" 
-      alt="CareFlow Logo" 
-      width={30} 
-      height={30} 
-      className="h-[30px] w-[30px] shrink-0"
-      priority
-     />
-     <AnimatePresence>
-      {!isCollapsed && (
-       <motion.span 
-        initial={{ opacity: 0, width: 0 }}
-        animate={{ opacity: 1, width: "auto" }}
-        exit={{ opacity: 0, width: 0 }}
-        transition={{ duration: 0.2 }}
-        className="font-brand text-[17px] font-bold text-foreground tracking-tight whitespace-nowrap overflow-hidden"
-       >
-        CareFlow <span className="text-sky-500">AI</span>
-        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded ml-2 align-middle">Doctor</span>
-       </motion.span>
-      )}
-     </AnimatePresence>
-    </div>
-    {/* Sidebar toggle — lives in the header */}
-    <button
-     onClick={toggleSidebar}
-     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-     className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+  return (
+    <motion.div
+      initial={false}
+      animate={{ width: isCollapsed ? 72 : 256 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="hidden md:flex flex-col border-r border-border bg-card h-screen shrink-0 relative z-20"
     >
-     {isCollapsed
-      ? <PanelLeftOpen className="h-[17px] w-[17px]" />
-      : <PanelLeftClose className="h-[17px] w-[17px]" />
-     }
-    </button>
-   </div>
+      {/* ── Brand Header ── */}
+      {isCollapsed ? (
+        // Collapsed: centered logo, cross-fades to expand button on hover
+        <div
+          onMouseEnter={() => setHeaderHovered(true)}
+          onMouseLeave={() => setHeaderHovered(false)}
+          onClick={toggleSidebar}
+          title="Expand sidebar"
+          className="relative flex items-center justify-center h-[64px] border-b border-border shrink-0 cursor-pointer"
+        >
+          {/* Logo — fades out on hover */}
+          <div className={cn(
+            "transition-all duration-200 flex items-center justify-center",
+            headerHovered ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
+          )}>
+            <Image
+              src="/favicon.svg"
+              alt="CareFlow Logo"
+              width={30}
+              height={30}
+              className="h-[30px] w-[30px] shrink-0"
+              priority
+            />
+          </div>
+          {/* Expand toggle — fades in on hover */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-200",
+            headerHovered ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+          )}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted text-foreground shadow-sm">
+              <PanelLeftOpen className="h-5 w-5 text-sky-500" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Expanded: logo + brand name + Doctor badge + collapse button
+        <div className="flex items-center h-[64px] px-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Image
+              src="/favicon.svg"
+              alt="CareFlow Logo"
+              width={30}
+              height={30}
+              className="h-[30px] w-[30px] shrink-0"
+              priority
+            />
+            <span className="font-brand text-[17px] font-bold text-foreground tracking-tight whitespace-nowrap overflow-hidden">
+              CareFlow <span className="text-sky-500">AI</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded ml-2 align-middle">Doctor</span>
+            </span>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            title="Collapse sidebar"
+            className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+          >
+            <PanelLeftClose className="h-[17px] w-[17px]" />
+          </button>
+        </div>
+      )}
 
    {/* ── Main Nav ── */}
    <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto no-scrollbar">
