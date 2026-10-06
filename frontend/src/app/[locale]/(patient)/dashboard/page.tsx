@@ -18,6 +18,10 @@ import { useTranslations } from "next-intl"
 import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 import { motion } from "framer-motion"
+import { ElderDashboardView } from "@/components/dashboard/elder/ElderDashboardView"
+import { DailyCheckInWidget, DailyChecklistWidget, HelpWidget } from "@/components/patient"
+import { ShieldCheck } from "lucide-react"
+import { useElderStore } from "@/store/elderStore"
 
  interface Report {
   id: string
@@ -72,6 +76,7 @@ export default function DashboardPage() {
  const greeting = t("greeting") || getGreeting()
  const [explainSimply, setExplainSimply] = useState(false)
  const [viewingReport, setViewingReport] = useState<Report | null>(null)
+ const { isElderMode, highContrast: isHighContrast, toggleElderMode, toggleHighContrast } = useElderStore()
 
  const { data, error, isLoading, mutate } = useSWR<Report[]>(
   API_ROUTES.REPORTS.LIST, 
@@ -222,171 +227,271 @@ export default function DashboardPage() {
   ]
 
  return (
-  <div className="space-y-8">
-   {/* Dynamic Action Items */}
-   {!kpiLoading && kpiData?.action_items && kpiData.action_items.length > 0 && (
-    <div className="space-y-3">
-     {kpiData.action_items.map((item, idx) => (
-      <div key={idx} className={cn(
-       "border rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden",
-       item.type === 'warning' ? "bg-rose-500/10 border-rose-500/20" : "bg-amber-500/10 border-amber-500/20"
-      )}>
-       <div className="absolute top-0 right-0 p-4 opacity-10">
-        <AlertCircle className={cn("w-24 h-24", item.type === 'warning' ? "text-rose-500" : "text-amber-500")} />
+  <div className={cn("space-y-8", isHighContrast && "high-contrast-mode")}>
+   {/* Experience Mode Switcher & Emergency Toolbar */}
+   <div className={cn(
+     "p-4 rounded-2xl border-2 flex flex-wrap items-center justify-between gap-4 shadow-sm transition-colors",
+     isHighContrast
+       ? "bg-black border-yellow-400 text-white"
+       : "bg-card border-border"
+   )}>
+     <div className="flex items-center gap-3">
+       <div className={cn(
+         "w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xl shrink-0",
+         isElderMode
+           ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+           : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+       )}>
+         {isElderMode ? "👴" : "🏥"}
        </div>
-       <div className="flex items-center gap-3 relative z-10">
-        <div className={cn("p-2.5 rounded-xl", item.type === 'warning' ? "bg-rose-500/20" : "bg-amber-500/20")}>
-         <Flame className={cn("w-5 h-5 animate-pulse", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")} />
-        </div>
-        <div>
-         <h3 className={cn("text-sm font-bold", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-700 dark:text-amber-500")}>
-          {item.title}
-         </h3>
-         <p className={cn("text-sm font-medium", item.type === 'warning' ? "text-rose-600/80 dark:text-rose-400/80" : "text-amber-700/80 dark:text-amber-500/80")}>
-          {item.description}
+       <div>
+         <div className="flex items-center gap-2">
+           <span className="font-extrabold text-base sm:text-lg text-foreground">
+             {isElderMode ? "Senior & Elder Core View Active" : "CareFlow Patient View"}
+           </span>
+           {isElderMode && (
+             <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+               Accessible View
+             </span>
+           )}
+         </div>
+         <p className="text-xs sm:text-sm text-muted-foreground">
+           {isElderMode
+             ? "High contrast, simplified routine checklist, one-tap medication logging & direct help shortcuts"
+             : "You can switch to Senior / Elder mode anytime for high legibility, oversized touch targets, and daily routines"}
          </p>
-        </div>
        </div>
-       {item.action_label && (
-        <button 
-         onClick={() => {
-          if (item.action_url) {
-           window.location.href = item.action_url
-          }
-         }}
-         className={cn(
-          "text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shrink-0 relative z-10 shadow-sm",
-          item.type === 'warning' ? "bg-rose-500 hover:bg-rose-600" : "bg-amber-500 hover:bg-amber-600"
-         )}
-        >
-         {item.action_label}
-        </button>
-       )}
-      </div>
-     ))}
-    </div>
-   )}
-
-    {/* Pending Follow-ups */}
-    {pendingFollowUps.length > 0 && (
-      <div className="space-y-3">
-        {pendingFollowUps.map(fu => (
-          <div key={fu.id} className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-sky-100 dark:bg-sky-800 rounded-xl text-sky-600 dark:text-sky-300">
-                <CalendarDays className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground">Follow-up Requested</h3>
-                <p className="text-sm text-muted-foreground">
-                  Dr. {fu.doctor_name} scheduled a follow-up for <span className="font-semibold text-foreground">{new Date(fu.appointment_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>.
-                </p>
-                {fu.notes && <p className="text-sm italic text-muted-foreground mt-1">"{fu.notes}"</p>}
-              </div>
-            </div>
-            {declineId === fu.id ? (
-              <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <input 
-                  type="text" 
-                  value={declineReason}
-                  onChange={(e) => setDeclineReason(e.target.value)}
-                  placeholder="Reason for declining..."
-                  className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm w-full sm:w-64"
-                />
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => setDeclineId(null)}
-                    className="flex-1 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={() => handleDeclineFollowUp(fu.id)}
-                    disabled={submitting}
-                    className="flex-1 px-3 py-1.5 text-xs font-semibold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
-                  >
-                    Confirm Decline
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button 
-                  onClick={() => setDeclineId(fu.id)}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-slate-800 border border-border hover:bg-muted text-sm font-semibold rounded-xl transition-colors"
-                >
-                  Decline
-                </button>
-                <button 
-                  onClick={() => handleConfirmFollowUp(fu.id)}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  Confirm
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    )}
-
-   {/* Welcome Banner */}
-   <div className="flex items-start justify-between gap-4">
-    <div>
-     <h1 className="text-2xl font-bold text-foreground mb-1">
-      {greeting}, {firstName}
-     </h1>
-     <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
-       <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
-       {!kpiLoading && kpiData?.assigned_doctor_name && (
-         <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
-           <Stethoscope className="w-3.5 h-3.5" />
-           <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
-         </Link>
-       )}
      </div>
-    </div>
+
+     <div className="flex flex-wrap items-center gap-2.5">
+       {/* High Contrast Toggle */}
+       <button
+         onClick={toggleHighContrast}
+         className={cn(
+           "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all border cursor-pointer",
+           isHighContrast
+             ? "bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300"
+             : "bg-muted hover:bg-muted/80 text-foreground border-border"
+         )}
+         title="Toggle high contrast colors"
+       >
+         <Eye className="w-4 h-4" />
+         <span>{isHighContrast ? "Normal Contrast" : "High Contrast"}</span>
+       </button>
+
+       {/* Mode Switcher Button */}
+       <button
+         onClick={toggleElderMode}
+         className={cn(
+           "min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all shadow-sm border cursor-pointer",
+           isElderMode
+             ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500"
+             : "bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800"
+         )}
+       >
+         <ShieldCheck className="w-4 h-4" />
+         <span>{isElderMode ? "Switch to Standard View" : "👓 Senior / Elder Mode"}</span>
+       </button>
+
+       {/* Emergency Help Button */}
+       <HelpWidget
+         compact={true}
+         highContrast={isHighContrast}
+         assignedDoctorName={kpiData?.assigned_doctor_name}
+         assignedDoctorPhone={undefined}
+       />
+     </div>
    </div>
 
-   {/* Stat Cards */}
-   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-    {statCards.map((stat, i) => (
-     <motion.div
-      key={stat.label}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: i * 0.1 }}
-      whileHover={{ scale: 1.02, y: -4 }}
-      className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
-     >
-      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-0 group-hover:opacity-10 transition-all duration-500 blur-2xl ${stat.iconColor.split(' ')[0].replace('text-', 'bg-')}`} />
-      <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform duration-300`}>
-       <stat.icon className={`h-5 w-5 ${stat.iconColor} ${stat.urgent ? "animate-pulse" : ""}`} />
-      </div>
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 relative z-10">
-       {stat.label}
-      </p>
-      <div className="flex items-center justify-between gap-3 mb-2 relative z-10">
-       <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-       {stat.progress !== undefined && (
-        <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
-         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="14" fill="none" className="stroke-muted" strokeWidth="4" />
-          <circle 
-           cx="18" cy="18" r="14" fill="none" className="stroke-emerald-500 transition-all duration-1000 ease-out" 
-           strokeWidth="4" strokeDasharray="88" strokeDashoffset={88 - (88 * stat.progress) / 100} strokeLinecap="round" 
-          />
-         </svg>
-         <span className="absolute text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{Math.round(stat.progress)}%</span>
+   {/* Active View: Elder Core Experience or Standard Patient View */}
+   {isElderMode ? (
+     <ElderDashboardView
+       patient={user}
+       kpiData={kpiData}
+       onRefreshKpis={mutateKpi}
+       highContrast={isHighContrast}
+       onToggleHighContrast={toggleHighContrast}
+     />
+   ) : (
+     <>
+       {/* In Standard Mode, also surface Today's Wellness Check-in & Checklist */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <DailyCheckInWidget
+           highContrast={isHighContrast}
+           onCheckinSuccess={mutateKpi}
+         />
+         <DailyChecklistWidget
+           highContrast={isHighContrast}
+           onItemUpdated={mutateKpi}
+         />
+       </div>
+
+       {/* Dynamic Action Items */}
+       {!kpiLoading && kpiData?.action_items && kpiData.action_items.length > 0 && (
+        <div className="space-y-3">
+         {kpiData.action_items.map((item, idx) => (
+          <div key={idx} className={cn(
+           "border rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden",
+           item.type === 'warning' ? "bg-rose-500/10 border-rose-500/20" : "bg-amber-500/10 border-amber-500/20"
+          )}>
+           <div className="absolute top-0 right-0 p-4 opacity-10">
+            <AlertCircle className={cn("w-24 h-24", item.type === 'warning' ? "text-rose-500" : "text-amber-500")} />
+           </div>
+           <div className="flex items-center gap-3 relative z-10">
+            <div className={cn("p-2.5 rounded-xl", item.type === 'warning' ? "bg-rose-500/20" : "bg-amber-500/20")}>
+             <Flame className={cn("w-5 h-5 animate-pulse", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")} />
+            </div>
+            <div>
+             <h3 className={cn("text-sm font-bold", item.type === 'warning' ? "text-rose-600 dark:text-rose-400" : "text-amber-700 dark:text-amber-500")}>
+              {item.title}
+             </h3>
+             <p className={cn("text-sm font-medium", item.type === 'warning' ? "text-rose-600/80 dark:text-rose-400/80" : "text-amber-700/80 dark:text-amber-500/80")}>
+              {item.description}
+             </p>
+            </div>
+           </div>
+           {item.action_label && (
+            <button 
+             onClick={() => {
+              if (item.action_url) {
+               window.location.href = item.action_url
+              }
+             }}
+             className={cn(
+              "text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shrink-0 relative z-10 shadow-sm",
+              item.type === 'warning' ? "bg-rose-500 hover:bg-rose-600" : "bg-amber-500 hover:bg-amber-600"
+             )}
+            >
+             {item.action_label}
+            </button>
+           )}
+          </div>
+         ))}
         </div>
        )}
-      </div>
-      <p className={cn("text-xs relative z-10 font-medium", stat.urgent ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground/80")}>
-       {stat.sub}
-      </p>
-     </motion.div>
-     ))}
-    </div>
+
+       {/* Pending Follow-ups */}
+       {pendingFollowUps.length > 0 && (
+         <div className="space-y-3">
+           {pendingFollowUps.map(fu => (
+             <div key={fu.id} className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+               <div className="flex items-center gap-3">
+                 <div className="p-3 bg-sky-100 dark:bg-sky-800 rounded-xl text-sky-600 dark:text-sky-300">
+                   <CalendarDays className="w-6 h-6" />
+                 </div>
+                 <div>
+                   <h3 className="font-bold text-foreground">Follow-up Requested</h3>
+                   <p className="text-sm text-muted-foreground">
+                     Dr. {fu.doctor_name} scheduled a follow-up for <span className="font-semibold text-foreground">{new Date(fu.appointment_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>.
+                   </p>
+                   {fu.notes && <p className="text-sm italic text-muted-foreground mt-1">"{fu.notes}"</p>}
+                 </div>
+               </div>
+               {declineId === fu.id ? (
+                 <div className="flex flex-col gap-2 w-full sm:w-auto">
+                   <input 
+                     type="text" 
+                     value={declineReason}
+                     onChange={(e) => setDeclineReason(e.target.value)}
+                     placeholder="Reason for declining..."
+                     className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm w-full sm:w-64"
+                   />
+                   <div className="flex gap-2">
+                     <button 
+                       onClick={() => setDeclineId(null)}
+                       className="flex-1 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                     >
+                       Cancel
+                     </button>
+                     <button 
+                       onClick={() => handleDeclineFollowUp(fu.id)}
+                       disabled={submitting}
+                       className="flex-1 px-3 py-1.5 text-xs font-semibold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
+                     >
+                       Confirm Decline
+                     </button>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <button 
+                     onClick={() => setDeclineId(fu.id)}
+                     className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-slate-800 border border-border hover:bg-muted text-sm font-semibold rounded-xl transition-colors"
+                   >
+                     Decline
+                   </button>
+                   <button 
+                     onClick={() => handleConfirmFollowUp(fu.id)}
+                     className="flex-1 sm:flex-none px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                   >
+                     Confirm
+                   </button>
+                 </div>
+               )}
+             </div>
+           ))}
+         </div>
+       )}
+
+       {/* Welcome Banner */}
+       <div className="flex items-start justify-between gap-4">
+        <div>
+         <h1 className="text-2xl font-bold text-foreground mb-1">
+          {greeting}, {firstName}
+         </h1>
+         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+           <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
+           {!kpiLoading && kpiData?.assigned_doctor_name && (
+             <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+               <Stethoscope className="w-3.5 h-3.5" />
+               <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
+             </Link>
+           )}
+         </div>
+        </div>
+       </div>
+
+       {/* Stat Cards */}
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {statCards.map((stat, i) => (
+         <motion.div
+          key={stat.label}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: i * 0.1 }}
+          whileHover={{ scale: 1.02, y: -4 }}
+          className="bg-card rounded-2xl border border-border shadow-sm p-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
+         >
+          <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-0 group-hover:opacity-10 transition-all duration-500 blur-2xl ${stat.iconColor.split(' ')[0].replace('text-', 'bg-')}`} />
+          <div className={`h-10 w-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform duration-300`}>
+           <stat.icon className={`h-5 w-5 ${stat.iconColor} ${stat.urgent ? "animate-pulse" : ""}`} />
+          </div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 relative z-10">
+           {stat.label}
+          </p>
+          <div className="flex items-center justify-between gap-3 mb-2 relative z-10">
+           <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+           {stat.progress !== undefined && (
+            <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
+             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="14" fill="none" className="stroke-muted" strokeWidth="4" />
+              <circle 
+               cx="18" cy="18" r="14" fill="none" className="stroke-emerald-500 transition-all duration-1000 ease-out" 
+               strokeWidth="4" strokeDasharray="88" strokeDashoffset={88 - (88 * stat.progress) / 100} strokeLinecap="round" 
+              />
+             </svg>
+             <span className="absolute text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{Math.round(stat.progress)}%</span>
+            </div>
+           )}
+          </div>
+          <p className={cn("text-xs relative z-10 font-medium", stat.urgent ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground/80")}>
+           {stat.sub}
+          </p>
+         </motion.div>
+         ))}
+        </div>
+     </>
+   )}
 
    {/* Doctor's Memo */}
    {!kpiLoading && kpiData?.latest_memo && (

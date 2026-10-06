@@ -44,6 +44,15 @@ export const API_ROUTES = {
   KPIS: "/api/dashboard/kpis",
   MEMOS: "/api/dashboard/memos",
  },
+ CHECKLIST: {
+  TODAY: "/api/v1/checklist/today",
+  COMPLETE: (id: string) => `/api/v1/checklist/${id}/complete`,
+  SKIP: (id: string) => `/api/v1/checklist/${id}/skip`,
+ },
+ CHECKINS: {
+  SUBMIT: "/api/v1/checkins",
+  HISTORY: "/api/v1/checkins/history",
+ },
 } as const
 
 export const APP_ROUTES = {
