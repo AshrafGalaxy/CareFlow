@@ -4,6 +4,7 @@ import Script from "next/script"
 import { Outfit, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Noto_Sans_Devanagari, Noto_Nastaliq_Urdu, Noto_Sans_Telugu, Noto_Sans_Gujarati, Noto_Sans_Tamil, Noto_Sans_Bengali } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { PageTransition } from "@/components/ui/page-transition"
+import { PageTitleSync } from "@/components/layout/PageTitleSync"
 import "../globals.css"
 
 const manrope = Manrope({
@@ -68,7 +69,10 @@ const notoSansBengali = Noto_Sans_Bengali({
 })
 
 export const metadata: Metadata = {
- title: "CareFlow AI — Your Intelligent Healthcare Companion",
+ title: {
+  default: "CareFlow AI",
+  template: "%s · CareFlow AI",
+ },
  description:
   "Upload lab reports, track medications, and navigate PM-JAY insurance schemes with the power of AI. Built for Indian patients.",
  keywords: ["healthcare", "lab reports", "medications", "PM-JAY", "India", "AI health"],
@@ -153,6 +157,7 @@ export default async function RootLayout({
      <NextIntlClientProvider messages={messages}>
       <div id="google_translate_element" style={{ display: 'none' }}></div>
       <Suspense fallback={null}>
+       <PageTitleSync />
        <PageTransition />
       </Suspense>
       {children}
