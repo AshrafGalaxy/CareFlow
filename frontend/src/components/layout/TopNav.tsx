@@ -8,6 +8,7 @@ import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import { AccessibilityMenu } from "@/components/ui/accessibility-menu"
 import { RelativeTime } from "@/components/ui/relative-time"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect } from "react"
@@ -173,8 +174,9 @@ export function TopNav() {
      </PopoverContent>
     </Popover>
 
-    {/* Theme Toggle & Language */}
+    {/* Display, Theme & Language Controls */}
     <div className="flex items-center gap-1.5 bg-slate-100/50 dark:bg-slate-800/30 p-1 rounded-xl">
+     <AccessibilityMenu />
      <ThemeToggle />
      <LanguageSwitcher />
     </div>

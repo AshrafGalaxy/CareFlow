@@ -127,6 +127,15 @@
   html {
     @apply scroll-smooth;
   }
+  html.high-contrast-mode {
+    filter: contrast(1.18);
+  }
+  html.font-scale-large {
+    font-size: 112.5%;
+  }
+  html.font-scale-xlarge {
+    font-size: 125%;
+  }
   
   ::selection {
     @apply bg-sky-100 text-sky-900;

@@ -8,20 +8,33 @@ if db_url.startswith("sqlite"):
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
 else:
     try:
-        engine = create_engine(
+        candidate_engine = create_engine(
             db_url,
             pool_pre_ping=True,
             pool_size=10,
             max_overflow=20,
             pool_recycle=1800,
-            pool_timeout=30
+            pool_timeout=3
         )
-    except Exception:
+        with candidate_engine.connect() as conn:
+            pass
+        engine = candidate_engine
+    except Exception as e:
+        print(f"[CareFlow DB] Primary database connection failed. Falling back to local SQLite (careflow.db).")
         engine = create_engine("sqlite:///./careflow.db", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+def init_db():
+    try:
+        import app.models  # noqa
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[CareFlow DB] Table initialization error: {e}")
+
+init_db()
 
 def get_db():
     db = SessionLocal()

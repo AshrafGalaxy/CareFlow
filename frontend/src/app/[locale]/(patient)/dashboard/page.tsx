@@ -19,8 +19,7 @@ import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 import { motion } from "framer-motion"
 import { ElderDashboardView } from "@/components/dashboard/elder/ElderDashboardView"
-import { DailyCheckInWidget, DailyChecklistWidget, HelpWidget } from "@/components/patient"
-import { ShieldCheck } from "lucide-react"
+import { DailyCheckInWidget, DailyChecklistWidget } from "@/components/patient"
 import { useElderStore } from "@/store/elderStore"
 
  interface Report {
@@ -228,82 +227,7 @@ export default function DashboardPage() {
 
  return (
   <div className={cn("space-y-8", isHighContrast && "high-contrast-mode")}>
-   {/* Experience Mode Switcher & Emergency Toolbar */}
-   <div className={cn(
-     "p-4 rounded-2xl border-2 flex flex-wrap items-center justify-between gap-4 shadow-sm transition-colors",
-     isHighContrast
-       ? "bg-black border-yellow-400 text-white"
-       : "bg-card border-border"
-   )}>
-     <div className="flex items-center gap-3">
-       <div className={cn(
-         "w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xl shrink-0",
-         isElderMode
-           ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
-           : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-       )}>
-         {isElderMode ? "👴" : "🏥"}
-       </div>
-       <div>
-         <div className="flex items-center gap-2">
-           <span className="font-extrabold text-base sm:text-lg text-foreground">
-             {isElderMode ? "Senior & Elder Core View Active" : "CareFlow Patient View"}
-           </span>
-           {isElderMode && (
-             <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-               Accessible View
-             </span>
-           )}
-         </div>
-         <p className="text-xs sm:text-sm text-muted-foreground">
-           {isElderMode
-             ? "High contrast, simplified routine checklist, one-tap medication logging & direct help shortcuts"
-             : "You can switch to Senior / Elder mode anytime for high legibility, oversized touch targets, and daily routines"}
-         </p>
-       </div>
-     </div>
-
-     <div className="flex flex-wrap items-center gap-2.5">
-       {/* High Contrast Toggle */}
-       <button
-         onClick={toggleHighContrast}
-         className={cn(
-           "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all border cursor-pointer",
-           isHighContrast
-             ? "bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300"
-             : "bg-muted hover:bg-muted/80 text-foreground border-border"
-         )}
-         title="Toggle high contrast colors"
-       >
-         <Eye className="w-4 h-4" />
-         <span>{isHighContrast ? "Normal Contrast" : "High Contrast"}</span>
-       </button>
-
-       {/* Mode Switcher Button */}
-       <button
-         onClick={toggleElderMode}
-         className={cn(
-           "min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all shadow-sm border cursor-pointer",
-           isElderMode
-             ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500"
-             : "bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800"
-         )}
-       >
-         <ShieldCheck className="w-4 h-4" />
-         <span>{isElderMode ? "Switch to Standard View" : "👓 Senior / Elder Mode"}</span>
-       </button>
-
-       {/* Emergency Help Button */}
-       <HelpWidget
-         compact={true}
-         highContrast={isHighContrast}
-         assignedDoctorName={kpiData?.assigned_doctor_name}
-         assignedDoctorPhone={undefined}
-       />
-     </div>
-   </div>
-
-   {/* Active View: Elder Core Experience or Standard Patient View */}
+   {/* Active View: Accessible / Senior View or Standard Patient View */}
    {isElderMode ? (
      <ElderDashboardView
        patient={user}

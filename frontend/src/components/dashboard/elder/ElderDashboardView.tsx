@@ -48,55 +48,20 @@ export function ElderDashboardView({
         highContrast ? "bg-black text-white p-3 sm:p-5 rounded-3xl border-2 border-yellow-400" : ""
       )}
     >
-      {/* Elder Accessibility Toolbar */}
+      {/* Senior Mode Active Indicator */}
       <div
         className={cn(
-          "flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl border-2 shadow-sm transition-colors",
+          "flex items-center justify-between gap-3 p-3.5 px-4 rounded-xl border transition-colors",
           highContrast
             ? "bg-zinc-950 border-yellow-400 text-yellow-300"
-            : "bg-card border-emerald-500/30"
+            : "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-500/20"
         )}
       >
         <div className="flex items-center gap-2.5">
-          <ShieldCheck className="w-6 h-6 text-emerald-500 shrink-0" />
-          <div>
-            <span className="font-extrabold text-sm sm:text-base tracking-wide uppercase text-emerald-600 dark:text-emerald-400 block">
-              CareFlow Senior & Elder Mode Active
-            </span>
-            <span className="text-xs text-muted-foreground font-medium">
-              Simplified navigation · High touch targets · Direct assistance
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={toggleHighContrast}
-            className={cn(
-              "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all border cursor-pointer",
-              highContrast
-                ? "bg-yellow-400 text-black border-yellow-400 hover:bg-yellow-300"
-                : "bg-muted hover:bg-muted/80 text-foreground border-border"
-            )}
-            title="Toggle high contrast color scheme"
-          >
-            <Eye className="w-4 h-4" />
-            <span>{highContrast ? "Normal Contrast" : "High Contrast"}</span>
-          </button>
-
-          <button
-            onClick={toggleLargeText}
-            className={cn(
-              "min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all border cursor-pointer",
-              largeText
-                ? "bg-sky-600 text-white border-sky-600 hover:bg-sky-700"
-                : "bg-muted hover:bg-muted/80 text-foreground border-border"
-            )}
-            title="Toggle extra large font size"
-          >
-            <Type className="w-4 h-4" />
-            <span>{largeText ? "Standard Text" : "Large Text"}</span>
-          </button>
+          <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
+          <p className="text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+            Senior & Accessible View Active <span className="font-normal text-muted-foreground hidden sm:inline">· You can switch back or adjust display scale anytime in the top bar.</span>
+          </p>
         </div>
       </div>
 

@@ -8,17 +8,19 @@ interface ElderStore {
   toggleElderMode: () => void
   toggleHighContrast: () => void
   setFontSize: (size: 'normal' | 'large' | 'xlarge') => void
+  resetDefaults: () => void
 }
 
 export const useElderStore = create<ElderStore>()(
   persist(
     (set) => ({
-      isElderMode: true, // Default to true for Phase 1 Elder Core emphasis
+      isElderMode: false,
       highContrast: false,
-      fontSize: 'large',
+      fontSize: 'normal',
       toggleElderMode: () => set((state) => ({ isElderMode: !state.isElderMode })),
       toggleHighContrast: () => set((state) => ({ highContrast: !state.highContrast })),
       setFontSize: (fontSize) => set({ fontSize }),
+      resetDefaults: () => set({ isElderMode: false, highContrast: false, fontSize: 'normal' }),
     }),
     {
       name: 'careflow-elder-mode',
