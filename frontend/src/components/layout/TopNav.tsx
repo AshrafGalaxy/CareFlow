@@ -3,13 +3,14 @@
 import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Activity } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { useNotificationStore } from "@/store/notificationStore"
-import { usePathname } from "@/i18n/routing"
+import { usePathname, Link } from "@/i18n/routing"
 import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { AccessibilityMenu } from "@/components/ui/accessibility-menu"
 import { RelativeTime } from "@/components/ui/relative-time"
+import { OpenPeepAvatar } from "@/components/shared/OpenPeepAvatar"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect } from "react"
 
@@ -182,9 +183,16 @@ export function TopNav() {
     </div>
 
     {/* Avatar */}
-    <div className="h-9 w-9 ml-1 rounded-full bg-gradient-to-tr from-sky-500 to-emerald-400 text-white flex items-center justify-center text-xs font-bold ring-2 ring-sky-100 dark:ring-slate-800 shadow-sm transition-transform hover:scale-105 cursor-pointer">
-     {initials}
-    </div>
+    <Link href="/profile" className="ml-1 shrink-0" title="View Profile">
+      <OpenPeepAvatar
+        avatarId={user?.avatar_id}
+        name={user?.name}
+        gender={user?.gender}
+        role={user?.role}
+        dob={user?.date_of_birth}
+        size="sm"
+      />
+    </Link>
    </div>
   </header>
  )

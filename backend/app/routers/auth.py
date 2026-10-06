@@ -28,6 +28,31 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user_in.password)
+    
+    # Auto-assign Open Peeps avatar based on role, gender, and age
+    avatar = user_in.avatar_id
+    if not avatar:
+        gender = getattr(user_in, 'gender', None)
+        dob = getattr(user_in, 'date_of_birth', None)
+        if user_in.role == "doctor":
+            avatar = "doctor-female" if gender == "female" else "doctor-male"
+        else:
+            is_senior = False
+            if dob:
+                from datetime import date
+                today = date.today()
+                age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                is_senior = age >= 60
+
+            if is_senior:
+                avatar = "female-elder" if gender == "female" else "male-elder"
+            elif gender == "female":
+                avatar = "female-young"
+            elif gender == "male":
+                avatar = "male-young"
+            else:
+                avatar = "female-young" if (len(user_in.name) % 2 == 0) else "male-young"
+
     new_user = User(
         email=user_in.email,
         password_hash=hashed_password,
@@ -40,7 +65,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         preferred_locale=user_in.preferred_locale,
         blood_group=user_in.blood_group,
         emergency_contact_name=user_in.emergency_contact_name,
-        emergency_contact_phone=user_in.emergency_contact_phone
+        emergency_contact_phone=user_in.emergency_contact_phone,
+        gender=user_in.gender,
+        avatar_id=avatar
     )
     db.add(new_user)
     db.commit()

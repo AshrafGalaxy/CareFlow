@@ -25,6 +25,8 @@ class User(Base):
     weight = Column(Float)
     emergency_contact_name = Column(String(255))
     emergency_contact_phone = Column(String(20))
+    gender = Column(String(20), nullable=True)
+    avatar_id = Column(String(50), nullable=True)
     is_active = Column(Boolean, default=True)
     push_subscription = Column(JSONVariant, nullable=True)
     provider_profile = relationship("ProviderProfile", back_populates="user", uselist=False)

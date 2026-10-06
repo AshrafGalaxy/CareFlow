@@ -43,6 +43,8 @@ ronit/
 # Uploads and temp media
 frontend/public/uploads/
 backend/fake_report.png
+*.ai
+*.pdf*
 
 # Ephemeral scripts
 dev.*

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#DBEAFE"/>
+  <!-- Torso / Lab Coat -->
+  <path d="M22 98 C24 82 35 76 50 76 C65 76 76 82 78 98 Z" fill="#F8FAFC" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Inner Scrubs -->
+  <path d="M44 76 L50 85 L56 76" fill="#0284C7" stroke="#0284C7" stroke-width="1.8"/>
+  <!-- Stethoscope around neck -->
+  <path d="M37 77 C36 84 40 92 46 94" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <path d="M63 77 C64 84 60 92 54 94" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <circle cx="50" cy="95" r="3" fill="#94A3B8" stroke="#0F172A" stroke-width="1.8"/>
+  <!-- Neck -->
+  <path d="M42 65 L42 75 C42 78 58 78 58 75 L58 65" fill="#FED7AA" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Face -->
+  <path d="M34 44 C34 62 42 68 50 68 C58 68 66 62 66 44 C66 32 58 28 50 28 C42 28 34 32 34 44 Z" fill="#FED7AA" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Ears -->
+  <path d="M34 46 C32 46 32 52 34 52" stroke="#1E293B" stroke-width="2" fill="#FED7AA"/>
+  <path d="M66 46 C68 46 68 52 66 52" stroke="#1E293B" stroke-width="2" fill="#FED7AA"/>
+  <!-- Short Professional Hair -->
+  <path d="M32 40 C31 30 38 22 50 22 C62 22 69 30 68 40 C64 34 60 31 55 32 C50 29 45 30 40 33 C36 33 33 36 32 40 Z" fill="#1E293B" stroke="#1E293B" stroke-width="2"/>
+  <!-- Eyebrows -->
+  <path d="M40 42 Q44 40 47 42" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <path d="M53 42 Q56 40 60 42" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <!-- Eyes -->
+  <circle cx="44" cy="46" r="1.8" fill="#1E293B"/>
+  <circle cx="56" cy="46" r="1.8" fill="#1E293B"/>
+  <!-- Nose -->
+  <path d="M50 46 L49 52 L53 52" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Smile -->
+  <path d="M44 57 Q50 62 56 57" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+</svg>

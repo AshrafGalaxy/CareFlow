@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#CCFBF1"/>
+  <!-- Torso / Button Shirt -->
+  <path d="M22 98 C24 82 35 76 50 76 C65 76 76 82 78 98 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Neck -->
+  <path d="M42 65 L42 75 C42 78 58 78 58 75 L58 65" fill="#FED7AA" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Face -->
+  <path d="M34 44 C34 62 42 68 50 68 C58 68 66 62 66 44 C66 32 58 28 50 28 C42 28 34 32 34 44 Z" fill="#FED7AA" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Receding Hair on sides -->
+  <path d="M32 44 C30 36 33 28 38 26 C36 34 35 40 35 48 Z" fill="#94A3B8"/>
+  <path d="M68 44 C70 36 67 28 62 26 C64 34 65 40 65 48 Z" fill="#94A3B8"/>
+  <path d="M34 46 C32 46 32 52 34 52" stroke="#1E293B" stroke-width="2" fill="#FED7AA"/>
+  <path d="M66 46 C68 46 68 52 66 52" stroke="#1E293B" stroke-width="2" fill="#FED7AA"/>
+  <!-- Eyebrows -->
+  <path d="M40 41 Q44 39 47 41" stroke="#64748B" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M53 41 Q56 39 60 41" stroke="#64748B" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Glasses -->
+  <rect x="39" y="44" width="9" height="7" rx="2" stroke="#1E293B" stroke-width="2" fill="none"/>
+  <rect x="52" y="44" width="9" height="7" rx="2" stroke="#1E293B" stroke-width="2" fill="none"/>
+  <path d="M48 47 L52 47" stroke="#1E293B" stroke-width="2"/>
+  <!-- Eyes -->
+  <circle cx="43.5" cy="47.5" r="1.3" fill="#1E293B"/>
+  <circle cx="56.5" cy="47.5" r="1.3" fill="#1E293B"/>
+  <!-- Nose -->
+  <path d="M50 48 L49 54 L53 54" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Smile & laugh lines -->
+  <path d="M44 59 Q50 64 56 59" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+</svg>

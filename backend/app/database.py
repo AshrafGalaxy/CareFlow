@@ -25,12 +25,21 @@ else:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+from sqlalchemy import text
+
 Base = declarative_base()
 
 def init_db():
     try:
         import app.models  # noqa
         Base.metadata.create_all(bind=engine)
+        with engine.connect() as conn:
+            for col in ["gender", "avatar_id"]:
+                try:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR(50);"))
+                    conn.commit()
+                except Exception:
+                    pass
     except Exception as e:
         print(f"[CareFlow DB] Table initialization error: {e}")
 

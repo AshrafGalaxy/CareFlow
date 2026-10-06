@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <circle cx="50" cy="50" r="48" fill="#DCFCE7"/>
+  <!-- Torso / Crew Tee -->
+  <path d="M22 98 C24 82 35 76 50 76 C65 76 76 82 78 98 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Neck -->
+  <path d="M42 65 L42 75 C42 78 58 78 58 75 L58 65" fill="#FDE68A" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Face -->
+  <path d="M34 44 C34 62 42 68 50 68 C58 68 66 62 66 44 C66 32 58 28 50 28 C42 28 34 32 34 44 Z" fill="#FDE68A" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Ears -->
+  <path d="M34 46 C32 46 32 52 34 52" stroke="#1E293B" stroke-width="2" fill="#FDE68A"/>
+  <path d="M66 46 C68 46 68 52 66 52" stroke="#1E293B" stroke-width="2" fill="#FDE68A"/>
+  <!-- Short Textured Hair -->
+  <path d="M32 40 C31 30 38 20 50 20 C62 20 69 30 68 40 C64 35 60 32 55 33 C50 30 45 31 40 34 C36 34 33 37 32 40 Z" fill="#1E293B" stroke="#1E293B" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Eyebrows -->
+  <path d="M40 43 Q44 41 47 43" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M53 43 Q56 41 60 43" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Eyes -->
+  <circle cx="44" cy="47" r="1.8" fill="#1E293B"/>
+  <circle cx="56" cy="47" r="1.8" fill="#1E293B"/>
+  <!-- Nose -->
+  <path d="M50 47 L49 53 L53 53" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Smile -->
+  <path d="M44 58 Q50 63 56 58" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+</svg>

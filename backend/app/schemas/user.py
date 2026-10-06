@@ -16,6 +16,8 @@ class UserBase(BaseModel):
     weight: Optional[float] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
+    gender: Optional[str] = None
+    avatar_id: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -55,6 +57,8 @@ class UserUpdate(BaseModel):
     weight: Optional[float] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
+    gender: Optional[str] = None
+    avatar_id: Optional[str] = None
     # Doctor specific fields
     nmc_registration_number: Optional[str] = None
     medical_council: Optional[str] = None

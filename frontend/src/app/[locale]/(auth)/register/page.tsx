@@ -18,6 +18,7 @@ type FormData = {
  email: string
  password: string
  confirmPassword: string
+ gender?: string
  terms: boolean
  nmcRegistrationNumber?: string
  medicalCouncil?: string
@@ -93,6 +94,7 @@ function RegisterContent() {
     email: data.email,
     password: data.password,
     role,
+    gender: data.gender || undefined,
     nmc_registration_number: role === "doctor" ? data.nmcRegistrationNumber : undefined,
     medical_council: role === "doctor" ? data.medicalCouncil : undefined,
     qualification_degree: role === "doctor" ? data.qualificationDegree : undefined,
@@ -259,7 +261,7 @@ function RegisterContent() {
            <div className="relative group">
              <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
              <input
-              placeholder="John Doe"
+              placeholder={role === "doctor" ? "e.g. Dr. Sarah Jenkins" : "e.g. Sarah Jenkins"}
               className={`relative w-full h-14 px-5 rounded-xl border text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 ${errors.name ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 focus:border-sky-500 hover:border-sky-300 dark:hover:border-sky-700"}`}
               {...register("name", { 
                required: "Name is required",
@@ -293,6 +295,25 @@ function RegisterContent() {
            </div>
            {errors.email && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-500 mt-1.5 ml-1"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.email.message}</p>}
           </div>
+        </div>
+
+        {/* Optional Gender for Auto-Avatar */}
+        <div className="space-y-2">
+         <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Gender (for portrait & health profile)</label>
+         <div className="relative">
+          <select
+           className="w-full h-14 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 text-foreground text-sm focus:ring-4 focus:ring-sky-500/20 shadow-sm outline-none transition-all duration-300 appearance-none cursor-pointer"
+           {...register("gender")}
+          >
+           <option value="">Select gender (optional)</option>
+           <option value="female">Female</option>
+           <option value="male">Male</option>
+           <option value="other">Other / Non-binary</option>
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+           <ChevronRight className="w-4 h-4 rotate-90" />
+          </div>
+         </div>
         </div>
 
         {/* Grid for Passwords */}
