@@ -1,5 +1,6 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="150 150 950 950">
-    <rect x="150" y="150" width="950" height="950" rx="150" ry="150" fill="white" />
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="136 114.25 980 980">
+    <rect x="136" y="114.25" width="980" height="980" rx="180" ry="180" fill="white" />
+    <g transform="translate(625.95, 604.25) scale(1.0205, 0.9875) translate(-625.95, -604.25)">
 <path fill="#0597F1" opacity="1.000000" stroke="#0597F1" stroke-width="14" stroke-linejoin="round" 
 	d="
 M503.902527,655.083496 
@@ -106,4 +107,5 @@ M657.616760,652.702393
 	C694.786987,609.405334 686.107422,630.755005 665.821228,647.257385 
 	C663.381592,649.241943 660.573425,650.773376 657.616760,652.702393 
 z"/>
+    </g>
 </svg>

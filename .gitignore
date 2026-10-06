@@ -1,53 +1,50 @@
+# Dependencies
 node_modules/
-__pycache__/
-.env
 venv/
 env/
+test_venv/
+backend/test_venv/
+
+# Build and cache
 .next/
-*.pyc
-faiss_indexes/
-.DS_Store
-
-*.md
-.env*
-
-# Logs and Data
-backend/data/
-backend/*.log
-backend/server_*.log
-backend/test.db
-node_modules/
 __pycache__/
-.env
-venv/
-env/
-.next/
 *.pyc
+.pytest_cache/
 faiss_indexes/
 .DS_Store
+.vscode/
 
-*.md
+# Environment and secrets
 .env*
+!.env.example
+backend/.env*
+!backend/.env.example
 
-# Logs and Data
-backend/data/
+# Markdown specs (keep only public README.md)
+*.md
+!README.md
+
+# Database and SQLite
+*.db
+*.sqlite*
+backend/test.db
+backend/careflow.db
+app.db
+
+# Logs and runtime data
+*.log
 backend/*.log
 backend/server_*.log
-backend/test.db
+backend/data/
+start.bat
+ronit/
 
-# Scripts and tests
+# Uploads and temp media
+frontend/public/uploads/
+backend/fake_report.png
+
+# Ephemeral scripts
 backend/test_*.py
 backend/check_reports.py
 backend/list_models.py
 backend/make_report.py
-start.bat
-.vscode/
-backend/fake_report.png
-
-!README.md
-.env
-backend/.env
-app.db
-*.db
-ronit/
-frontend/public/uploads/chat_images/
