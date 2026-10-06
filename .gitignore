@@ -20,9 +20,10 @@ faiss_indexes/
 backend/.env*
 !backend/.env.example
 
-# Markdown specs (keep only public README.md)
+# Markdown specs (keep only public README.md and .agents config)
 *.md
 !README.md
+!.agents/AGENTS.md
 
 # Database and SQLite
 *.db
