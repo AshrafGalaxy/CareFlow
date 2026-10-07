@@ -1,52 +1,76 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
-import { usePathname } from "@/i18n/routing"
-import { useEffect, useState } from "react"
-import { AnimatedLogo } from "./animated-logo"
-import { cn } from "@/lib/utils"
+import { usePathname, useSearchParams } from "next/navigation"
+import { useEffect, useState, useRef } from "react"
 
 export function PageTransition() {
- const pathname = usePathname()
- const searchParams = useSearchParams()
- const [isAnimating, setIsAnimating] = useState(true) // Play on initial load too
- const [isFadingOut, setIsFadingOut] = useState(false)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const prevPathRef = useRef(pathname)
 
- useEffect(() => {
-  // Trigger animation overlay when route changes
-   
-  setIsAnimating(true)
-  setIsFadingOut(false)
+  // Route change completion: swiftly finish and fade out
+  useEffect(() => {
+    if (prevPathRef.current !== pathname) {
+      prevPathRef.current = pathname
+      setProgress(100)
+      const timer = setTimeout(() => {
+        setLoading(false)
+        setProgress(0)
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [pathname, searchParams])
 
-  // The entire draw + fill + bounce takes about 1.5 seconds.
-  // Start fading out the overlay at 1.5s, completely remove it at 1.8s
-  const fadeOutTimer = setTimeout(() => {
-   setIsFadingOut(true)
-  }, 1500)
+  // Only show progress on internal link transitions
+  useEffect(() => {
+    let t1: NodeJS.Timeout
+    let t2: NodeJS.Timeout
 
-  const unmountTimer = setTimeout(() => {
-   setIsAnimating(false)
-  }, 1800)
+    const handleStart = () => {
+      setLoading(true)
+      setProgress(25)
+      t1 = setTimeout(() => setProgress(65), 180)
+      t2 = setTimeout(() => setProgress(88), 450)
+    }
 
-  return () => {
-   clearTimeout(fadeOutTimer)
-   clearTimeout(unmountTimer)
-  }
- }, [pathname, searchParams])
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement)?.closest("a")
+      if (
+        target &&
+        target.href &&
+        target.href.startsWith(window.location.origin) &&
+        !target.target &&
+        !target.hasAttribute("download")
+      ) {
+        const url = new URL(target.href)
+        if (url.pathname !== window.location.pathname) {
+          handleStart()
+        }
+      }
+    }
 
- if (!isAnimating) return null
+    document.addEventListener("click", handleClick)
+    return () => {
+      document.removeEventListener("click", handleClick)
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [])
 
- return (
-  <div 
-   className={cn(
-    "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-card/95 backdrop-blur-md transition-opacity duration-300",
-    isFadingOut ? "opacity-0" : "opacity-100"
-   )}
-  >
-   <div className="flex flex-col items-center gap-6">
-    {/* Force re-render of logo to restart CSS animations when pathname changes */}
-    <AnimatedLogo key={pathname} className="w-24 h-24" />
-   </div>
-  </div>
- )
+  if (!loading && progress === 0) return null
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none transition-opacity duration-200"
+      style={{ opacity: progress === 100 ? 0 : 1 }}
+      aria-hidden="true"
+    >
+      <div
+        className="h-[2px] bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 shadow-[0_0_8px_rgba(14,165,233,0.6)] transition-all duration-200 ease-out"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  )
 }
