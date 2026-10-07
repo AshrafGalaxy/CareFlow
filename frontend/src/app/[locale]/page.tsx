@@ -28,6 +28,7 @@ import { TiltFeatureCard } from "@/components/ui/TiltFeatureCard"
 import { FAQAccordion } from "@/components/ui/FAQAccordion"
 import { EcgLineAnimation } from "@/components/ui/EcgLineAnimation"
 import { ShowstopperFeature } from "@/components/ui/ShowstopperFeature"
+import { OpenPeepAvatar } from "@/components/shared/OpenPeepAvatar"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 
@@ -89,11 +90,13 @@ export default function LandingPage() {
  ]
 
  const testimonials = [
-  { quote: "I finally understand what my thyroid reports mean without waiting 3 hours at the clinic.", author: "Priya S.", role: "Patient" },
-  { quote: "The medication reminders literally saved my father's life. The interface is so simple even he uses it.", author: "Rahul M.", role: "Caregiver" },
-  { quote: "CareFlow helped me find a PM-JAY hospital for my surgery in minutes. Absolutely incredible.", author: "Amit K.", role: "Patient" },
-  { quote: "The best part is having all my lab reports in one timeline. No more carrying paper files.", author: "Sunita D.", role: "Patient" },
-  { quote: "I trust the AI more than Google. It's specific to my actual reports, not general symptoms.", author: "Vikram R.", role: "Patient" },
+  { quote: "I finally understand what my thyroid reports mean without waiting 3 hours at the clinic.", author: "Priya S.", role: "Patient", avatarId: "female-young", gender: "female" },
+  { quote: "The medication reminders literally saved my father's life. The interface is so simple even he uses it.", author: "Rahul M.", role: "Caregiver", avatarId: "male-adult", gender: "male" },
+  { quote: "CareFlow gives my patients clarity between consultations. It reinforces clinical compliance.", author: "Dr. Ananya Sen", role: "Cardiologist", avatarId: "doctor-female", gender: "female" },
+  { quote: "CareFlow helped me find a PM-JAY hospital for my surgery in minutes. Absolutely incredible.", author: "Amit K.", role: "Patient", avatarId: "male-young", gender: "male" },
+  { quote: "The best part is having all my lab reports in one timeline. No more carrying paper files.", author: "Sunita D.", role: "Senior Patient", avatarId: "female-elder", gender: "female" },
+  { quote: "The AI summary helps me spot trends in patient biomarkers before writing prescriptions.", author: "Dr. Rajesh V.", role: "General Physician", avatarId: "doctor-male", gender: "male" },
+  { quote: "I trust the AI more than Google. It's specific to my actual reports, not general symptoms.", author: "Vikram R.", role: "Patient", avatarId: "male-adult", gender: "male" },
  ]
 
  return (
@@ -313,9 +316,13 @@ export default function LandingPage() {
        <div className="text-4xl text-sky-200 dark:text-sky-800/50 font-serif mb-4">"</div>
        <p className="text-slate-700 dark:text-slate-200 text-lg leading-relaxed mb-8 italic">"{test.quote}"</p>
        <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-100 to-sky-200 dark:from-sky-900/40 dark:to-sky-800/40 flex items-center justify-center font-bold text-sky-700 dark:text-sky-300">
-         {test.author[0]}
-        </div>
+        <OpenPeepAvatar
+          avatarId={test.avatarId}
+          name={test.author}
+          gender={test.gender}
+          role={test.role}
+          size="md"
+        />
         <div>
          <h4 className="font-semibold text-foreground">{test.author}</h4>
          <p className="text-sm text-slate-500 dark:text-slate-400">{test.role}</p>

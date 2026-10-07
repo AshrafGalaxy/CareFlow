@@ -3,6 +3,7 @@
 import React, { useRef } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { MessageSquare, Database, Sparkles, BrainCircuit } from "lucide-react"
+import { Iphone } from "@/components/ui/iphone"
 
 export function ShowstopperFeature() {
  const containerRef = useRef<HTMLDivElement>(null)
@@ -80,29 +81,76 @@ export function ShowstopperFeature() {
      
      <motion.div 
       style={{ y: yDevice }}
-      className="absolute top-10 left-1/2 -translate-x-1/2 w-[340px] h-[680px] bg-slate-900 rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden flex flex-col z-20"
+      className="absolute top-6 left-1/2 -translate-x-1/2 w-[340px] z-20"
      >
-      {/* Phone Header */}
-      <div className="h-16 bg-slate-800/50 backdrop-blur-md flex items-center justify-center shrink-0 border-b border-slate-700/50">
-       <div className="w-32 h-6 bg-slate-900 rounded-full" />
-      </div>
-      
-      {/* Chat Mockup */}
-      <div className="flex-1 bg-slate-900 p-4 space-y-4 flex flex-col justify-end pb-8">
-       <div className="bg-slate-800 text-slate-200 rounded-2xl rounded-tl-sm p-4 text-sm w-[85%] self-start border border-slate-700/50">
-        Based on your report from March 2023, your HbA1c has improved from 7.2% to 6.4%. Keep up the current diet!
-       </div>
-       <div className="bg-sky-600 text-white rounded-2xl rounded-tr-sm p-4 text-sm w-[75%] self-end shadow-lg shadow-sky-600/20">
-        Should I continue taking Metformin 500mg?
-       </div>
-       <div className="bg-slate-800 text-slate-200 rounded-2xl rounded-tl-sm p-4 text-sm w-[90%] self-start border border-slate-700/50">
-        <div className="flex gap-2 items-center mb-2">
-         <Sparkles className="w-4 h-4 text-sky-400" />
-         <span className="text-xs font-semibold text-sky-400">CareFlow AI</span>
+      <Iphone className="w-full drop-shadow-[0_25px_50px_rgba(0,0,0,0.4)]">
+        <div className="w-full h-full bg-slate-950 text-slate-100 flex flex-col justify-between pt-10 pb-4 px-3.5 select-none font-sans">
+          {/* iOS Status Bar */}
+          <div className="absolute top-3.5 left-6 right-6 flex items-center justify-between text-[11px] font-semibold text-slate-200 pointer-events-none z-20">
+            <span>9:41</span>
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="font-bold text-[9px] tracking-tight">5G</span>
+              <div className="w-4 h-2 rounded-[3px] border border-slate-300 p-0.5 flex items-center">
+                <div className="w-full h-full bg-emerald-400 rounded-2xs" />
+              </div>
+            </div>
+          </div>
+
+          {/* Clinical Assistant Header */}
+          <div className="pt-2 pb-2.5 px-1 border-b border-slate-800/80 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-bold text-white tracking-tight">CareFlow AI</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                </div>
+                <p className="text-[10px] text-slate-400 leading-none">Clinical Assistant</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800/80 text-sky-400 border border-slate-700/50">
+              Verified
+            </span>
+          </div>
+
+          {/* Interactive Clinical Chat Bubbles */}
+          <div className="flex-1 py-2.5 space-y-2.5 flex flex-col justify-end text-[11px] leading-relaxed">
+            {/* AI Report Alert */}
+            <div className="bg-slate-900/90 text-slate-200 rounded-2xl rounded-tl-sm p-3 border border-slate-800/80 shadow-xs self-start max-w-[88%]">
+              <p className="text-[9px] font-bold text-sky-400 uppercase tracking-wider mb-1">HbA1c Analysis</p>
+              Based on your report from March 2023, your HbA1c has improved from <span className="text-rose-400 font-semibold">7.2%</span> to <span className="text-emerald-400 font-semibold">6.4%</span>. Keep up the current diet!
+            </div>
+
+            {/* Patient Message */}
+            <div className="bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-2xl rounded-tr-sm p-2.5 shadow-md shadow-sky-600/20 self-end max-w-[80%] font-medium text-[11px]">
+              Should I continue taking Metformin 500mg?
+            </div>
+
+            {/* AI Response */}
+            <div className="bg-slate-900/90 text-slate-200 rounded-2xl rounded-tl-sm p-3 border border-slate-800/80 shadow-xs self-start max-w-[92%]">
+              <div className="flex items-center gap-1 mb-1">
+                <Sparkles className="w-3 h-3 text-sky-400" />
+                <span className="text-[10px] font-bold text-sky-400">Care Guidance</span>
+              </div>
+              Yes, prescribed for 6 months. With your fasting sugar now at <span className="text-emerald-400 font-semibold">98 mg/dL</span>, consult Dr. Rajesh on Friday to discuss dosage reduction.
+            </div>
+          </div>
+
+          {/* Bottom Chat Input Bar & Home Indicator */}
+          <div className="pt-1.5">
+            <div className="h-7 rounded-full bg-slate-900 border border-slate-800 px-2.5 flex items-center justify-between text-[10px] text-slate-400">
+              <span className="truncate">Ask about symptoms or lab tests...</span>
+              <div className="w-4.5 h-4.5 rounded-full bg-sky-500 flex items-center justify-center text-white shrink-0 ml-1">
+                <span className="text-[9px] leading-none font-bold">↑</span>
+              </div>
+            </div>
+            {/* iOS Home Indicator */}
+            <div className="w-24 h-1 bg-slate-600/60 rounded-full mx-auto mt-2" />
+          </div>
         </div>
-        Yes, your doctor prescribed it for 6 months. However, since your fasting sugar is now 98 mg/dL, you should consult them during your next visit on Friday to discuss dosage reduction.
-       </div>
-      </div>
+      </Iphone>
      </motion.div>
 
      {/* Floating Badges */}
