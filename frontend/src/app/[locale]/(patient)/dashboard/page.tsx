@@ -19,7 +19,14 @@ import { BiomarkerTrends } from "@/components/dashboard/BiomarkerTrends"
 import { ReportViewerModal } from "@/components/shared/ReportViewerModal"
 import { motion } from "framer-motion"
 import { ElderDashboardView } from "@/components/dashboard/elder/ElderDashboardView"
-import { DailyCheckInWidget, DailyChecklistWidget } from "@/components/patient"
+import { 
+  DailyCheckInWidget, 
+  DailyChecklistWidget,
+  NextMedicationWidget,
+  NextAppointmentWidget,
+  FamilyShortcutWidget,
+  HelpWidget
+} from "@/components/patient"
 import { useElderStore } from "@/store/elderStore"
 
  interface Report {
@@ -49,6 +56,8 @@ interface DashboardKPIs {
   name: string
   scheduled_time: string
   status: string
+  dosage?: string
+  notes?: string
  }
  next_appointment?: {
   id: string
@@ -56,6 +65,8 @@ interface DashboardKPIs {
   specialty?: string
   appointment_date: string
   status: string
+  doctor_phone?: string
+  location?: string
  }
   latest_memo?: {
    id: string
@@ -64,6 +75,7 @@ interface DashboardKPIs {
    created_at: string
   }
   assigned_doctor_name?: string
+  assigned_doctor_phone?: string
  }
 
 const fetcher = (url: string) => api.get(url).then(res => res.data)
@@ -411,6 +423,36 @@ export default function DashboardPage() {
           <DailyChecklistWidget
             highContrast={isHighContrast}
             onItemUpdated={mutateKpi}
+          />
+        </div>
+
+        {/* Medication Schedule & Next Appointment */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <NextMedicationWidget
+            nextMedication={kpiData?.next_medication}
+            highContrast={isHighContrast}
+            onMedicationTaken={mutateKpi}
+            totalToday={kpiData?.medications_today_total}
+            takenToday={kpiData?.medications_today_taken}
+          />
+          <NextAppointmentWidget
+            nextAppointment={kpiData?.next_appointment}
+            highContrast={isHighContrast}
+            assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+          />
+        </div>
+
+        {/* Support Network & Emergency Assistance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <FamilyShortcutWidget
+            highContrast={isHighContrast}
+            assignedDoctorName={kpiData?.assigned_doctor_name}
+            assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+          />
+          <HelpWidget
+            highContrast={isHighContrast}
+            assignedDoctorName={kpiData?.assigned_doctor_name}
+            assignedDoctorPhone={kpiData?.assigned_doctor_phone}
           />
         </div>
      </>

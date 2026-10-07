@@ -53,13 +53,13 @@ export function DailyCheckInWidget({
       subtitle: "Just usual",
       emoji: "🟡",
       icon: Meh,
-      color: "sky",
+      color: "yellow",
       bgClass: highContrast
-        ? "bg-black border border-sky-400 text-sky-300 hover:bg-sky-950/80"
-        : "bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20",
+        ? "bg-black border border-yellow-400 text-yellow-300 hover:bg-yellow-950/80"
+        : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/20",
       activeClass: highContrast
-        ? "bg-sky-400 text-black border border-sky-300 font-bold ring-2 ring-sky-500/40"
-        : "bg-sky-600 text-white border border-sky-600 shadow-sm ring-2 ring-sky-500/25",
+        ? "bg-yellow-400 text-black border border-yellow-300 font-bold ring-2 ring-yellow-500/40"
+        : "bg-yellow-600 text-white border border-yellow-600 shadow-sm ring-2 ring-yellow-500/25",
     },
     {
       id: "NOT_WELL",

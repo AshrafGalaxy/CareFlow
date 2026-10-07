@@ -69,6 +69,7 @@ export function ElderDashboardView({
         highContrast={highContrast}
         assignedDoctorName={kpiData?.assigned_doctor_name}
         assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+        variant="banner"
       />
 
       {/* 2. Daily Wellness Check-in */}

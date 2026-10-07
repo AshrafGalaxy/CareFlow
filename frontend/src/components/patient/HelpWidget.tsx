@@ -10,13 +10,15 @@ interface HelpWidgetProps {
   assignedDoctorName?: string
   assignedDoctorPhone?: string
   compact?: boolean
+  variant?: "card" | "banner"
 }
 
 export function HelpWidget({
   highContrast = false,
   assignedDoctorName,
   assignedDoctorPhone,
-  compact = false
+  compact = false,
+  variant = "card",
 }: HelpWidgetProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const user = useAuthStore((state) => state.user)
@@ -40,7 +42,7 @@ export function HelpWidget({
           <AlertTriangle className="w-3.5 h-3.5 animate-bounce" />
           <span>Need Help</span>
         </button>
-      ) : (
+      ) : variant === "banner" ? (
         <div
           className={cn(
             "rounded-2xl border p-4 sm:p-5 shadow-sm transition-all duration-200 relative overflow-hidden",
@@ -75,6 +77,108 @@ export function HelpWidget({
             >
               <AlertTriangle className="w-3.5 h-3.5 animate-pulse" />
               <span>Emergency Help</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "rounded-2xl border p-5 shadow-sm transition-all duration-200 flex flex-col justify-between",
+            highContrast
+              ? "bg-black border-yellow-400 text-white"
+              : "bg-card border-border hover:border-border/80"
+          )}
+        >
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                    highContrast ? "bg-yellow-400 text-black" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                  )}
+                >
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                    Urgent Care & Safety
+                  </span>
+                  <h2 className="text-base font-semibold tracking-tight text-foreground">
+                    Emergency Assistance
+                  </h2>
+                </div>
+              </div>
+
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                24/7 Hotline
+              </span>
+            </div>
+
+            {/* Quick 1-Tap Emergency Hotline Card */}
+            <div
+              className={cn(
+                "p-3.5 rounded-xl border mb-3",
+                highContrast
+                  ? "bg-zinc-900 border-rose-400/80 text-white"
+                  : "bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-800/60"
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 font-semibold text-[11px] uppercase tracking-wide">
+                    <HeartPulse className="w-3.5 h-3.5 animate-pulse" />
+                    <span>Immediate Response</span>
+                  </div>
+                  <h3 className="text-base font-bold text-foreground tracking-tight mt-1">
+                    Emergency Hotline 112 / 108
+                  </h3>
+                  <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                    Police, Ambulance & Fire dispatch
+                  </p>
+                </div>
+
+                <a
+                  href="tel:112"
+                  className={cn(
+                    "h-8 px-3 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-sm shrink-0",
+                    highContrast
+                      ? "bg-rose-500 text-white hover:bg-rose-600 border border-yellow-300"
+                      : "bg-rose-600 hover:bg-rose-700 text-white"
+                  )}
+                >
+                  <PhoneCall className="w-3.5 h-3.5" />
+                  <span>Call 112</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Reassurance text */}
+            <div
+              className={cn(
+                "p-2.5 rounded-xl border flex items-center justify-between gap-3 mb-3 text-xs text-muted-foreground",
+                highContrast ? "bg-zinc-900 border-zinc-700" : "bg-muted/40 border-border"
+              )}
+            >
+              <span>Caregiver & physician lines available in directory</span>
+              <span className="font-semibold text-foreground">Immediate</span>
+            </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="mt-1">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className={cn(
+                "w-full h-9 px-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-colors border text-center cursor-pointer",
+                highContrast
+                  ? "bg-zinc-900 border-yellow-400 text-yellow-300 hover:bg-zinc-800"
+                  : "bg-muted/60 hover:bg-muted text-foreground border-border"
+              )}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+              <span>Open Emergency Directory</span>
             </button>
           </div>
         </div>
