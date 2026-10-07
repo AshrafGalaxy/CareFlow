@@ -6,8 +6,6 @@ import { useNotificationStore } from "@/store/notificationStore"
 import { usePathname, Link } from "@/i18n/routing"
 import { getGreeting, getInitials } from "@/lib/formatters"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { AccessibilityMenu } from "@/components/ui/accessibility-menu"
 import { RelativeTime } from "@/components/ui/relative-time"
 import { OpenPeepAvatar } from "@/components/shared/OpenPeepAvatar"
@@ -175,12 +173,8 @@ export function TopNav() {
      </PopoverContent>
     </Popover>
 
-    {/* Display, Theme & Language Controls */}
-    <div className="flex items-center gap-1.5 bg-slate-100/50 dark:bg-slate-800/30 p-1 rounded-xl">
-     <AccessibilityMenu />
-     <ThemeToggle />
-     <LanguageSwitcher />
-    </div>
+    {/* Unified Display, Theme & Language Settings */}
+    <AccessibilityMenu />
 
     {/* Avatar */}
     <Link href="/profile" className="ml-1 shrink-0" title="View Profile">
