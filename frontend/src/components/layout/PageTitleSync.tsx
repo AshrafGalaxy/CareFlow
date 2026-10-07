@@ -69,8 +69,6 @@ export function PageTitleSync() {
       pageTitle = "Doctor Profile"
     } else if (pathname === "/doctor/settings") {
       pageTitle = "Doctor Settings"
-    } else if (pathname === "/provider/dashboard") {
-      pageTitle = "Provider Dashboard"
     } else {
       // Fallback for subpaths
       const segments = pathname.split("/").filter(Boolean)
