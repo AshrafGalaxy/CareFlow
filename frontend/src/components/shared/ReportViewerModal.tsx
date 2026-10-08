@@ -1,7 +1,9 @@
+'use client'
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { FileText, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Loader2, ChevronDown } from 'lucide-react'
+import { FileText, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Loader2, Eye } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 
 interface ReportViewerModalProps {
@@ -14,12 +16,13 @@ interface ReportViewerModalProps {
 }
 
 function getCloudinaryPageUrl(url: string, pageNum: number): string {
-  let clean = url
+  if (!url) return ''
+  let clean = url.split('?')[0]
   if (clean.includes('.pdf.pdf')) {
-    clean = clean.replace('.pdf.pdf', '.pdf.png')
-  } else if (clean.endsWith('.pdf')) {
-    clean = clean.replace(/\.pdf$/, '.pdf.png')
-  } else if (!clean.endsWith('.png') && !clean.endsWith('.jpg')) {
+    clean = clean.replace('.pdf.pdf', '.png')
+  } else if (clean.toLowerCase().endsWith('.pdf')) {
+    clean = clean.slice(0, -4) + '.png'
+  } else if (!clean.endsWith('.png') && !clean.endsWith('.jpg') && !clean.endsWith('.jpeg')) {
     clean = clean + '.png'
   }
   if (clean.includes('/upload/') && !clean.includes('/upload/pg_')) {
@@ -31,23 +34,13 @@ function getCloudinaryPageUrl(url: string, pageNum: number): string {
 export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName, reportId }: ReportViewerModalProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [scale, setScale] = useState(1)
-  const [numPages, setNumPages] = useState(1)
-  const [maxPages, setMaxPages] = useState<number | null>(null)
+  const [loadedPages, setLoadedPages] = useState<number[]>([1])
+  const [viewMode, setViewMode] = useState<'pages' | 'pdf'>('pages')
+  const [useIframeFallback, setUseIframeFallback] = useState(false)
+  const probingRef = useRef(false)
 
   const token = useAuthStore((state) => state.token)
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true)
-      setScale(1)
-      setNumPages(1)
-      setMaxPages(null)
-      // Safety timeout: dismiss spinner after 1.5s
-      const timer = setTimeout(() => setIsLoading(false), 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [isOpen, fileUrl])
 
   const lowerUrl = fileUrl?.toLowerCase() || ''
   const isPdf = fileType === 'application/pdf' || lowerUrl.endsWith('.pdf') || lowerUrl.includes('.pdf?') || lowerUrl.includes('.pdf.pdf')
@@ -60,9 +53,39 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
     ? `${apiBase}/api/reports/${reportId}/file?token=${encodeURIComponent(token || '')}`
     : fileUrl
 
+  const probeNextPage = useCallback((nextPage: number) => {
+    if (nextPage > 25 || !fileUrl) return
+    const probe = new window.Image()
+    probe.src = getCloudinaryPageUrl(fileUrl, nextPage)
+    probe.onload = () => {
+      setLoadedPages((prev) => (prev.includes(nextPage) ? prev : [...prev, nextPage]))
+      probeNextPage(nextPage + 1)
+    }
+    probe.onerror = () => {
+      // Reached the end of the document. Stop probing cleanly.
+    }
+  }, [fileUrl])
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true)
+      setScale(1)
+      setLoadedPages([1])
+      setViewMode('pages')
+      setUseIframeFallback(false)
+      probingRef.current = false
+
+      // Safety timeout to dismiss full-screen loading spinner
+      const timer = setTimeout(() => setIsLoading(false), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen, fileUrl])
+
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3))
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5))
   const handleResetZoom = () => setScale(1)
+
+  const showCloudinaryPages = isCloudinaryPdf && !useIframeFallback && viewMode === 'pages'
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -82,8 +105,34 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Cloudinary PDF View Switcher */}
+              {isCloudinaryPdf && !useIframeFallback && (
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                  <button
+                    onClick={() => setViewMode('pages')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      viewMode === 'pages'
+                        ? 'bg-white dark:bg-slate-700 text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Pages
+                  </button>
+                  <button
+                    onClick={() => setViewMode('pdf')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      viewMode === 'pdf'
+                        ? 'bg-white dark:bg-slate-700 text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    PDF
+                  </button>
+                </div>
+              )}
+
               {/* Zoom Controls for Images & Document Pages */}
-              {(isRegularImage || isCloudinaryPdf) && (
+              {(isRegularImage || showCloudinaryPages) && (
                 <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                   <button 
                     onClick={handleZoomOut} 
@@ -115,13 +164,13 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                 </div>
               )}
 
-              {/* View / Open PDF Action */}
+              {/* View / Open PDF in New Tab */}
               <a 
                 href={directPdfUrl} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all flex items-center justify-center shadow-sm font-semibold text-sm gap-2 cursor-pointer active:scale-95"
-                title={isPdf ? "Open PDF in New Browser Tab (with Adobe / Print tools)" : "Open Original File in New Tab"}
+                title={isPdf ? "Open Genuine PDF in New Browser Tab (with Adobe / Print tools)" : "Open Original File in New Tab"}
               >
                 <ExternalLink size={16} />
                 <span className="hidden sm:inline">{isPdf ? "View PDF" : "Open Original"}</span>
@@ -146,10 +195,9 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
           </AnimatePresence>
 
           {/* Cloudinary PDF Multi-Page Document View */}
-          {isCloudinaryPdf ? (
+          {showCloudinaryPages ? (
             <div className="w-full h-full flex flex-col items-center gap-6 p-6 sm:p-8 overflow-y-auto">
-              {Array.from({ length: maxPages ?? numPages }).map((_, index) => {
-                const pageNum = index + 1
+              {loadedPages.map((pageNum) => {
                 const pageUrl = getCloudinaryPageUrl(fileUrl, pageNum)
 
                 return (
@@ -164,25 +212,28 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                         alt={`${fileName} - Page ${pageNum}`} 
                         className="w-full h-auto object-contain transition-transform duration-200"
                         onLoad={() => {
-                          setIsLoading(false)
-                          // Speculatively check next page if not capped
-                          if (maxPages === null && pageNum === numPages && numPages < 30) {
-                            setNumPages(prev => prev + 1)
+                          if (pageNum === 1) {
+                            setIsLoading(false)
+                            if (!probingRef.current) {
+                              probingRef.current = true
+                              probeNextPage(2)
+                            }
                           }
                         }}
-                        onError={(e) => {
-                          // Page does not exist; stop probing
-                          (e.target as HTMLElement).parentElement?.parentElement?.remove()
-                          if (maxPages === null) {
-                            setMaxPages(pageNum - 1)
+                        onError={() => {
+                          // If page 1 fails from Cloudinary, seamlessly fallback to genuine PDF viewer
+                          if (pageNum === 1) {
+                            setUseIframeFallback(true)
+                            setIsLoading(false)
                           }
-                          setIsLoading(false)
                         }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/40 select-none">
-                      Page {pageNum}
-                    </span>
+                    {loadedPages.length > 1 && (
+                      <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/40 select-none">
+                        Page {pageNum} of {loadedPages.length}
+                      </span>
+                    )}
                   </div>
                 )
               })}
