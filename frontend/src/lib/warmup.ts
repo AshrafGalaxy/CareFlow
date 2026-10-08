@@ -1,7 +1,6 @@
 /**
- * Background pre-warming utility for free-tier cloud backends (Render/Railway).
- * Pings /api/health as soon as the user opens the landing or login pages
- * so the cold-start container boots up before the user finishes typing credentials.
+ * Background connection pre-warming utility for cloud services.
+ * Proactively verifies API connectivity when users land on entry pages.
  */
 
 let isWarming = false
@@ -21,8 +20,7 @@ export const warmupBackend = () => {
     method: 'GET',
     headers: { 'Cache-Control': 'no-cache' },
     keepalive: true,
+  }).catch(() => {
+    // Non-blocking fire-and-forget probe
   })
-    .catch(() => {
-      // Fire-and-forget: catch and ignore errors; the goal is solely to wake up the server container
-    })
 }

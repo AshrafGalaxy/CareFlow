@@ -88,9 +88,9 @@ export default function ProviderLogin() {
       setLoginError({ message: parsed.message, isServerWaking: parsed.isServerWaking })
 
       if (parsed.isServerWaking) {
-        toast.error("Cloud Server Starting", {
-          description: parsed.message,
-          duration: 7000,
+        toast.error("Connection Timeout", {
+          description: "Secure connection took longer than expected. Please try again.",
+          duration: 6000,
           icon: <AlertCircle className="w-5 h-5 text-amber-500" />,
         })
       } else {
@@ -257,11 +257,7 @@ export default function ProviderLogin() {
                   <>
                     <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                     <span>
-                      {loadingSeconds < 4
-                        ? "Verifying Credentials..."
-                        : loadingSeconds < 12
-                        ? "Connecting to Portal..."
-                        : "Waking Clinical Server (~30s)..."}
+                      {loadingSeconds < 4 ? "Verifying Credentials..." : "Securing Portal..."}
                     </span>
                   </>
                 ) : (
@@ -271,39 +267,32 @@ export default function ProviderLogin() {
                 )}
               </button>
 
-              {/* Cold Start Progressive Feedback Pill */}
-              {isLoading && loadingSeconds >= 4 && (
-                <div className="mt-3 p-3 rounded-xl bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2.5 shadow-sm animate-in fade-in duration-300">
-                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-sky-500 mt-0.5" />
-                  <div className="space-y-0.5">
-                    <p className="font-semibold text-slate-800 dark:text-slate-100">
-                      {loadingSeconds < 12 ? "Connecting to CareFlow..." : "Waking up cloud server..."}
-                    </p>
-                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-                      {loadingSeconds < 12
-                        ? "Validating provider credentials across HIPAA enclave..."
-                        : "Free-tier hosting is spinning up from idle mode (~30s). Please hold on, almost ready!"}
-                    </p>
-                  </div>
+              {/* Discreet Progressive Reassurance */}
+              {isLoading && loadingSeconds >= 5 && (
+                <div className="mt-3 p-2.5 rounded-xl bg-slate-100/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 flex items-center gap-2.5 shadow-sm animate-in fade-in duration-300">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-sky-500" />
+                  <p className="text-[12px] text-slate-600 dark:text-zinc-400">
+                    Establishing encrypted clinical session. Please hold on...
+                  </p>
                 </div>
               )}
 
-              {/* Server Waking Retry Card */}
+              {/* Discreet Retry Card on Connection Timeout */}
               {loginError && loginError.isServerWaking && !isLoading && (
-                <div className="mt-3 p-3 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-sm">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+                <div className="mt-3 p-3 rounded-xl bg-slate-100/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 flex items-start gap-2.5 shadow-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-sky-500 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
-                    <p className="font-semibold text-slate-800 dark:text-slate-100">Server Waking Up</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">Connection Timed Out</p>
                     <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-                      The free-tier backend was idle and took longer to respond. It should now be warm. Click below to proceed.
+                      The secure connection took longer than expected to complete.
                     </p>
                     <button
                       type="button"
                       onClick={handleSubmit(onSubmit)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition shadow-sm cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition shadow-sm cursor-pointer"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
-                      Retry Sign In
+                      Try Again
                     </button>
                   </div>
                 </div>

@@ -56,30 +56,30 @@ export function parseApiError(err: unknown): {
 
   const status = anyErr?.response?.status
 
-  // 1. Timeout / Abort (Cold Start took longer than timeout)
+  // 1. Timeout / Abort
   if (anyErr?.code === 'ECONNABORTED' || anyErr?.message?.toLowerCase().includes('timeout')) {
     return {
-      message: 'The cloud server is taking time to wake up from idle mode. Please try again in a moment.',
+      message: 'The secure connection took longer than expected. Please try signing in again.',
       isTimeout: true,
       isServerWaking: true,
       status,
     }
   }
 
-  // 2. Gateway Booting / Service Unavailable (502, 503, 504 on Render/Railway)
+  // 2. Gateway / Service Temporarily Unavailable
   if (status && [502, 503, 504].includes(status)) {
     return {
-      message: 'Cloud service is currently starting up from idle mode. Please wait ~10 seconds and try again.',
+      message: 'CareFlow services are currently stabilizing. Please wait a moment and try again.',
       isTimeout: false,
       isServerWaking: true,
       status,
     }
   }
 
-  // 3. Network unreachable (Server completely cold / booting)
+  // 3. Network unreachable
   if (!anyErr?.response || anyErr?.message === 'Network Error') {
     return {
-      message: 'Unable to reach the CareFlow server. It may be booting up from sleep mode. Please try again shortly.',
+      message: 'Unable to establish a connection to CareFlow services. Please verify your connection and try again.',
       isTimeout: false,
       isServerWaking: true,
       status,
