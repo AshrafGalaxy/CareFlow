@@ -1,6 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+interface ProviderProfile {
+  nmc_registration_number?: string
+  medical_council?: string
+  qualification_degree?: string
+  specialization?: string
+  hospital_affiliation?: string
+  experience_years?: number
+  contact_number?: string
+  is_verified?: boolean
+}
+
 interface User {
   id: string
   email: string
@@ -18,6 +29,7 @@ interface User {
   gender?: string
   avatar_id?: string
   push_subscription?: string
+  provider_profile?: ProviderProfile
 }
 
 interface AuthStore {
@@ -41,7 +53,7 @@ export const useAuthStore = create<AuthStore>()(
       setAuth: (user, token, refreshToken) => set({ user, token, refreshToken }),
       updateUser: (fields) =>
         set((state) => ({
-          user: state.user ? { ...state.user, ...fields } : null,
+          user: state.user ? { ...state.user, ...fields } : (fields as User),
         })),
       logout: () => set({ user: null, token: null, refreshToken: null }),
       setHasHydrated: (state) => set({ _hasHydrated: state }),

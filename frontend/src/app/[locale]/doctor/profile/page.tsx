@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,43 @@ export default function DoctorProfilePage() {
  
  const [isUpdating, setIsUpdating] = useState(false)
  const [errors, setErrors] = useState<Record<string, string>>({})
+
+ // Sync state whenever user in authStore changes/hydrates
+ useEffect(() => {
+   if (user) {
+     if (user.name) setName(user.name)
+     if (user.email) setEmail(user.email)
+     if (user.phone) setPhone(user.phone)
+     if (user.state_residence) setStateResidence(user.state_residence)
+     const prov = (user as any).provider_profile || {}
+     if (prov.nmc_registration_number) setNmcRegistrationNumber(prov.nmc_registration_number)
+     if (prov.medical_council) setMedicalCouncil(prov.medical_council)
+     if (prov.qualification_degree) setQualificationDegree(prov.qualification_degree)
+     if (prov.specialization) setSpecialization(prov.specialization)
+     if (prov.hospital_affiliation) setHospitalAffiliation(prov.hospital_affiliation)
+     if (prov.experience_years !== undefined && prov.experience_years !== null) setExperienceYears(String(prov.experience_years))
+     if (prov.contact_number) setContactNumber(prov.contact_number)
+   }
+ }, [user])
+
+ // Fetch authoritative server profile on mount
+ useEffect(() => {
+   let isMounted = true
+   const fetchProfile = async () => {
+     try {
+       const res = await api.get("/api/auth/profile")
+       if (isMounted && res.data) {
+         useAuthStore.getState().updateUser(res.data)
+       }
+     } catch (err) {
+       console.error("Failed to load doctor profile:", err)
+     }
+   }
+   fetchProfile()
+   return () => {
+     isMounted = false
+   }
+ }, [])
  
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -72,7 +109,7 @@ export default function DoctorProfilePage() {
         experience_years: experienceYears ? parseInt(experienceYears) : null,
         contact_number: contactNumber
       })
-      useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
+      useAuthStore.getState().updateUser(res.data)
       toast.success("Profile updated successfully", {
         description: "Your provider details have been saved.",
         icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,

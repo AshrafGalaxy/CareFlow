@@ -74,6 +74,30 @@ class TestLogin:
         assert data["token_type"] == "bearer"
         assert data["user"]["role"] == "patient"
 
+    def test_login_returns_full_profile_fields(self, client):
+        patient_payload = {
+            "email": "full_profile@test.com",
+            "password": "Test@1234",
+            "name": "Jane Elder",
+            "role": "patient",
+            "phone": "+919876543210",
+            "emergency_contact_name": "Family Guardian",
+            "emergency_contact_phone": "+919876543211",
+            "gender": "female",
+            "blood_group": "B+",
+            "avatar_id": "female-elder"
+        }
+        client.post("/api/auth/register", json=patient_payload)
+        res = client.post("/api/auth/login", json={"email": patient_payload["email"], "password": patient_payload["password"]})
+        assert res.status_code == 200
+        user = res.json()["user"]
+        assert user["emergency_contact_name"] == "Family Guardian"
+        assert user["emergency_contact_phone"] == "+919876543211"
+        assert user["phone"] == "+919876543210"
+        assert user["blood_group"] == "B+"
+        assert user["gender"] == "female"
+        assert user["avatar_id"] == "female-elder"
+
     def test_login_wrong_password(self, client):
         client.post("/api/auth/register", json=PATIENT)
         res = client.post("/api/auth/login", json={"email": PATIENT["email"], "password": "wrongpass"})

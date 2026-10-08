@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,7 @@ export default function ProfilePage() {
 
   // Personal state
   const [name, setName] = useState(user?.name || "")
-  const [email] = useState(user?.email || "")
+  const [email, setEmail] = useState(user?.email || "")
   const [phone, setPhone] = useState(user?.phone || "")
   const [gender, setGender] = useState(user?.gender || "")
   const [abhaId, setAbhaId] = useState(user?.abha_id || "")
@@ -39,6 +39,44 @@ export default function ProfilePage() {
 
   const [isUpdating, setIsUpdating] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Sync state whenever user in authStore changes/hydrates
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name)
+      if (user.email) setEmail(user.email)
+      if (user.phone) setPhone(user.phone)
+      if (user.gender) setGender(user.gender)
+      if (user.abha_id) setAbhaId(user.abha_id)
+      if (user.date_of_birth) setDateOfBirth(user.date_of_birth)
+      if (user.blood_group) setBloodGroup(user.blood_group)
+      if (user.height !== undefined && user.height !== null) setHeight(String(user.height))
+      if (user.weight !== undefined && user.weight !== null) setWeight(String(user.weight))
+      if (user.state_residence) setStateResidence(user.state_residence)
+      if (user.emergency_contact_name) setEmergencyContactName(user.emergency_contact_name)
+      if (user.emergency_contact_phone) setEmergencyContactPhone(user.emergency_contact_phone)
+      if (user.avatar_id) setActiveAvatarId(user.avatar_id)
+    }
+  }, [user])
+
+  // Fetch authoritative server profile on mount
+  useEffect(() => {
+    let isMounted = true
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/auth/profile")
+        if (isMounted && res.data) {
+          useAuthStore.getState().updateUser(res.data)
+        }
+      } catch (err) {
+        console.error("Failed to load profile from server:", err)
+      }
+    }
+    fetchProfile()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleSelectAvatar = async (id: string) => {
     setActiveAvatarId(id)
@@ -80,16 +118,16 @@ export default function ProfilePage() {
         phone,
         gender: gender || null,
         avatar_id: activeAvatarId,
-        abha_id: abhaId,
+        abha_id: abhaId.trim() || null,
         date_of_birth: dateOfBirth || null,
         blood_group: bloodGroup || null,
         height: height ? parseFloat(height) : null,
         weight: weight ? parseFloat(weight) : null,
-        state_residence: stateResidence,
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
+        state_residence: stateResidence.trim() || null,
+        emergency_contact_name: emergencyContactName.trim() || null,
+        emergency_contact_phone: emergencyContactPhone.trim() || null,
       })
-      useAuthStore.getState().setAuth(res.data, useAuthStore.getState().token!, useAuthStore.getState().refreshToken!)
+      useAuthStore.getState().updateUser(res.data)
       toast.success("Profile updated successfully", {
         description: "Your personal details have been saved.",
         icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,

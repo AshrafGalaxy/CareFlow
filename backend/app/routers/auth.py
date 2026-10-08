@@ -4,7 +4,7 @@ from app.database import get_db
 from app.middleware.auth_middleware import get_current_user
 from app.models.provider_profile import ProviderProfile
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate
+from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate, LoginResponse
 from app.services.auth_service import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_token
 from pydantic import BaseModel
 
@@ -90,7 +90,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@router.post("/login")
+@router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request.email).first()
     if not user or not verify_password(request.password, user.password_hash):
@@ -103,13 +103,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user": {
-            "id": str(user.id),
-            "email": user.email,
-            "name": user.name,
-            "role": user.role,
-            "created_at": user.created_at
-        }
+        "user": user
     }
 
 @router.post("/refresh")
@@ -134,18 +128,22 @@ def get_profile(current_user: User = Depends(get_current_user)):
 
 @router.patch("/profile", response_model=UserResponse)
 def update_profile(profile_data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    update_data = profile_data.dict(exclude_unset=True)
+    update_data = profile_data.model_dump(exclude_unset=True) if hasattr(profile_data, "model_dump") else profile_data.dict(exclude_unset=True)
     
     # Extract provider fields
     provider_fields = ["nmc_registration_number", "medical_council", "qualification_degree", "specialization", "hospital_affiliation", "experience_years", "contact_number"]
     provider_data = {k: update_data.pop(k) for k in provider_fields if k in update_data}
     
+    # Clean empty strings for unique or nullable fields
+    if "abha_id" in update_data and update_data["abha_id"] == "":
+        update_data["abha_id"] = None
+
     # Update base user fields
     for key, value in update_data.items():
         setattr(current_user, key, value)
         
-    # Update provider profile fields if user is a doctor
-    if current_user.role == "doctor" and provider_data:
+    # Update provider profile fields if user is a doctor or provider
+    if current_user.role in ["doctor", "provider"] and provider_data:
         if not current_user.provider_profile:
             current_user.provider_profile = ProviderProfile(user_id=current_user.id)
             db.add(current_user.provider_profile)
