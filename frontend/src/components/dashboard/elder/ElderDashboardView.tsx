@@ -33,6 +33,7 @@ export function ElderDashboardView({
 }: ElderDashboardViewProps) {
   const [internalHighContrast, setInternalHighContrast] = useState(false)
   const [internalLargeText, setInternalLargeText] = useState(true)
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false)
 
   const highContrast = externalHighContrast ?? internalHighContrast
   const largeText = externalLargeText ?? internalLargeText
@@ -72,12 +73,16 @@ export function ElderDashboardView({
         emergencyContactName={patient?.emergency_contact_name}
         emergencyContactPhone={patient?.emergency_contact_phone}
         variant="banner"
+        isOpen={isEmergencyModalOpen}
+        onClose={() => setIsEmergencyModalOpen(false)}
+        onOpen={() => setIsEmergencyModalOpen(true)}
       />
 
       {/* 2. Daily Wellness Check-in */}
       <DailyCheckInWidget
         highContrast={highContrast}
         onCheckinSuccess={onRefreshKpis}
+        onNeedHelpSelected={() => setIsEmergencyModalOpen(true)}
       />
 
       {/* 3. Next Medication & Next Appointment Side-by-Side or Stacked */}

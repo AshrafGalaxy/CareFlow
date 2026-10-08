@@ -16,6 +16,7 @@ interface HelpWidgetProps {
   variant?: "card" | "banner"
   isOpen?: boolean
   onClose?: () => void
+  onOpen?: () => void
 }
 
 export function HelpWidget({
@@ -28,14 +29,18 @@ export function HelpWidget({
   variant = "card",
   isOpen,
   onClose,
+  onOpen,
 }: HelpWidgetProps) {
   const [internalModalOpen, setInternalModalOpen] = useState(false)
-  const isModalOpen = isOpen !== undefined ? isOpen : internalModalOpen
+  const isModalOpen = isOpen !== undefined ? (isOpen || internalModalOpen) : internalModalOpen
   const closeModal = () => {
     setInternalModalOpen(false)
     onClose?.()
   }
-  const openModal = () => setInternalModalOpen(true)
+  const openModal = () => {
+    setInternalModalOpen(true)
+    onOpen?.()
+  }
 
   const user = useAuthStore((state) => state.user)
 

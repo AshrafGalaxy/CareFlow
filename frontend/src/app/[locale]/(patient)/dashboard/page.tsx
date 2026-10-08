@@ -87,6 +87,7 @@ export default function DashboardPage() {
  const greeting = t("greeting") || getGreeting()
  const [explainSimply, setExplainSimply] = useState(false)
  const [viewingReport, setViewingReport] = useState<Report | null>(null)
+ const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false)
  const { isElderMode, highContrast: isHighContrast, toggleElderMode, toggleHighContrast } = useElderStore()
 
  const { data, error, isLoading, mutate } = useSWR<Report[]>(
@@ -419,6 +420,7 @@ export default function DashboardPage() {
           <DailyCheckInWidget
             highContrast={isHighContrast}
             onCheckinSuccess={mutateKpi}
+            onNeedHelpSelected={() => setIsEmergencyModalOpen(true)}
           />
           <DailyChecklistWidget
             highContrast={isHighContrast}
@@ -457,6 +459,9 @@ export default function DashboardPage() {
             assignedDoctorPhone={kpiData?.assigned_doctor_phone}
             emergencyContactName={user?.emergency_contact_name}
             emergencyContactPhone={user?.emergency_contact_phone}
+            isOpen={isEmergencyModalOpen}
+            onClose={() => setIsEmergencyModalOpen(false)}
+            onOpen={() => setIsEmergencyModalOpen(true)}
           />
         </div>
      </>
