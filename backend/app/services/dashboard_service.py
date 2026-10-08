@@ -104,7 +104,7 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
                     t_obj = datetime.strptime(t_str, "%H:%M").time()
                     dt = datetime.combine(today, t_obj, tzinfo=timezone.utc)
                     # Check if there is a log for this specific med and time (within 1 hr window for matching)
-                    log = next((l for l in today_logs if l.medication_id == m.id and abs((l.scheduled_time - dt).total_seconds()) < 3600), None)
+                    log = next((l for l in today_logs if l.medication_id == m.id and abs(((l.scheduled_time.replace(tzinfo=timezone.utc) if l.scheduled_time.tzinfo is None else l.scheduled_time) - dt).total_seconds()) < 3600), None)
                     status = log.status if log else "scheduled"
                     if status == "taken":
                         medications_today_taken += 1
@@ -131,6 +131,23 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
                     )
                     break
 
+    # Assigned Doctor Lookup (Used for KPI response and fallback for appointment phone)
+    assigned_provider = db.query(ProviderPatient).filter(
+        ProviderPatient.patient_id == patient.id,
+        ProviderPatient.is_active == True
+    ).first()
+    
+    assigned_doctor_name = None
+    assigned_doctor_phone = None
+    assigned_doc = None
+    if assigned_provider:
+        assigned_doc = db.query(User).filter(User.id == assigned_provider.provider_id).first()
+        if assigned_doc:
+            assigned_doctor_name = assigned_doc.name
+            assigned_doctor_phone = assigned_doc.phone
+            if not assigned_doctor_phone and assigned_doc.provider_profile:
+                assigned_doctor_phone = assigned_doc.provider_profile.contact_number
+
     # 2. Next Appointment
     next_follow_up = db.query(FollowUp).filter(
         FollowUp.user_id == patient.id,
@@ -140,12 +157,27 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
     
     next_appointment = None
     if next_follow_up:
+        # Resolve doctor phone from user or provider profile
+        doc_phone = None
+        cleaned_doc_name = (next_follow_up.doctor_name or "").replace("Dr.", "").replace("Dr ", "").strip()
+        doc_user = None
+        if cleaned_doc_name:
+            doc_user = db.query(User).filter(
+                (User.name == next_follow_up.doctor_name) |
+                (User.name.ilike(f"%{cleaned_doc_name}%"))
+            ).first()
+        if doc_user:
+            doc_phone = doc_user.phone or (doc_user.provider_profile.contact_number if doc_user.provider_profile else None)
+        elif assigned_doc:
+            doc_phone = assigned_doctor_phone
+
         next_appointment = NextAppointment(
             id=str(next_follow_up.id),
             doctor_name=next_follow_up.doctor_name,
             specialty=next_follow_up.specialty,
             appointment_date=next_follow_up.appointment_date,
-            status=next_follow_up.status
+            status=next_follow_up.status,
+            doctor_phone=doc_phone
         )
 
     # 3. Health Score & Action Items
@@ -198,7 +230,10 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
         
     # Action item for appointments
     if next_follow_up:
-        days_until = (next_follow_up.appointment_date - now_utc).days
+        appt_dt = next_follow_up.appointment_date
+        if appt_dt.tzinfo is None:
+            appt_dt = appt_dt.replace(tzinfo=timezone.utc)
+        days_until = (appt_dt - now_utc).days
         if 0 <= days_until <= 3:
             action_items.append(ActionItem(
                 title="Upcoming Appointment",
@@ -224,18 +259,6 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
                 created_at=latest_memo_obj.created_at
             )
 
-    # 5. Assigned Doctor
-    assigned_provider = db.query(ProviderPatient).filter(
-        ProviderPatient.patient_id == patient.id,
-        ProviderPatient.is_active == True
-    ).first()
-    
-    assigned_doctor_name = None
-    if assigned_provider:
-        assigned_doc = db.query(User).filter(User.id == assigned_provider.provider_id).first()
-        if assigned_doc:
-            assigned_doctor_name = assigned_doc.name
-
     return DashboardKPIsResponse(
         medications_today_total=medications_today_total,
         medications_today_taken=medications_today_taken,
@@ -244,7 +267,8 @@ async def get_patient_dashboard_kpis(patient: User, db: Session) -> DashboardKPI
         next_medication=next_medication,
         next_appointment=next_appointment,
         latest_memo=latest_memo,
-        assigned_doctor_name=assigned_doctor_name
+        assigned_doctor_name=assigned_doctor_name,
+        assigned_doctor_phone=assigned_doctor_phone
     )
 
 async def get_patient_overview(doctor: User, db: Session):

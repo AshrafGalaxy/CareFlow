@@ -284,3 +284,24 @@ def test_doctor_create_on_behalf_of(client, dashboard_data):
     }, headers=dashboard_data["doc_headers"])
     assert med_res.status_code == 200
     assert med_res.json()["user_id"] == pat1_id
+
+def test_patient_dashboard_kpis_doctor_phone(client, dashboard_data):
+    db = TestingSessionLocal()
+    doc = db.query(User).filter(User.email == "doc@example.com").first()
+    doc.phone = "+91 9876543210"
+    db.commit()
+    db.close()
+
+    pat_login = client.post("/api/auth/login", json={"email": "pat@example.com", "password": "password123"}).json()
+    headers = {"Authorization": f"Bearer {pat_login['access_token']}"}
+
+    res = client.get("/api/dashboard/kpis", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["assigned_doctor_name"] == "Dr. House"
+    assert data["assigned_doctor_phone"] == "+91 9876543210"
+    assert data["next_appointment"] is not None
+    assert data["next_appointment"]["doctor_name"] == "Dr. House"
+    assert data["next_appointment"]["doctor_phone"] == "+91 9876543210"
+

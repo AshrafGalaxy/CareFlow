@@ -42,7 +42,7 @@ async def get_my_doctor(
         "id": str(doctor.id),
         "name": doctor.name,
         "email": doctor.email,
-        "phone": doctor.phone
+        "phone": doctor.phone or (doctor.provider_profile.contact_number if doctor.provider_profile else None)
     }
 
 @router.get("/my-doctors", response_model=list[MyDoctorResponse])
@@ -66,7 +66,7 @@ async def get_my_doctors(
             "id": str(doc.id),
             "name": doc.name,
             "email": doc.email,
-            "phone": doc.phone
+            "phone": doc.phone or (doc.provider_profile.contact_number if doc.provider_profile else None)
         } for doc in doctors
     ]
 

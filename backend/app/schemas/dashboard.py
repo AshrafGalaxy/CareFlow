@@ -8,6 +8,7 @@ class NextAppointment(BaseModel):
     specialty: Optional[str] = None
     appointment_date: datetime
     status: str
+    doctor_phone: Optional[str] = None
 
 class NextMedication(BaseModel):
     id: str
@@ -37,6 +38,7 @@ class DashboardKPIsResponse(BaseModel):
     next_appointment: Optional[NextAppointment] = None
     latest_memo: Optional[LatestMemo] = None
     assigned_doctor_name: Optional[str] = None
+    assigned_doctor_phone: Optional[str] = None
 
 class MyDoctorResponse(BaseModel):
     id: str
