@@ -714,6 +714,7 @@ export default function DashboardPage() {
      fileUrl={viewingReport.file_url || ""}
      fileType={viewingReport.file_type || "application/pdf"}
      fileName={viewingReport.original_filename}
+     reportId={viewingReport.id}
     />
    )}
 

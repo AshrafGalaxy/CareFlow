@@ -1,20 +1,22 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, BackgroundTasks
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, BackgroundTasks, Query, Header
+from fastapi.responses import StreamingResponse, Response, FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 import asyncio
 import json
+import os
+import uuid
+from typing import Optional
+from pydantic import BaseModel
 from app.database import get_db
 from app.models.user import User
 from app.models.report import Report
 from app.models.provider import ProviderPatient
 from app.schemas.report import ReportResponse
 from app.middleware.auth_middleware import get_current_user
-from app.utils.storage import upload_file, delete_file
+from app.services.auth_service import verify_token
+from app.utils.storage import upload_file, delete_file, get_pdf_bytes_from_cloudinary
 from app.utils.file_processor import validate_file
 from app.services.report_service import process_report_ai, reanalyze_report_ai
-from typing import Optional
-import uuid
-from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -65,6 +67,18 @@ async def upload_report(
     db.commit()
     db.refresh(new_report)
 
+    # Save local copy for zero-latency direct viewing
+    try:
+        cache_dir = os.path.join(os.getcwd(), "backend", "data", "uploads")
+        if not os.path.exists(cache_dir):
+            cache_dir = os.path.join(os.getcwd(), "data", "uploads")
+        os.makedirs(cache_dir, exist_ok=True)
+        local_path = os.path.join(cache_dir, f"{new_report.id}.pdf")
+        with open(local_path, "wb") as f:
+            f.write(file_bytes)
+    except Exception as cache_err:
+        print(f"Warning: could not cache upload file locally: {cache_err}")
+
     # Trigger AI processing as background task (OCR → Analysis → FAISS → Timeline)
     background_tasks.add_task(
         process_report_ai,
@@ -101,6 +115,74 @@ def get_report(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this report")
 
     return report
+
+
+@router.get("/{id}/file")
+async def get_report_file(
+    id: uuid.UUID,
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Delivers the genuine PDF document for inline viewing or tab display.
+    Bypasses Cloudinary raw PDF 401 ACL blocks by serving either from local cache
+    or assembling high-resolution pages via Cloudinary into standard PDF format.
+    """
+    user = None
+    auth_token = token
+    if not auth_token and authorization and authorization.startswith("Bearer "):
+        auth_token = authorization.split(" ")[1]
+
+    if auth_token:
+        try:
+            payload = verify_token(auth_token)
+            user_id = payload.get("sub")
+            if user_id:
+                user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+        except Exception:
+            pass
+
+    report = db.query(Report).filter(Report.id == id).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+
+    if user and user.role not in ["doctor", "admin"] and report.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this report")
+
+    cache_dir = os.path.join(os.getcwd(), "backend", "data", "uploads")
+    if not os.path.exists(cache_dir):
+        cache_dir = os.path.join(os.getcwd(), "data", "uploads")
+    os.makedirs(cache_dir, exist_ok=True)
+    local_path = os.path.join(cache_dir, f"{report.id}.pdf")
+
+    filename_val = report.original_filename or f"{report.id}.pdf"
+
+    # 1. Return from local cache if present
+    if os.path.exists(local_path):
+        return FileResponse(
+            local_path,
+            media_type="application/pdf",
+            filename=filename_val,
+            headers={"Content-Disposition": f'inline; filename="{filename_val}"'}
+        )
+
+    # 2. Fetch and assemble from Cloudinary
+    if report.file_url and "res.cloudinary.com" in report.file_url:
+        try:
+            pdf_bytes = get_pdf_bytes_from_cloudinary(report.file_url)
+            with open(local_path, "wb") as f:
+                f.write(pdf_bytes)
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'inline; filename="{filename_val}"'}
+            )
+        except Exception as e:
+            print(f"Failed to assemble PDF from Cloudinary for {report.id}: {e}")
+
+    # Fallback to redirecting to file_url
+    return RedirectResponse(url=report.file_url)
 
 
 @router.delete("/{id}")

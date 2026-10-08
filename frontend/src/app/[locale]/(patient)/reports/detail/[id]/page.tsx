@@ -79,6 +79,8 @@ export default function ReportDetailPage() {
  const [error, setError] = useState<string | null>(null)
  const [reanalyzing, setReanalyzing] = useState(false)
  const abortControllerRef = useRef<AbortController | null>(null)
+ const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+ const fileDownloadUrl = report ? `${apiBase}/api/reports/${report.id}/file?token=${encodeURIComponent(token || '')}` : ''
 
  const handleReanalyze = async () => {
   if (!id || reanalyzing) return
@@ -337,7 +339,7 @@ export default function ReportDetailPage() {
 
       {report.file_url && (
        <a
-        href={report.file_url}
+        href={fileDownloadUrl || report.file_url}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-5 py-2.5 bg-card hover:bg-muted border border-border rounded-xl text-sm font-semibold transition-colors text-foreground"
@@ -403,7 +405,7 @@ export default function ReportDetailPage() {
      <div className="flex flex-col sm:flex-row gap-3">
       {report.file_url && (
        <a
-        href={report.file_url}
+        href={fileDownloadUrl || report.file_url}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-sm font-medium transition-all dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700 cursor-pointer shadow-xs"

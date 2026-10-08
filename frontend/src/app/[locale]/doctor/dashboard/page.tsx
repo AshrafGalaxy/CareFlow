@@ -276,6 +276,7 @@ export default function DoctorDashboardPage() {
         fileUrl={viewingReport.file_url}
         fileType={viewingReport.file_type}
         fileName={viewingReport.original_filename}
+        reportId={viewingReport.id}
        />
       )}
      </Card>
