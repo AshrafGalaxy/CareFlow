@@ -77,18 +77,8 @@ async def get_streaming_response(
     except Exception as e:
         print(f"FAISS retriever failed to load (likely missing API keys): {e}")
 
-    # Use Groq for both text and image — qwen/qwen3.6-27b supports vision, llama for text-only
-    groq_api_key = os.getenv("GROQ_API_KEY")
-    if not groq_api_key or groq_api_key.strip() == "":
-        raise ValueError("GROQ_API_KEY is missing. Chat cannot function.")
+    from app.ai.model_provider import astream_with_model_fallback, ainvoke_with_model_fallback
 
-    model_name = "qwen/qwen3.6-27b" if image_base64 else "llama-3.3-70b-versatile"
-    llm = ChatGroq(
-        model=model_name,
-        api_key=groq_api_key,
-        temperature=0.3,
-        max_retries=1
-    )
     # Format chat history for LangChain
     history_messages = []
     for msg in chat_history[-10:]:
@@ -138,8 +128,7 @@ async def get_streaming_response(
         
     # Build system prompt — prepend /no_think for qwen to disable its thinking mode
     system_prompt = CHAT_SYSTEM_PROMPT.format(context=context)
-    if image_base64:
-        system_prompt = "/no_think\n\n" + system_prompt
+    system_prompt = "/no_think\n\n" + system_prompt
 
     messages = [
         ("system", system_prompt),
@@ -147,14 +136,17 @@ async def get_streaming_response(
         current_msg
     ]
 
-    # For qwen (vision model), also filter any residual <think> blocks as a safety net
-    if image_base64:
-        async for token in _strip_think_tags(llm.astream(messages)):
-            yield token
-    else:
-        async for chunk in llm.astream(messages):
-            if chunk.content:
-                yield chunk.content
+    # Stream with multi-model fallback (Qwen 3.8 27B primary, GPT OSS 120B/20B fallback)
+    raw_stream = astream_with_model_fallback(
+        messages=messages,
+        is_vision=bool(image_base64),
+        temperature=0.3,
+        max_retries=1
+    )
+
+    # Filter any residual <think> blocks across streams
+    async for token in _strip_think_tags(raw_stream):
+        yield token
 
 async def generate_chat_title(message: str) -> str:
     """Generate a concise 3-5 word title for the chat session based on the first message."""
@@ -162,14 +154,22 @@ async def generate_chat_title(message: str) -> str:
     if not groq_api_key or groq_api_key.strip() == "":
         return "New Chat" # Fallback title if API key is missing
         
-    llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=groq_api_key, temperature=0.3, max_retries=1)
+    from app.ai.model_provider import ainvoke_with_model_fallback
     
     prompt = f"Create a concise 3 to 5 word title for a healthcare chat that starts with this message. Output ONLY the title, no quotes or extra text.\nMessage: '{message}'"
     
     try:
-        response = await llm.ainvoke(prompt)
-        # Clean up any surrounding quotes if the LLM adds them
-        return response.content.strip().strip('"').strip("'")
+        response = await ainvoke_with_model_fallback(
+            messages=[("human", prompt)],
+            is_vision=False,
+            temperature=0.3,
+            max_retries=1
+        )
+        content = response.content if hasattr(response, "content") else str(response)
+        title = content.strip().strip('"').strip("'")
+        if "</think>" in title:
+            title = title.split("</think>")[-1].strip().strip('"').strip("'")
+        return title[:50]
     except Exception:
         # Fallback to simple slicing if LLM fails
         return message[:40] + ("..." if len(message) > 40 else "")

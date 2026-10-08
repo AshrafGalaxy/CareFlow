@@ -184,7 +184,11 @@ export function ChatWindow({ initialValue }: { initialValue?: string }) {
      try {
       const parsed = JSON.parse(data)
       if (parsed.error) {
-       throw new Error(parsed.error)
+       const userMessage = typeof parsed.error === 'string' && (parsed.error.includes('{') || parsed.error.includes('404') || parsed.error.includes('error'))
+        ? 'The clinical assistant is currently reconnecting. Please send your message again in a moment.'
+        : parsed.error
+       updateLastMessage(userMessage)
+       break
       }
       if (parsed.token) {
        updateLastMessage(parsed.token)

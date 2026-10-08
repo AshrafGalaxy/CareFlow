@@ -68,16 +68,14 @@ async def analyze_report(ocr_text: str) -> dict:
     if not groq_api_key or groq_api_key.strip() == "":
         raise ValueError("GROQ_API_KEY is missing. Analysis cannot function.")
         
-    from langchain_groq import ChatGroq
-    llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
-        api_key=groq_api_key,
-        temperature=0.1,
-        max_retries=1
-    )
-
+    from app.ai.model_provider import ainvoke_with_model_fallback
     try:
-        response = await llm.ainvoke(messages)
+        response = await ainvoke_with_model_fallback(
+            messages=messages,
+            is_vision=False,
+            temperature=0.1,
+            max_retries=1
+        )
         result = _extract_json(response.content)
         # Validate required keys exist
         return {

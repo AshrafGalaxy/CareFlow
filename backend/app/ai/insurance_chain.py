@@ -1,27 +1,13 @@
 import json
 import os
-from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.ai.prompts import INSURANCE_SYSTEM_PROMPT, PROCEDURE_EXTRACTION_PROMPT
+from app.ai.model_provider import ainvoke_with_model_fallback
 
 SCHEMES_DIR = "data/schemes"
 
-def _get_llm():
-    groq_api_key = os.getenv("GROQ_API_KEY")
-    if not groq_api_key or groq_api_key.strip() == "":
-        raise ValueError("GROQ_API_KEY is missing. Insurance AI cannot function.")
-
-    return ChatGroq(
-        model="llama-3.3-70b-versatile",
-        api_key=groq_api_key,
-        temperature=0.1,
-        max_retries=1
-    )
-
 async def extract_procedure(query: str) -> str:
-    llm = _get_llm()
-
-    response = await llm.ainvoke([
+    response = await ainvoke_with_model_fallback([
         SystemMessage(content=PROCEDURE_EXTRACTION_PROMPT),
         HumanMessage(content=query)
     ])
@@ -60,8 +46,6 @@ async def navigate_insurance(query: str, state: str = "Maharashtra") -> dict:
         context = "No scheme documents found. Provide general insurance advice."
 
     print("LOADED SCHEMES CONTEXT LENGTH:", len(context))
-
-    llm = _get_llm()
 
     prompt = f"""
 {INSURANCE_SYSTEM_PROMPT}
@@ -140,9 +124,9 @@ Return ONLY valid JSON (no markdown, no preamble) matching:
 }}
 """
 
-    response = await llm.ainvoke([
+    response = await ainvoke_with_model_fallback([
         HumanMessage(content=prompt)
-    ])
+    ], is_vision=False, temperature=0.1)
 
     raw = response.content.strip()
 

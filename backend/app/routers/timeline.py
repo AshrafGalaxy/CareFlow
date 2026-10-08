@@ -77,12 +77,12 @@ async def get_timeline_summary(
     try:
         groq_api_key = os.getenv("GROQ_API_KEY")
         if groq_api_key and groq_api_key.strip():
-            from langchain_groq import ChatGroq
-            llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=groq_api_key, temperature=0.3, max_retries=1)
+            from app.ai.model_provider import ainvoke_with_model_fallback
+            response = await ainvoke_with_model_fallback([HumanMessage(content=prompt)], is_vision=False, temperature=0.3)
         else:
             from langchain_google_genai import ChatGoogleGenerativeAI
             llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, max_retries=1)
-        response = await llm.ainvoke([HumanMessage(content=prompt)])
+            response = await llm.ainvoke([HumanMessage(content=prompt)])
         summary_text = response.content.strip()
     except Exception:
         if cached_summary and cached_summary.summary_text:

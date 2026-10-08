@@ -124,7 +124,14 @@ async def send_message(
         except Exception as e:
             import traceback
             traceback.print_exc()
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            fallback_text = (
+                "I am currently experiencing a temporary connection delay with the medical AI service. "
+                "Please send your message again in a moment, or reach out to your care team if this is an urgent health inquiry."
+            )
+            # Stream the fallback message gracefully so user is informed without raw provider errors
+            for word in fallback_text.split(" "):
+                yield f"data: {json.dumps({'token': word + ' '})}\n\n"
+            full_response = fallback_text
 
         # Save assistant response to DB using a new session since the dependency one is closed
         new_title = None
