@@ -12,12 +12,14 @@ export const ACCEPTED_FILE_TYPES = {
 
 export const ACCEPTED_FILE_LABELS = ["PDF", "JPG", "PNG"]
 
-export type ReportStatus = "pending" | "processing" | "done" | "failed"
+export type ReportStatus = "pending" | "processing" | "done" | "failed" | "rejected" | "reanalyzing"
 export const REPORT_STATUS = {
  PENDING: "pending" as ReportStatus,
  PROCESSING: "processing" as ReportStatus,
  DONE: "done" as ReportStatus,
  FAILED: "failed" as ReportStatus,
+ REJECTED: "rejected" as ReportStatus,
+ REANALYZING: "reanalyzing" as ReportStatus,
 }
 
 export type UserRole = "patient" | "doctor" | "admin"

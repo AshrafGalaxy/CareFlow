@@ -5,6 +5,7 @@ from datetime import date
 from app.ai.ocr import extract_text_from_file
 from app.ai.report_analyzer import analyze_report
 from app.ai.vector_store import embed_report
+from app.ai.medical_guardrail import validate_medical_document
 from app.models.report import Report
 from app.utils.timeline_builder import add_timeline_event
 
@@ -61,6 +62,23 @@ async def process_report_ai(
         # Step 1: OCR
         ocr_text = await extract_text_from_file(file_bytes, file_type)
         report.ocr_text = ocr_text
+        report.processing_progress = "Validating document..."
+        db.commit()
+
+        # Step 1.5: Medical guardrail — reject non-clinical documents before LLM
+        guardrail = validate_medical_document(ocr_text)
+        if not guardrail.is_medical:
+            print(
+                f"[Guardrail] Report {report_id} rejected. "
+                f"clinical_score={guardrail.clinical_score}, "
+                f"non_medical_score={guardrail.non_medical_score}. "
+                f"Reason: {guardrail.rejection_reason}"
+            )
+            report.processing_status = "rejected"
+            report.processing_progress = guardrail.rejection_reason
+            db.commit()
+            return
+
         report.processing_progress = "Analyzing report with Medical AI..."
         db.commit()
 
@@ -136,6 +154,15 @@ async def reanalyze_report_ai(report_id: str):
         report.processing_status = "reanalyzing"
         report.processing_progress = "Re-analyzing report with Medical AI..."
         db.commit()
+
+        # Re-validate: prevent replaying clearly non-medical OCR text
+        guardrail = validate_medical_document(report.ocr_text)
+        if not guardrail.is_medical:
+            print(f"[Guardrail] Re-analysis of {report_id} rejected: {guardrail.rejection_reason}")
+            report.processing_status = "rejected"
+            report.processing_progress = guardrail.rejection_reason
+            db.commit()
+            return
 
         # Only the AI analysis step
         analysis = await analyze_report(report.ocr_text)

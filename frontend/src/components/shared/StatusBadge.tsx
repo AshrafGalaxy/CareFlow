@@ -15,6 +15,12 @@ const STATUS_CONFIG: Record<
   pulse: true,
   dotColor: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]",
  },
+ reanalyzing: {
+  label: "Re-analyzing",
+  className: "bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20",
+  pulse: true,
+  dotColor: "bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.8)]",
+ },
  pending: {
   label: "Pending",
   className: "bg-slate-100 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-500/20",
@@ -23,6 +29,11 @@ const STATUS_CONFIG: Record<
   label: "Failed",
   className: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20",
   dotColor: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]",
+ },
+ rejected: {
+  label: "Not Medical",
+  className: "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20",
+  dotColor: "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]",
  },
 }
 
