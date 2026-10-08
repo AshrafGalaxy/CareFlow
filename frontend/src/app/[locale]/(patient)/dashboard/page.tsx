@@ -259,7 +259,7 @@ export default function DashboardPage() {
          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
            <p className="text-muted-foreground text-sm">{t("welcomeText")}</p>
            {!kpiLoading && kpiData?.assigned_doctor_name && (
-             <Link href="/en/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
+             <Link href="/care-team" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 transition-colors text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
                <Stethoscope className="w-3.5 h-3.5" />
                <span className="text-xs font-semibold">Care Team: Dr. {kpiData.assigned_doctor_name}</span>
              </Link>
@@ -448,11 +448,15 @@ export default function DashboardPage() {
             highContrast={isHighContrast}
             assignedDoctorName={kpiData?.assigned_doctor_name}
             assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+            emergencyContactName={user?.emergency_contact_name}
+            emergencyContactPhone={user?.emergency_contact_phone}
           />
           <HelpWidget
             highContrast={isHighContrast}
             assignedDoctorName={kpiData?.assigned_doctor_name}
             assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+            emergencyContactName={user?.emergency_contact_name}
+            emergencyContactPhone={user?.emergency_contact_phone}
           />
         </div>
      </>

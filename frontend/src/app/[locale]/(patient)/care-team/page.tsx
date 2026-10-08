@@ -84,7 +84,7 @@ export default function CareTeamPage() {
             </div>
             <div className="flex gap-3">
               <Link 
-                href="/en/dashboard" 
+                href="/dashboard" 
                 className="btn-glow flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all"
               >
                 <MessageSquare className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function CareTeamPage() {
                 <Clock className="w-4 h-4 text-emerald-500" /> Availability & Quick Actions
               </h3>
               <div className="space-y-3">
-                 <Link href="/en/appointments" className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors">
+                 <Link href="/appointments" className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                       <CalendarDays className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function CareTeamPage() {
                   </div>
                   <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
                  </Link>
-                 <Link href="/en/reports" className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-sky-500/50 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-colors">
+                 <Link href="/reports" className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-sky-500/50 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-lg">
                       <CheckCircle className="w-4 h-4" />

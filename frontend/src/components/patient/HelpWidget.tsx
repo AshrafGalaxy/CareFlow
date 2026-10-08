@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { AlertTriangle, PhoneCall, ShieldAlert, X, HeartPulse, User, Stethoscope, CheckCircle2 } from "lucide-react"
+import { Link } from "@/i18n/routing"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 
@@ -9,29 +10,44 @@ interface HelpWidgetProps {
   highContrast?: boolean
   assignedDoctorName?: string
   assignedDoctorPhone?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
   compact?: boolean
   variant?: "card" | "banner"
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 export function HelpWidget({
   highContrast = false,
   assignedDoctorName,
   assignedDoctorPhone,
+  emergencyContactName,
+  emergencyContactPhone,
   compact = false,
   variant = "card",
+  isOpen,
+  onClose,
 }: HelpWidgetProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [internalModalOpen, setInternalModalOpen] = useState(false)
+  const isModalOpen = isOpen !== undefined ? isOpen : internalModalOpen
+  const closeModal = () => {
+    setInternalModalOpen(false)
+    onClose?.()
+  }
+  const openModal = () => setInternalModalOpen(true)
+
   const user = useAuthStore((state) => state.user)
 
-  const familyName = user?.emergency_contact_name || "Emergency Contact"
-  const familyPhone = user?.emergency_contact_phone || ""
+  const familyName = emergencyContactName || user?.emergency_contact_name || "Emergency Contact"
+  const familyPhone = emergencyContactPhone || user?.emergency_contact_phone || ""
 
   return (
     <>
       {/* Help Entry Button */}
       {compact ? (
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={openModal}
           className={cn(
             "h-8 px-3 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer",
             highContrast
@@ -67,7 +83,7 @@ export function HelpWidget({
             </div>
 
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={openModal}
               className={cn(
                 "h-9 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm cursor-pointer shrink-0",
                 highContrast
@@ -169,7 +185,7 @@ export function HelpWidget({
           {/* Action Footer */}
           <div className="mt-1">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={openModal}
               className={cn(
                 "w-full h-9 px-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-colors border text-center cursor-pointer",
                 highContrast
@@ -210,7 +226,7 @@ export function HelpWidget({
               </div>
 
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Close modal"
               >
@@ -284,9 +300,9 @@ export function HelpWidget({
               ) : (
                 <div className="p-3 rounded-xl border border-dashed border-border flex items-center justify-between text-muted-foreground text-xs">
                   <span>No family phone saved in profile</span>
-                  <a href="/profile" className="text-xs font-semibold text-sky-500 hover:underline">
+                  <Link href="/profile" className="text-xs font-semibold text-sky-500 hover:underline">
                     Add in Profile
-                  </a>
+                  </Link>
                 </div>
               )}
 
@@ -324,7 +340,7 @@ export function HelpWidget({
 
             {/* Safe / Dismiss Button */}
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={closeModal}
               className={cn(
                 "w-full h-9 rounded-xl font-medium text-xs transition-colors",
                 highContrast

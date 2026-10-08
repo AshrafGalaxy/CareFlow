@@ -69,6 +69,8 @@ export function ElderDashboardView({
         highContrast={highContrast}
         assignedDoctorName={kpiData?.assigned_doctor_name}
         assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+        emergencyContactName={patient?.emergency_contact_name}
+        emergencyContactPhone={patient?.emergency_contact_phone}
         variant="banner"
       />
 
@@ -106,6 +108,8 @@ export function ElderDashboardView({
           highContrast={highContrast}
           assignedDoctorName={kpiData?.assigned_doctor_name}
           assignedDoctorPhone={kpiData?.assigned_doctor_phone}
+          emergencyContactName={patient?.emergency_contact_name}
+          emergencyContactPhone={patient?.emergency_contact_phone}
         />
       </div>
     </div>

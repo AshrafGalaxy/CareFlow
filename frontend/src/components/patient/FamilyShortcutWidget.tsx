@@ -9,17 +9,21 @@ interface FamilyShortcutWidgetProps {
   highContrast?: boolean
   assignedDoctorName?: string
   assignedDoctorPhone?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
 }
 
 export function FamilyShortcutWidget({
   highContrast = false,
   assignedDoctorName,
-  assignedDoctorPhone
+  assignedDoctorPhone,
+  emergencyContactName,
+  emergencyContactPhone,
 }: FamilyShortcutWidgetProps) {
   const user = useAuthStore((state) => state.user)
 
-  const familyName = user?.emergency_contact_name || "Primary Family Contact"
-  const familyPhone = user?.emergency_contact_phone || ""
+  const familyName = emergencyContactName || user?.emergency_contact_name || "Primary Family Contact"
+  const familyPhone = emergencyContactPhone || user?.emergency_contact_phone || ""
 
   return (
     <div
