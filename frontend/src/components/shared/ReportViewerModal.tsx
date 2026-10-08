@@ -1,7 +1,7 @@
 'use client'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { FileText, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Loader2, Eye } from 'lucide-react'
+import { FileText, ExternalLink, ZoomIn, ZoomOut, RotateCcw, Loader2, ArrowUpDown, ArrowLeftRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
@@ -36,6 +36,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
   const [scale, setScale] = useState(1)
   const [loadedPages, setLoadedPages] = useState<number[]>([1])
   const [viewMode, setViewMode] = useState<'pages' | 'pdf'>('pages')
+  const [fitMode, setFitMode] = useState<'page' | 'width' | 'custom'>('page')
   const [useIframeFallback, setUseIframeFallback] = useState(false)
   const probingRef = useRef(false)
 
@@ -72,6 +73,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
       setScale(1)
       setLoadedPages([1])
       setViewMode('pages')
+      setFitMode('page')
       setUseIframeFallback(false)
       probingRef.current = false
 
@@ -81,30 +83,51 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
     }
   }, [isOpen, fileUrl])
 
-  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3))
-  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5))
-  const handleResetZoom = () => setScale(1)
+  const handleZoomIn = () => {
+    setFitMode('custom')
+    setScale(prev => Math.min(prev + 0.25, 3))
+  }
+
+  const handleZoomOut = () => {
+    setFitMode('custom')
+    setScale(prev => Math.max(prev - 0.25, 0.5))
+  }
+
+  const handleResetZoom = () => {
+    setScale(1)
+    setFitMode('page')
+  }
+
+  const handleFitPage = () => {
+    setFitMode('page')
+    setScale(1)
+  }
+
+  const handleFitWidth = () => {
+    setFitMode('width')
+    setScale(1)
+  }
 
   const showCloudinaryPages = isCloudinaryPdf && !useIframeFallback && viewMode === 'pages'
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-[95vw] lg:max-w-7xl h-[85vh] lg:h-[90vh] flex flex-col p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl rounded-2xl">
-        <DialogHeader className="px-6 py-4 border-b border-border/40 shrink-0 bg-background/40 backdrop-blur-md z-20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0 shadow-sm border border-primary/10">
-                <FileText size={20} strokeWidth={2.5} />
+        <DialogHeader className="px-4 sm:px-6 py-3.5 border-b border-border/40 shrink-0 bg-background/40 backdrop-blur-md z-20">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-primary/10 text-primary rounded-xl shrink-0 shadow-sm border border-primary/10">
+                <FileText size={18} strokeWidth={2.5} />
               </div>
-              <div className="min-w-0 pr-4">
-                <DialogTitle className="text-lg font-semibold tracking-tight truncate">{fileName}</DialogTitle>
-                <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
+              <div className="min-w-0 pr-2">
+                <DialogTitle className="text-base sm:text-lg font-semibold tracking-tight truncate">{fileName}</DialogTitle>
+                <DialogDescription className="text-xs font-medium text-muted-foreground truncate">
                   {isPdf ? 'Clinical Report Document' : isRegularImage ? 'Medical Image Document' : 'Clinical Document Viewer'}
                 </DialogDescription>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Cloudinary PDF View Switcher */}
               {isCloudinaryPdf && !useIframeFallback && (
                 <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
@@ -131,7 +154,37 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                 </div>
               )}
 
-              {/* Zoom Controls for Images & Document Pages */}
+              {/* Fit Mode Controls (Fit to Height/Page vs Fit to Width) */}
+              {(isRegularImage || showCloudinaryPages) && (
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                  <button
+                    onClick={handleFitPage}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      fitMode === 'page'
+                        ? 'bg-white dark:bg-slate-700 text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Fit entire page to window height (see entire document without scrolling)"
+                  >
+                    <ArrowUpDown size={13} />
+                    <span className="hidden md:inline">Fit Page</span>
+                  </button>
+                  <button
+                    onClick={handleFitWidth}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      fitMode === 'width'
+                        ? 'bg-white dark:bg-slate-700 text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Fit page width for closer reading"
+                  >
+                    <ArrowLeftRight size={13} />
+                    <span className="hidden md:inline">Fit Width</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Zoom Controls for Fine-Grained Scaling */}
               {(isRegularImage || showCloudinaryPages) && (
                 <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                   <button 
@@ -140,9 +193,9 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                     className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-foreground hover:bg-white dark:hover:bg-slate-700/80 rounded-lg transition-all disabled:opacity-30 cursor-pointer active:scale-95" 
                     title="Zoom Out"
                   >
-                    <ZoomOut size={15} />
+                    <ZoomOut size={14} />
                   </button>
-                  <div className="px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-[3.5rem] text-center select-none font-mono">
+                  <div className="px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-[3.2rem] text-center select-none font-mono">
                     {Math.round(scale * 100)}%
                   </div>
                   <button 
@@ -151,15 +204,15 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                     className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-foreground hover:bg-white dark:hover:bg-slate-700/80 rounded-lg transition-all disabled:opacity-30 cursor-pointer active:scale-95" 
                     title="Zoom In"
                   >
-                    <ZoomIn size={15} />
+                    <ZoomIn size={14} />
                   </button>
-                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                  <div className="w-px h-3.5 bg-slate-200 dark:bg-slate-700 mx-1" />
                   <button 
                     onClick={handleResetZoom} 
                     className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-foreground hover:bg-white dark:hover:bg-slate-700/80 rounded-lg transition-all cursor-pointer active:scale-95" 
-                    title="Reset Zoom"
+                    title="Reset to Fit Page"
                   >
-                    <RotateCcw size={15} />
+                    <RotateCcw size={14} />
                   </button>
                 </div>
               )}
@@ -169,17 +222,17 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                 href={directPdfUrl} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all flex items-center justify-center shadow-sm font-semibold text-sm gap-2 cursor-pointer active:scale-95"
+                className="px-3.5 py-1.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all flex items-center justify-center shadow-sm font-semibold text-xs sm:text-sm gap-1.5 cursor-pointer active:scale-95"
                 title={isPdf ? "Open Genuine PDF in New Browser Tab (with Adobe / Print tools)" : "Open Original File in New Tab"}
               >
-                <ExternalLink size={16} />
+                <ExternalLink size={15} />
                 <span className="hidden sm:inline">{isPdf ? "View PDF" : "Open Original"}</span>
               </a>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="flex-1 bg-slate-100/60 dark:bg-black/40 flex items-center justify-center overflow-auto relative">
+        <div className="flex-1 bg-slate-100/60 dark:bg-black/40 flex items-center justify-center overflow-hidden relative">
           <AnimatePresence>
             {isLoading && (
               <motion.div 
@@ -196,21 +249,56 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
 
           {/* Cloudinary PDF Multi-Page Document View */}
           {showCloudinaryPages ? (
-            <div className="w-full h-full flex flex-col items-center gap-6 p-6 sm:p-8 overflow-y-auto">
+            <div 
+              className={`w-full h-full flex flex-col items-center ${
+                fitMode === 'page'
+                  ? 'justify-center p-3 sm:p-5 overflow-hidden'
+                  : 'gap-6 p-6 sm:p-8 overflow-y-auto'
+              }`}
+            >
               {loadedPages.map((pageNum) => {
                 const pageUrl = getCloudinaryPageUrl(fileUrl, pageNum)
 
                 return (
                   <div 
                     key={pageNum}
-                    className="flex flex-col items-center gap-2 max-w-full"
-                    style={{ width: `${scale * 100}%`, maxWidth: scale > 1 ? 'none' : '900px' }}
+                    className={`flex flex-col items-center gap-2 ${
+                      fitMode === 'page' ? 'h-full max-h-full justify-center' : 'max-w-full'
+                    }`}
+                    style={
+                      fitMode === 'page'
+                        ? {
+                            height: '100%',
+                            maxHeight: '100%',
+                            transform: scale !== 1 ? `scale(${scale})` : undefined,
+                            transition: 'transform 0.2s ease-out'
+                          }
+                        : fitMode === 'width'
+                        ? {
+                            width: '100%',
+                            maxWidth: '920px'
+                          }
+                        : {
+                            width: `${scale * 100}%`,
+                            maxWidth: scale > 1 ? 'none' : '920px'
+                          }
+                    }
                   >
-                    <div className="w-full bg-card rounded-2xl shadow-xl border border-border/60 overflow-hidden relative group">
+                    <div 
+                      className={`bg-card rounded-2xl shadow-xl border border-border/60 overflow-hidden relative group ${
+                        fitMode === 'page'
+                          ? 'h-full max-h-[calc(85vh-130px)] lg:max-h-[calc(90vh-130px)] flex items-center justify-center'
+                          : 'w-full'
+                      }`}
+                    >
                       <img 
                         src={pageUrl} 
                         alt={`${fileName} - Page ${pageNum}`} 
-                        className="w-full h-auto object-contain transition-transform duration-200"
+                        className={
+                          fitMode === 'page'
+                            ? "max-h-[calc(85vh-140px)] lg:max-h-[calc(90vh-140px)] w-auto max-w-full object-contain rounded-xl"
+                            : "w-full h-auto object-contain transition-transform duration-200"
+                        }
                         onLoad={() => {
                           if (pageNum === 1) {
                             setIsLoading(false)
@@ -230,7 +318,7 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
                       />
                     </div>
                     {loadedPages.length > 1 && (
-                      <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/40 select-none">
+                      <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/40 select-none shrink-0">
                         Page {pageNum} of {loadedPages.length}
                       </span>
                     )}
@@ -239,12 +327,20 @@ export function ReportViewerModal({ isOpen, onClose, fileUrl, fileType, fileName
               })}
             </div>
           ) : isRegularImage ? (
-            <div className="w-full h-full flex items-center justify-center p-8 overflow-auto">
+            <div 
+              className={`w-full h-full flex items-center justify-center p-4 sm:p-6 ${
+                fitMode === 'page' ? 'overflow-hidden' : 'overflow-auto'
+              }`}
+            >
               <img 
                 src={fileUrl} 
                 alt={fileName} 
                 style={{ transform: `scale(${scale})` }}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-xl border border-border/50 origin-center transition-transform duration-200 ease-out"
+                className={
+                  fitMode === 'page'
+                    ? "max-w-full max-h-[calc(85vh-130px)] lg:max-h-[calc(90vh-130px)] object-contain rounded-xl shadow-xl border border-border/50 origin-center transition-transform duration-200 ease-out"
+                    : "w-full max-w-4xl h-auto object-contain rounded-xl shadow-xl border border-border/50 origin-center transition-transform duration-200 ease-out"
+                }
                 onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
               />
