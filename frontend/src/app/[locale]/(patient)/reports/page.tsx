@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useNotificationStore } from '@/store/notificationStore'
+import { cn } from '@/lib/utils'
 
 interface Report {
  id: string
@@ -181,9 +182,15 @@ export default function ReportsListPage() {
          </button>
          <Link 
           href={`/reports/detail/${report.id}`}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+          className={cn(
+           "hidden sm:flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-colors",
+           report.processing_status === 'failed'
+            ? "bg-rose-50 text-rose-600 hover:bg-rose-100 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-400"
+            : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+          )}
          >
           {report.processing_status === 'done' ? 'View AI Analyzed Report' : 
+           report.processing_status === 'failed' ? 'Retry Analysis' :
            (report.processing_status === 'processing' || report.processing_status === 'reanalyzing' || report.processing_status === 'pending') ? 'View Progress' : 'Analyze AI'}
          </Link>
          <div onClick={(e) => e.stopPropagation()} className="ml-2">

@@ -31,6 +31,7 @@ interface AbnormalValue {
 interface Report {
  id: string
  original_filename: string
+ file_url?: string
  processing_status: string
  processing_progress?: string
  ai_summary: string | null
@@ -184,6 +185,16 @@ export default function ReportDetailPage() {
              message: `AI has extracted insights from "${res.data.original_filename}".`,
              type: "system"
             })
+           } else if (data.status === 'failed') {
+            toast.error("Analysis Incomplete", {
+             description: "Could not generate clinical analysis. You can retry with 1 click.",
+             icon: <AlertCircle className="w-5 h-5 text-rose-500" />
+            })
+            useNotificationStore.getState().addNotification({
+             title: "Analysis Incomplete",
+             message: `Could not extract clinical insights from "${res.data.original_filename}". Please retry.`,
+             type: "system"
+            })
            }
           })
           setReanalyzing(false)
@@ -290,11 +301,52 @@ export default function ReportDetailPage() {
 
  if (report.processing_status === 'failed') {
   return (
-   <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div className="flex flex-col items-center justify-center p-12 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-3xl text-center">
-     <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-     <h2 className="text-xl font-heading font-bold text-foreground mb-2">Processing Failed</h2>
-     <p className="text-slate-500 dark:text-slate-400">We couldn&apos;t process this report. Please try uploading a clearer version.</p>
+   <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
+    <Link 
+     href="/reports" 
+     className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+    >
+     <ChevronLeft className="w-4 h-4 mr-1" /> Back to My Reports
+    </Link>
+
+    <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-3xl text-center space-y-4">
+     <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+      <AlertTriangle className="w-7 h-7" />
+     </div>
+     <div>
+      <h2 className="text-xl font-heading font-bold text-foreground">Analysis Incomplete</h2>
+      <p className="text-sm text-muted-foreground mt-1 max-w-md">
+       CareFlow AI could not extract complete clinical insights from <span className="font-semibold text-foreground">&quot;{report.original_filename}&quot;</span>.
+      </p>
+      {report.processing_progress && (
+       <p className="text-xs text-rose-600 dark:text-rose-400 mt-2 font-mono bg-rose-500/10 px-3 py-1 rounded-full inline-block">
+        {report.processing_progress}
+       </p>
+      )}
+     </div>
+
+     <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+      <button
+       onClick={handleReanalyze}
+       disabled={reanalyzing}
+       className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
+      >
+       <RefreshCw className={`w-4 h-4 ${reanalyzing ? 'animate-spin' : ''}`} />
+       <span>{reanalyzing ? 'Retrying Analysis...' : 'Retry AI Analysis'}</span>
+      </button>
+
+      {report.file_url && (
+       <a
+        href={report.file_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-5 py-2.5 bg-card hover:bg-muted border border-border rounded-xl text-sm font-semibold transition-colors text-foreground"
+       >
+        <FileText className="w-4 h-4 text-sky-500" />
+        <span>View Original Document</span>
+       </a>
+      )}
+     </div>
     </div>
    </div>
   )

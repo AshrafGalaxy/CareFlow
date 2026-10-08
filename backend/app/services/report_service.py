@@ -111,7 +111,7 @@ async def process_report_ai(
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
             report.processing_status = "failed"
-            report.processing_progress = f"Failed: {str(e)}"
+            report.processing_progress = "AI analysis failed. Please retry."
             db.commit()
         print(f"Report processing failed for {report_id}: {e}")
     finally:
@@ -132,6 +132,10 @@ async def reanalyze_report_ai(report_id: str):
         if not report or not report.ocr_text:
             print(f"Re-analyze skipped for {report_id}: no OCR text saved")
             return
+
+        report.processing_status = "reanalyzing"
+        report.processing_progress = "Re-analyzing report with Medical AI..."
+        db.commit()
 
         # Only the AI analysis step
         analysis = await analyze_report(report.ocr_text)
@@ -156,6 +160,7 @@ async def reanalyze_report_ai(report_id: str):
             print(f"Warning: Failed to embed report {report_id} into FAISS during re-analysis: {embed_err}")
 
         report.processing_status = "done"
+        report.processing_progress = "Done"
         report.analyzed_at = func.now()
         db.commit()
 
@@ -165,6 +170,7 @@ async def reanalyze_report_ai(report_id: str):
         report = db.query(Report).filter(Report.id == uuid.UUID(str(report_id))).first()
         if report:
             report.processing_status = "failed"
+            report.processing_progress = "AI analysis failed. Please retry."
             db.commit()
         print(f"Re-analysis failed for {report_id}: {e}")
     finally:
