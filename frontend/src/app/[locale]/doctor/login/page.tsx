@@ -1,20 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ChevronRight, Activity, Stethoscope } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, ChevronRight, Activity, Stethoscope, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
-import api from "@/lib/api"
+import api, { parseApiError } from "@/lib/api"
+import { warmupBackend } from "@/lib/warmup"
 import { useAuthStore } from "@/store/authStore"
 import Image from "next/image"
 
 export default function ProviderLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingSeconds, setLoadingSeconds] = useState(0)
+  const [loginError, setLoginError] = useState<{ message: string; isServerWaking: boolean } | null>(null)
   const [error, setError] = useState("")
   const router = useRouter()
   const setAuth = useAuthStore((state) => state.setAuth)
+
+  // Pre-warm the free-tier backend as soon as provider opens login screen
+  useEffect(() => {
+    warmupBackend()
+  }, [])
+
+  // Progressive timer to provide reassurance during free-tier cold starts
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (isLoading) {
+      setLoadingSeconds(0)
+      interval = setInterval(() => {
+        setLoadingSeconds((prev) => prev + 1)
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [isLoading])
 
   const {
     register,
@@ -26,6 +46,7 @@ export default function ProviderLogin() {
     try {
       setIsLoading(true)
       setError("")
+      setLoginError(null)
 
       const response = await api.post("/api/auth/login", {
         email: data.email,
@@ -36,7 +57,9 @@ export default function ProviderLogin() {
 
       // Verify role is provider or doctor
       if (user.role !== "provider" && user.role !== "doctor") {
-        setError("Unauthorized access. This portal is strictly for healthcare providers.")
+        const unauthMsg = "Unauthorized access. This portal is strictly for healthcare providers."
+        setError(unauthMsg)
+        toast.error("Access Denied", { description: unauthMsg })
         setIsLoading(false)
         return
       }
@@ -60,11 +83,22 @@ export default function ProviderLogin() {
       router.push("/doctor/dashboard")
     } catch (err: any) {
       console.error("Login error:", err)
-      const errorMsg = err.response?.data?.detail || "Failed to sign in. Please check your credentials."
-      setError(errorMsg)
-      toast.error("Authentication failed", {
-        description: errorMsg,
-      })
+      const parsed = parseApiError(err)
+      setError(parsed.message)
+      setLoginError({ message: parsed.message, isServerWaking: parsed.isServerWaking })
+
+      if (parsed.isServerWaking) {
+        toast.error("Cloud Server Starting", {
+          description: parsed.message,
+          duration: 7000,
+          icon: <AlertCircle className="w-5 h-5 text-amber-500" />,
+        })
+      } else {
+        toast.error("Authentication Failed", {
+          description: parsed.message,
+          duration: 5000,
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -219,8 +253,61 @@ export default function ProviderLogin() {
                 disabled={isLoading}
                 className="w-full h-10.5 mt-5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition duration-150 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm text-sm"
               >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Access Dashboard <ChevronRight className="h-4 w-4" /></>}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <span>
+                      {loadingSeconds < 4
+                        ? "Verifying Credentials..."
+                        : loadingSeconds < 12
+                        ? "Connecting to Portal..."
+                        : "Waking Clinical Server (~30s)..."}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Access Dashboard <ChevronRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
+
+              {/* Cold Start Progressive Feedback Pill */}
+              {isLoading && loadingSeconds >= 4 && (
+                <div className="mt-3 p-3 rounded-xl bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2.5 shadow-sm animate-in fade-in duration-300">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-sky-500 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">
+                      {loadingSeconds < 12 ? "Connecting to CareFlow..." : "Waking up cloud server..."}
+                    </p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">
+                      {loadingSeconds < 12
+                        ? "Validating provider credentials across HIPAA enclave..."
+                        : "Free-tier hosting is spinning up from idle mode (~30s). Please hold on, almost ready!"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Server Waking Retry Card */}
+              {loginError && loginError.isServerWaking && !isLoading && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+                  <div className="space-y-1.5 flex-1">
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">Server Waking Up</p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">
+                      The free-tier backend was idle and took longer to respond. It should now be warm. Click below to proceed.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleSubmit(onSubmit)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition shadow-sm cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Retry Sign In
+                    </button>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
 

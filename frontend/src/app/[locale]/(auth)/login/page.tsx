@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useRouter, Link } from "@/i18n/routing"
-import { Eye, EyeOff, Loader2, AlertCircle, Activity, HeartPulse, ChevronRight, ShieldCheck } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, Activity, HeartPulse, ChevronRight, ShieldCheck, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
-import api from "@/lib/api"
+import api, { parseApiError } from "@/lib/api"
+import { warmupBackend } from "@/lib/warmup"
 import { useAuthStore } from "@/store/authStore"
 import { API_ROUTES, APP_ROUTES } from "@/lib/constants"
 import Image from "next/image"
@@ -13,12 +14,32 @@ import Image from "next/image"
 export default function LoginPage() {
  const [showPassword, setShowPassword] = useState(false)
  const [isLoading, setIsLoading] = useState(false)
+ const [loadingSeconds, setLoadingSeconds] = useState(0)
+ const [loginError, setLoginError] = useState<{ message: string; isServerWaking: boolean } | null>(null)
  const router = useRouter()
  const setAuth = useAuthStore((state) => state.setAuth)
+
+ // Pre-warm the free-tier backend as soon as user opens login screen
+ useEffect(() => {
+  warmupBackend()
+ }, [])
+
+ // Progressive timer to provide reassurance during free-tier cold starts
+ useEffect(() => {
+  let interval: NodeJS.Timeout
+  if (isLoading) {
+   setLoadingSeconds(0)
+   interval = setInterval(() => {
+    setLoadingSeconds((prev) => prev + 1)
+   }, 1000)
+  }
+  return () => clearInterval(interval)
+ }, [isLoading])
 
  const {
   register,
   handleSubmit,
+  getValues,
   formState: { errors },
  } = useForm<{ email: string; password: string }>()
 
@@ -55,9 +76,21 @@ export default function LoginPage() {
 
    router.push(APP_ROUTES.DASHBOARD)
   } catch (err: unknown) {
-   toast.error(
-    (err as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Failed to sign in. Please check your credentials and try again."
-   )
+   const parsed = parseApiError(err)
+   setLoginError({ message: parsed.message, isServerWaking: parsed.isServerWaking })
+
+   if (parsed.isServerWaking) {
+    toast.error("Cloud Server Starting", {
+     description: parsed.message,
+     duration: 7000,
+     icon: <AlertCircle className="w-5 h-5 text-amber-500" />,
+    })
+   } else {
+    toast.error("Authentication Failed", {
+     description: parsed.message,
+     duration: 5000,
+    })
+   }
   } finally {
    setIsLoading(false)
   }
@@ -221,7 +254,16 @@ export default function LoginPage() {
          className="w-full h-10.5 mt-5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition duration-150 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm text-sm"
         >
          {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <>
+           <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+           <span>
+            {loadingSeconds < 4
+             ? "Signing In..."
+             : loadingSeconds < 12
+             ? "Connecting to Cloud..."
+             : "Waking Server (~30s)..."}
+           </span>
+          </>
          ) : (
           <>
            Sign In
@@ -229,6 +271,44 @@ export default function LoginPage() {
           </>
          )}
         </button>
+
+        {/* Cold Start Progressive Feedback Pill */}
+        {isLoading && loadingSeconds >= 4 && (
+         <div className="mt-3 p-3 rounded-xl bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2.5 shadow-sm animate-in fade-in duration-300">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0 text-sky-500 mt-0.5" />
+          <div className="space-y-0.5">
+           <p className="font-semibold text-slate-800 dark:text-slate-100">
+            {loadingSeconds < 12 ? "Connecting to CareFlow..." : "Waking up cloud server..."}
+           </p>
+           <p className="text-[11px] text-slate-600 dark:text-zinc-400">
+            {loadingSeconds < 12
+             ? "Validating credentials across secure healthcare enclave..."
+             : "Free-tier hosting is spinning up from idle mode (~30s). Please hold on, almost ready!"}
+           </p>
+          </div>
+         </div>
+        )}
+
+        {/* Server Waking Retry Card */}
+        {loginError && loginError.isServerWaking && !isLoading && (
+         <div className="mt-3 p-3 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-sm">
+          <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+          <div className="space-y-1.5 flex-1">
+           <p className="font-semibold text-slate-800 dark:text-slate-100">Server Waking Up</p>
+           <p className="text-[11px] text-slate-600 dark:text-zinc-400">
+            The free-tier backend was idle and took longer to respond. It should now be warm. Click below to proceed.
+           </p>
+           <button
+            type="button"
+            onClick={handleSubmit(onSubmit)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition shadow-sm cursor-pointer"
+           >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Retry Sign In
+           </button>
+          </div>
+         </div>
+        )}
        </form>
 
        {/* Cross Navigation & Sign Up */}

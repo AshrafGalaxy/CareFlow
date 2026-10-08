@@ -65,6 +65,8 @@ app.include_router(checklist.router, prefix="/api/checklist", tags=["checklist"]
 app.include_router(checkins.router, prefix="/api/v1/checkins", tags=["checkins"])
 app.include_router(checkins.router, prefix="/api/checkins", tags=["checkins"])
 
+@app.get("/")
+@app.get("/health")
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "version": "1.0.0"}
+    return {"status": "ok", "service": "CareFlow AI", "version": "1.0.0"}

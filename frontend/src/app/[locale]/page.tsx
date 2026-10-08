@@ -29,11 +29,17 @@ import { FAQAccordion } from "@/components/ui/FAQAccordion"
 import { EcgLineAnimation } from "@/components/ui/EcgLineAnimation"
 import { ShowstopperFeature } from "@/components/ui/ShowstopperFeature"
 import { OpenPeepAvatar } from "@/components/shared/OpenPeepAvatar"
+import { useEffect } from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { warmupBackend } from "@/lib/warmup"
 
 export default function LandingPage() {
  const t = useTranslations("Landing")
+
+ useEffect(() => {
+  warmupBackend()
+ }, [])
 
  const trustBadges = [
   { icon: ShieldCheck, label: "HIPAA-compliant" },
