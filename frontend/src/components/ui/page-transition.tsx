@@ -68,7 +68,7 @@ export function PageTransition() {
       aria-hidden="true"
     >
       <div
-        className="h-[2px] bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 shadow-[0_0_8px_rgba(14,165,233,0.6)] transition-all duration-200 ease-out"
+        className="h-[2.5px] bg-sky-600 dark:bg-sky-400 shadow-[0_0_10px_rgba(2,132,199,0.5)] dark:shadow-[0_0_12px_rgba(56,189,248,0.7)] transition-all duration-200 ease-out"
         style={{ width: `${progress}%` }}
       />
     </div>
