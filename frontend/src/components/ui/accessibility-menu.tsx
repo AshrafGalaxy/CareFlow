@@ -118,9 +118,6 @@ export function AccessibilityMenu() {
         title="Display & Accessibility"
       >
         <SlidersHorizontal className="h-4 w-4" />
-        {mounted && isCustomized && (
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-sky-500 ring-2 ring-background animate-pulse" />
-        )}
         <span className="sr-only">Display, Accessibility & Language</span>
       </PopoverTrigger>
 

@@ -50,7 +50,7 @@ export function OpenPeepAvatar({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden select-none transition-transform duration-200 ${sizeConfig.container} ${
+      className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden select-none ${sizeConfig.container} ${
         showBorder ? "ring-2 ring-white/80 dark:ring-slate-800 shadow-sm" : ""
       } ${className}`}
     >
@@ -61,7 +61,7 @@ export function OpenPeepAvatar({
           width={sizeConfig.px}
           height={sizeConfig.px}
           onError={() => setHasError(true)}
-          className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+          className="w-full h-full object-cover"
           loading="lazy"
         />
       ) : (

@@ -72,16 +72,11 @@ export function TopNav() {
     <Popover>
      <PopoverTrigger aria-label="Notifications" className="relative p-2 text-slate-500 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-xl transition-all duration-300 group">
       <Bell className="h-5 w-5 group-active:scale-95 transition-transform" />
-      <AnimatePresence>
-       {_hasHydrated && unreadCount > 0 && (
-        <motion.span
-         initial={{ scale: 0 }}
-         animate={{ scale: 1 }}
-         exit={{ scale: 0 }}
-         className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-background animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-        />
-       )}
-      </AnimatePresence>
+      {_hasHydrated && unreadCount > 0 && (
+       <span
+        className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-600 rounded-full ring-2 ring-background"
+       />
+      )}
      </PopoverTrigger>
      <PopoverContent className="w-[380px] p-0 mr-6 mt-2 shadow-2xl border-border/40 dark:border-[#27272a] backdrop-blur-3xl bg-white/95 dark:bg-black/95 rounded-2xl overflow-hidden" align="end">
       <div className="p-4 border-b border-border/50 dark:border-[#27272a] flex items-center justify-between bg-slate-50/50 dark:bg-black/50">
