@@ -202,46 +202,30 @@ export default function ProfilePage() {
         {/* Profile Avatar Selection Card */}
         <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border bg-muted/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-lg">
-                  <User size={20} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-heading font-semibold text-foreground">Profile Portrait</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Hand-drawn minimalist avatar for your profile. Click the pencil icon to change.
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-lg">
+                <User size={20} />
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setTempAvatarId(activeAvatarId)
-                  setIsAvatarModalOpen(true)
-                }}
-                className="gap-2 cursor-pointer hidden sm:flex"
-              >
-                <Pencil className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                Change Portrait
-              </Button>
+              <div>
+                <h2 className="text-xl font-heading font-semibold text-foreground">Profile Portrait</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Hand-drawn minimalist avatar for your profile. Click the pencil icon to change.
+                </p>
+              </div>
             </div>
           </div>
           <div className="p-6 flex items-center gap-6">
-            <div className="relative shrink-0">
-              <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center ring-4 ring-sky-500/20 bg-background shadow-md">
-                <OpenPeepAvatar
-                  avatarId={activeAvatarId}
-                  name={user?.name}
-                  gender={gender}
-                  role={user?.role}
-                  dob={dateOfBirth}
-                  size="xl"
-                  showBorder={false}
-                />
-              </div>
+            <div className="relative inline-flex items-center justify-center shrink-0">
+              <OpenPeepAvatar
+                avatarId={activeAvatarId}
+                name={user?.name}
+                gender={gender}
+                role={user?.role}
+                dob={dateOfBirth}
+                size="xl"
+                showBorder={false}
+                className="ring-4 ring-sky-500/25 dark:ring-sky-400/25 shadow-md cursor-pointer hover:opacity-95 transition-opacity"
+              />
               <button
                 type="button"
                 onClick={() => {
@@ -266,21 +250,8 @@ export default function ProfilePage() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Matches your role and preferences. Click the pencil button to browse and pick any portrait.
+                Matches your role and preferences. Click the pencil button on your portrait to switch.
               </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setTempAvatarId(activeAvatarId)
-                  setIsAvatarModalOpen(true)
-                }}
-                className="gap-1.5 cursor-pointer text-xs sm:hidden mt-2"
-              >
-                <Pencil className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                Change Portrait
-              </Button>
             </div>
           </div>
         </section>
@@ -458,33 +429,32 @@ export default function ProfilePage() {
 
       {/* Avatar Selection Dialog */}
       <Dialog open={isAvatarModalOpen} onOpenChange={setIsAvatarModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Choose Profile Portrait</DialogTitle>
             <DialogDescription>
-              Select an avatar style and save to update your profile.
+              Select an avatar style and click Save to apply to your profile.
             </DialogDescription>
           </DialogHeader>
 
           {/* Centered Preview of currently selected avatar */}
-          <div className="flex flex-col items-center justify-center py-3 gap-2 bg-muted/40 rounded-xl border border-border/60">
-            <div className="w-[84px] h-[84px] rounded-full flex items-center justify-center ring-4 ring-sky-500/20 bg-background shadow-sm">
-              <OpenPeepAvatar
-                avatarId={tempAvatarId}
-                name={user?.name}
-                gender={gender}
-                role={user?.role}
-                dob={dateOfBirth}
-                size="lg"
-                showBorder={false}
-              />
-            </div>
-            <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+          <div className="flex flex-col items-center justify-center py-3.5 gap-2 bg-muted/40 rounded-2xl border border-border/60">
+            <OpenPeepAvatar
+              avatarId={tempAvatarId}
+              name={user?.name}
+              gender={gender}
+              role={user?.role}
+              dob={dateOfBirth}
+              size="lg"
+              showBorder={false}
+              className="ring-4 ring-sky-500/25 dark:ring-sky-400/25 shadow-sm"
+            />
+            <span className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
               {getAvatarById(tempAvatarId).label}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5 max-h-[260px] overflow-y-auto p-1">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 max-h-[300px] overflow-y-auto p-1.5">
             {HUMAN_AVATARS.map((av) => {
               const isSelected = tempAvatarId === av.id
               return (
@@ -493,18 +463,18 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => setTempAvatarId(av.id)}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all text-center cursor-pointer",
+                    "flex flex-col items-center gap-2 p-2.5 rounded-xl border transition-all text-center cursor-pointer",
                     isSelected
-                      ? "border-sky-500 bg-sky-50/70 dark:bg-sky-950/40 ring-2 ring-sky-500/40 shadow-sm"
+                      ? "border-sky-500 bg-sky-50/80 dark:bg-sky-950/50 ring-2 ring-sky-500/40 shadow-sm"
                       : "border-border hover:border-slate-300 dark:hover:border-slate-700 hover:bg-muted/40"
                   )}
                 >
                   <img
                     src={av.path}
                     alt={av.label}
-                    className="w-11 h-11 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover"
                   />
-                  <span className="text-[11px] font-medium text-foreground truncate max-w-full">
+                  <span className="text-[11px] font-semibold text-foreground truncate max-w-full">
                     {av.label}
                   </span>
                 </button>
@@ -512,11 +482,12 @@ export default function ProfilePage() {
             })}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex flex-row items-center justify-end gap-3 pt-3 border-t border-border/50">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsAvatarModalOpen(false)}
+              className="px-5 py-2 rounded-xl text-sm font-medium cursor-pointer"
             >
               Cancel
             </Button>
@@ -524,7 +495,7 @@ export default function ProfilePage() {
               type="button"
               onClick={handleSaveAvatar}
               disabled={isSavingAvatar}
-              className="bg-sky-600 hover:bg-sky-500 text-white gap-1.5"
+              className="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2 rounded-xl text-sm font-semibold gap-2 shadow-sm cursor-pointer"
             >
               <Check className="w-4 h-4" />
               {isSavingAvatar ? "Saving..." : "Save Portrait"}
